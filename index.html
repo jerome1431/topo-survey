@@ -2534,11 +2534,13 @@ function openTerrainMode(){
 
   document.getElementById('terrain-overlay').classList.add('vis');
   tmGoTo(1);
-  // Auto-focus immediately — no delay needed, input is already visible
-  requestAnimationFrame(()=>{
-    const el = document.getElementById('tm-mire-p');
-    if(el){ el.focus(); el.select(); }
-  });
+  // iOS: focus must be called synchronously within the user gesture handler
+  // The overlay and input are now visible — focus immediately
+  const _mireEl = document.getElementById('tm-mire-p');
+  if(_mireEl){
+    _mireEl.focus();
+    try{ _mireEl.select(); }catch(e){}
+  }
 }
 
 function closeTerrainMode(){
@@ -2636,8 +2638,17 @@ function tmBuildRefGrid(){
 }
 
 function tmShowCroquis(){
-  // Reuse the existing croquis overlay
-  showCroquis();
+  if(!cropisData) return;
+  const overlay = document.getElementById('croquis-overlay');
+  overlay.style.zIndex = '4000'; // above terrain overlay (3000)
+  document.getElementById('croquis-img').src = cropisData;
+  document.getElementById('croquis-name').textContent = cropisName;
+  overlay.classList.add('vis');
+  // Reset z-index when closed
+  overlay.addEventListener('click', function restoreZ(){
+    overlay.style.zIndex = '';
+    overlay.removeEventListener('click', restoreZ);
+  }, {once: true});
 }
 
 function tmBuildUGrid(){
@@ -2662,17 +2673,6 @@ function tmBuildUGrid(){
   }).join('');
 }
 
-function tmSelectU(uId, label){
-  tmActiveRef = uId;
-  tmActiveIsU = true;
-  document.getElementById('tm-dist-label').textContent = `Observation vers ${label}`;
-  const panel = document.getElementById('tm-dist-panel');
-  panel.style.display = 'block';
-  const inp = document.getElementById('tm-dist-input');
-  inp.value = tmUDistances[uId] !== undefined ? tmUDistances[uId] : '';
-  setTimeout(()=>inp.focus(), 100);
-}
-
 function tmSelectRef(refId, label){
   tmActiveRef = refId;
   tmActiveIsU = false;
@@ -2681,7 +2681,20 @@ function tmSelectRef(refId, label){
   panel.style.display = 'block';
   const inp = document.getElementById('tm-dist-input');
   inp.value = tmDistances[refId] !== undefined ? tmDistances[refId] : '';
-  setTimeout(()=>inp.focus(), 100);
+  inp.focus();
+  try{ inp.select(); }catch(e){}
+}
+
+function tmSelectU(uId, label){
+  tmActiveRef = uId;
+  tmActiveIsU = true;
+  document.getElementById('tm-dist-label').textContent = `Observation vers ${label}`;
+  const panel = document.getElementById('tm-dist-panel');
+  panel.style.display = 'block';
+  const inp = document.getElementById('tm-dist-input');
+  inp.value = tmUDistances[uId] !== undefined ? tmUDistances[uId] : '';
+  inp.focus();
+  try{ inp.select(); }catch(e){}
 }
 
 function tmCancelDist(){
