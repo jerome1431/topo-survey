@@ -394,8 +394,12 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 .tm-hint{font-size:11px;color:var(--text-dim);margin-top:-8px;}
 
 /* Big input */
-.tm-big-input{width:100%;background:var(--surface2);border:2px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:28px;padding:14px 16px;text-align:center;outline:none;transition:border-color .2s;}
+.tm-big-input{width:100%;background:var(--surface2);border:2px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:28px;padding:14px 16px;text-align:center;outline:none;transition:border-color .2s;box-sizing:border-box;}
 .tm-big-input:focus{border-color:var(--accent2);}
+/* Hide number input spinners */
+.tm-big-input[type=number]::-webkit-inner-spin-button,
+.tm-big-input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.tm-big-input[type=number]{-moz-appearance:textfield;}
 
 /* Ref cards in terrain mode */
 .tm-ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
@@ -934,8 +938,8 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
       <div class="tm-label">Hauteur de mire en P</div>
       <div class="tm-hint">Hauteur de lecture sur la mire au point à mesurer</div>
     </div>
-    <input class="tm-big-input" type="text" inputmode="decimal" id="tm-mire-p"
-      placeholder="1.450" oninput="tmUpdatePreview()"
+    <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
+      id="tm-mire-p" placeholder="1.450" oninput="tmUpdatePreview()"
       onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();tmNext();}">
     <div style="font-size:11px;color:var(--text-dim);text-align:center">
       HI: <span id="tm-hi-display">—</span> m &nbsp;·&nbsp; Mire réf: <span id="tm-mireref-display">—</span> m
@@ -966,12 +970,12 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
     <!-- Active distance entry (shared for refs and U) -->
     <div class="tm-dist-panel" id="tm-dist-panel" style="display:none">
       <div class="tm-dist-title" id="tm-dist-label">Distance vers A</div>
-      <input class="tm-big-input" type="text" inputmode="decimal" id="tm-dist-input"
-        placeholder="0.000" oninput="tmUpdatePreview()"
+      <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
+        id="tm-dist-input" placeholder="0.000"
+        oninput="tmUpdatePreview()"
         onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();tmConfirmDist();}">
       <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="tm-btn tm-btn-secondary" style="flex:0 0 auto;padding:12px 16px" onclick="tmCancelDist()">✕</button>
-        <button class="tm-btn tm-btn-primary" onclick="tmConfirmDist()">✓ Valider</button>
+        <button class="tm-btn tm-btn-secondary" style="flex:0 0 auto;padding:12px 16px" onclick="tmCancelDist()">✕ Annuler</button>
       </div>
     </div>
 
@@ -2705,13 +2709,15 @@ function tmCancelDist(){
 
 function tmConfirmDist(){
   if(!tmActiveRef) return;
-  const val = pf(document.getElementById('tm-dist-input').value);
+  const inp = document.getElementById('tm-dist-input');
+  const raw = inp.value.replace(',','.');
+  const val = pf(raw);
   if(isNaN(val)||val<=0){
-    document.getElementById('tm-dist-input').style.borderColor='var(--red)';
+    inp.style.borderColor='var(--red)';
     return;
   }
-  document.getElementById('tm-dist-input').style.borderColor='';
-  const strVal = document.getElementById('tm-dist-input').value;
+  inp.style.borderColor='';
+  const strVal = val.toString();
 
   if(tmActiveIsU){
     tmUDistances[tmActiveRef] = strVal;
