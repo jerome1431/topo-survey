@@ -1861,7 +1861,10 @@ function weightedAvg(cands){
 function precScore(cands,final){
   if(cands.length<=1) return null;
   const spread=cands.reduce((mx,c)=>Math.max(mx,Math.sqrt((c.x-final.x)**2+(c.y-final.y)**2)),0);
-  return {score:Math.round(Math.max(0,Math.min(100,100*(1-spread/0.10)))), spread};
+  // Scale relative to threshold: 100% at 0mm, 50% at threshold, 0% at 2×threshold
+  const threshold = (pf(document.getElementById('spread-threshold')?.value)||200) / 1000; // mm→m
+  const score = Math.round(Math.max(0, Math.min(100, 100*(1 - spread/(threshold*2)))));
+  return {score, spread};
 }
 function dist2(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);}
 
