@@ -971,13 +971,11 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
     <div class="tm-dist-panel" id="tm-dist-panel" style="display:none">
       <div class="tm-dist-title" id="tm-dist-label">Distance vers A</div>
       <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
-        id="tm-dist-input" placeholder="0.000"
-        oninput="tmUpdatePreview()"
-        onchange="tmConfirmDist()"
-        onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'||event.key==='Done'){event.preventDefault();tmConfirmDist();}">
-      <button class="tm-btn tm-btn-danger" style="margin-top:10px;width:100%" onclick="tmDeleteDist()">
-        🗑 Effacer cette distance
-      </button>
+        id="tm-dist-input" placeholder="0.000" oninput="tmUpdatePreview()">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="tm-btn tm-btn-primary" style="flex:1" onclick="tmConfirmDist()">✓</button>
+        <button class="tm-btn tm-btn-danger" style="flex:1" onclick="tmDeleteDist()">🗑</button>
+      </div>
     </div>
 
     <!-- Live preview -->
@@ -2759,15 +2757,7 @@ function tmConfirmDist(){
 
 function tmCanClose(){
   const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
-  if(filledKeys.length < 2) return false;
-  // Check at least one valid pair triangulates
-  const filledRefs = filledKeys.map(k=>{
-    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
-    if(!ref) return null;
-    return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
-  }).filter(Boolean);
-  const result = tmTrilaterate(filledRefs);
-  return !!(result && result.final && !isNaN(result.final.x) && !isNaN(result.final.y));
+  return filledKeys.length >= 2;
 }
 
 // Shared trilateration helper for terrain mode — mirrors applyCalc logic
