@@ -1,0 +1,4220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Topo·Survey</title>
+<meta name="description" content="Relevé topographique — Trilatération 3D sur le terrain">
+<meta name="theme-color" content="#0e0f0e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Topo·Survey">
+<!-- Inline manifest via data URI -->
+<link rel="manifest" href="data:application/manifest+json,{
+  &quot;name&quot;:&quot;Topo·Survey&quot;,
+  &quot;short_name&quot;:&quot;TopoSurvey&quot;,
+  &quot;description&quot;:&quot;Relevé topographique — Trilatération 3D&quot;,
+  &quot;start_url&quot;:&quot;.&quot;,
+  &quot;display&quot;:&quot;standalone&quot;,
+  &quot;background_color&quot;:&quot;#0e0f0e&quot;,
+  &quot;theme_color&quot;:&quot;#a8e063&quot;,
+  &quot;orientation&quot;:&quot;any&quot;,
+  &quot;icons&quot;:[
+    {&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230e0f0e'/%3E%3Ctext x='256' y='340' font-size='280' text-anchor='middle' font-family='serif' fill='%23a8e063'%3E⛰%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;512x512&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;,&quot;purpose&quot;:&quot;any maskable&quot;}
+  ]
+}">
+<!-- Apple touch icon (inline SVG as data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230e0f0e'/%3E%3Ctext x='256' y='340' font-size='280' text-anchor='middle' font-family='serif' fill='%23a8e063'%3E⛰%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/fflate.min.js"></script>
+<style>
+:root {
+  --bg:#0e0f0e; --surface:#161917; --surface2:#1d2120; --border:#2a2f2d;
+  --accent:#a8e063; --accent2:#5fb872; --text:#e8ede9; --text-dim:#7a8a7d;
+  --red:#e06363; --yellow:#e0c563; --grid:#1a1f1d;
+}
+body.light {
+  --bg:#f0f2f0; --surface:#ffffff; --surface2:#e8ece8; --border:#d0d8d0;
+  --accent:#4a9a1a; --accent2:#3a8010; --text:#1a2a1a; --text-dim:#6a7a6a;
+  --red:#c03030; --yellow:#a07010; --grid:#e0e8e0;
+}
+
+/* Theme toggle button */
+.theme-btn{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+  padding:5px 12px 5px 8px;cursor:pointer;font-family:'DM Mono',monospace;
+  font-size:10px;color:var(--text-dim);transition:all .2s;letter-spacing:.05em;
+}
+.theme-btn:hover{border-color:var(--text-dim);color:var(--text);}
+.theme-icon{font-size:13px;line-height:1;transition:transform .3s;}
+body.light .theme-icon{transform:rotate(180deg);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:24px 20px;overflow-x:hidden;}
+
+/* Header */
+header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.logo-area h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;color:var(--accent);line-height:1;}
+.logo-area p{color:var(--text-dim);font-size:11px;margin-top:5px;letter-spacing:0.08em;text-transform:uppercase;}
+.badge{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:5px 11px;font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;}
+.save-indicator{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-dim);transition:all 0.3s;margin-top:6px;}
+.save-indicator .sdot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);transition:all 0.3s;}
+.save-indicator.saved .sdot{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.save-indicator.saved{color:var(--accent2);}
+.save-indicator.saving .sdot{background:var(--yellow);box-shadow:0 0 6px var(--yellow);animation:pulse 0.6s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+.restore-banner{background:var(--surface2);border:1px solid var(--accent2);border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;animation:slideDown .3s ease;flex-wrap:wrap;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.restore-banner p{font-size:11px;color:var(--accent2);}
+.restore-banner strong{color:var(--accent);}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:370px 1fr;gap:14px;align-items:start;min-width:0;}
+.layout > *{min-width:0;}
+body.quick-mode .layout{grid-template-columns:340px 1fr;}
+
+@media(max-width:960px){
+  .layout{grid-template-columns:1fr !important;}
+  .canvas-col{order:2;}
+  .left-col{order:1;}
+  body.quick-mode .layout{grid-template-columns:1fr !important;}
+  .app{padding:10px 8px;}
+  
+  .dist-grid{grid-template-columns:1fr 1fr 1fr;}
+}
+
+@media(max-width:600px){
+  .canvas-hdr{flex-wrap:wrap;padding:6px 8px;gap:4px;}
+  .canvas-hdr > div:last-child{flex-wrap:wrap;gap:4px;}
+  .contour-btn,.perim-btn{font-size:9px;padding:3px 6px;}
+  .contour-btn span:last-child,.perim-btn span:last-child{display:none;}
+  .zoom-btn{width:22px;height:22px;font-size:12px;}
+  .zoom-level{font-size:8px;min-width:24px;}
+  /* Header: stack logo and buttons */
+  header{flex-direction:column;gap:10px;align-items:stretch;}
+  header > div:last-child{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;justify-content:flex-start;}
+  .save-indicator{margin-top:0;}
+
+  /* Header buttons: smaller */
+  .wake-btn,.quick-btn,.theme-btn{font-size:9px;padding:4px 8px;}
+  .badge{font-size:9px;padding:4px 8px;}
+  .logo-area h1{font-size:20px;}
+  .logo-area p{font-size:10px;}
+
+  /* Panels: tighter */
+  .panel-body{padding:10px 10px;}
+  .panel-header{padding:9px 10px;}
+
+  /* Refs grid: 2 cols on narrow */
+  
+  .dist-grid{grid-template-columns:1fr 1fr;}
+
+  /* Stats bar: wrap instead of 5 fixed cols */
+  .stats-bar{flex-wrap:wrap;}
+  .stat{flex:1 1 30%;border-right:none;border-bottom:1px solid var(--border);padding:6px 8px;}
+  .stat:last-child{border-bottom:none;}
+  .stat span{font-size:12px;}
+
+  /* Side selector: wrap text */
+  .side-selector{flex-wrap:wrap;}
+  .side-selector span{width:100%;margin-bottom:4px;}
+
+  /* Table: hide less important cols */
+  thead th:nth-child(6),thead th:nth-child(8),
+  tbody td:nth-child(6),tbody td:nth-child(8){display:none;}
+
+  /* Result box coords */
+  .rcoords{grid-template-columns:repeat(3,1fr);}
+
+  /* Buttons row */
+  .brow{flex-wrap:wrap;}
+
+  /* Canvas header: hide subtitle on small */
+  .canvas-hdr > span{display:none;}
+}
+
+@media(max-width:380px){
+  
+  .dist-grid{grid-template-columns:1fr 1fr;}
+  .rcoords{grid-template-columns:1fr 1fr 1fr;}
+  .irow{grid-template-columns:1fr;}
+}
+
+/* Panel */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.panel-header{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.panel-header h2{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+.panel-body{padding:13px 15px;}
+.sec-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent2);margin-bottom:7px;margin-top:13px;}
+.sec-label:first-child{margin-top:0;}
+.divider{height:1px;background:var(--border);margin:11px 0;}
+.irow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+.ig{display:flex;flex-direction:column;gap:3px;}
+.ig label{font-size:10px;color:var(--text-dim);letter-spacing:.05em;}
+.ig input{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 9px;outline:none;transition:border-color .15s;width:100%;}
+.ig input:focus{border-color:var(--accent2);}
+.ig input::placeholder{color:var(--text-dim);}
+.ig input:disabled{opacity:.3;cursor:not-allowed;}
+.full{grid-column:1/-1;}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;padding:8px 14px;letter-spacing:.04em;white-space:nowrap;min-width:0;}
+.btn-primary{background:var(--accent);color:#0e0f0e;font-weight:500;width:100%;}
+.btn-primary:hover{background:#bff07a;}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn-ghost:hover{border-color:var(--text-dim);color:var(--text);}
+.btn-danger{background:transparent;border:1px solid #3a2020;color:var(--red);font-size:11px;padding:4px 9px;}
+.btn-danger:hover{background:#2a1515;}
+.brow{display:flex;gap:8px;margin-top:9px;}
+
+/* Ref list (new dynamic style, replaces grid) */
+.ref-list{display:flex;flex-direction:column;gap:7px;}
+.ref-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:border-color .2s;}
+.ref-card{border-color:var(--rc,var(--accent2));}
+.rch{display:flex;align-items:center;padding:8px 10px;gap:8px;cursor:pointer;user-select:none;}
+.rch:hover{background:rgba(255,255,255,.03);}
+.rname{font-family:'Syne',sans-serif;font-weight:800;font-size:11px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rtitle{font-size:10px;color:var(--text-dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.r-del-btn{font-size:10px;padding:3px 7px;border-radius:3px;border:1px solid #3a2020;background:transparent;color:var(--red);cursor:pointer;font-family:'DM Mono',monospace;}
+.r-del-btn:hover{background:#2a1515;}
+.rcb{display:none;padding:0 10px 10px;border-top:1px solid var(--border);}
+.rcb.open{display:block;}
+.rc2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;}
+.ref-add-btn{display:flex;align-items:center;gap:5px;background:transparent;border:1px dashed var(--border);border-radius:4px;padding:7px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);cursor:pointer;width:100%;justify-content:center;transition:all .2s;margin-top:2px;}
+.ref-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Distance inputs */
+.dist-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.dist-item{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:7px 9px;position:relative;transition:border-color .2s;}
+.dist-item.active-ref{border-color:var(--rc,var(--border));}
+.dist-item.inactive{opacity:.28;pointer-events:none;}
+.dist-item label{font-size:9px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:4px;margin-bottom:4px;}
+.rdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dist-item input{background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;width:100%;padding:0;}
+.dist-item input::placeholder{color:var(--text-dim);}
+.dist-unit{font-size:9px;color:var(--text-dim);position:absolute;right:8px;bottom:8px;}
+
+/* Validity bar */
+.vbar{display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;}
+.vlabel{font-size:10px;color:var(--text-dim);flex:1;}
+.vdots{display:flex;gap:3px;}
+.vd{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .2s;}
+.vd.on{background:var(--accent);box-shadow:0 0 5px var(--accent);}
+
+/* Result */
+.result-box{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;margin-top:9px;display:none;}
+.result-box.vis{display:block;}
+.rcoords{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ci label{font-size:9px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px;}
+.ci span{font-size:15px;color:var(--accent);font-weight:500;}
+.prow{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.plabel{font-size:9px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
+.pbarw{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.pbar{height:100%;border-radius:2px;transition:width .4s ease;}
+.pval{font-size:10px;color:var(--text);min-width:32px;text-align:right;}
+.pdetail{font-size:9px;color:var(--text-dim);margin-top:4px;letter-spacing:.04em;}
+.err{font-size:11px;color:var(--red);margin-top:7px;display:none;}
+.err.vis{display:block;}
+
+/* Side selector (2-point ambiguity) */
+.side-selector{display:none;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--yellow);border-radius:4px;animation:slideDown .2s ease;}
+.side-selector.vis{display:flex;}
+.side-selector span{font-size:10px;color:var(--yellow);flex:1;letter-spacing:.04em;}
+.side-btn{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .15s;}
+.side-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.side-btn.active{background:var(--yellow)22;border-color:var(--yellow);color:var(--yellow);}
+.mirror-note{font-size:9px;color:var(--text-dim);margin-top:3px;letter-spacing:.04em;display:none;}
+.mirror-note.vis{display:block;}
+
+/* Prevent mobile zoom on input focus — iOS zooms when font-size < 16px */
+input{font-size:16px !important;touch-action:manipulation;}
+.ig input{padding:5px 9px;}
+.dist-item input{font-size:16px !important;}
+.ig label{font-size:11px;}
+.canvas-wrap{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;max-width:100%;width:100%;}
+#canvas{touch-action:none;cursor:default;display:block;}
+.canvas-hdr{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap;min-width:0;}
+.chl{display:flex;align-items:center;gap:6px;min-width:0;flex-shrink:1;}
+canvas{display:block;width:100%;aspect-ratio:16/9;cursor:crosshair;}
+@media(max-width:960px){canvas{aspect-ratio:4/3;}}
+
+/* Stats */
+.stats-bar{display:flex;border-top:1px solid var(--border);}
+.stat{flex:1;padding:8px 11px;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat label{font-size:9px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:2px;}
+.stat span{font-size:13px;color:var(--text);font-variant-numeric:tabular-nums;}
+
+/* Table */
+.cbadge{background:var(--accent2);color:#0e0f0e;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:500;margin-left:auto;}
+.twrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{padding:8px 10px;text-align:left;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;animation:rowIn .25s ease both;}
+@keyframes rowIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+tbody tr.perim-row{border-left:2px solid #50c878;}
+tbody tr:hover{background:var(--surface2);}
+tbody td{padding:8px 10px;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;}
+tbody td:first-child{color:var(--accent);font-weight:500;}
+.empty-state{padding:32px 20px;text-align:center;color:var(--text-dim);font-size:12px;}
+.empty-state .ico{font-size:24px;display:block;margin-bottom:9px;opacity:.35;}
+.tooltip{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:11px;color:var(--text);pointer-events:none;display:none;z-index:200;white-space:nowrap;}
+.tooltip.vis{display:block;}
+/* Hide spinners */
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input[type=text]{-moz-appearance:textfield;}
+
+/* DOP / geometry quality indicator */
+.dop-bar{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 10px;border-radius:4px;border:1px solid var(--border);font-size:10px;transition:all .3s;}
+.dop-bar.good{background:#0d2a0d;border-color:#2a5a2a;color:#6abf6a;}
+.dop-bar.warn{background:#2a2000;border-color:#5a4a00;color:#c0a020;}
+.dop-bar.bad{background:#2a0a0a;border-color:#5a1a1a;color:#c04040;}
+body.light .dop-bar.good{background:#e8f8e8;border-color:#a0d0a0;color:#2a6a2a;}
+body.light .dop-bar.warn{background:#f8f0d8;border-color:#c0a040;color:#7a5a00;}
+body.light .dop-bar.bad{background:#f8e8e8;border-color:#d08080;color:#a02020;}
+.dop-icon{font-size:12px;}
+.dop-text{flex:1;}
+
+/* Colinear warning */
+.colin-warn{display:none;font-size:10px;color:var(--red);margin-top:5px;padding:5px 9px;background:#2a0a0a22;border-left:2px solid var(--red);border-radius:0 3px 3px 0;}
+.colin-warn.vis{display:block;}
+
+/* Quick mode toggle */
+.quick-btn{display:flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.quick-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.quick-btn.on{background:var(--accent2)22;border-color:var(--accent2);color:var(--accent2);}
+
+/* Wake lock button */
+.wake-btn{display:flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.wake-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.wake-btn.on{background:var(--yellow)22;border-color:var(--yellow);color:var(--yellow);}
+.wake-btn.unsupported{opacity:.4;cursor:not-allowed;}
+
+/* Quick mode: hide non-essential panels */
+body.quick-mode .panel.hide-quick{display:none;}
+
+/* Keyboard focus ring */
+input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--accent2)22;}
+
+/* Info button & box */
+.info-btn{margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;font-style:italic;font-family:serif;}
+.info-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.info-btn.on{border-color:var(--yellow);color:var(--yellow);background:var(--yellow)22;}
+.info-box{display:none;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.6;}
+.info-box.vis{display:block;}
+.info-box p{margin-bottom:3px;}
+.info-box strong{color:var(--text);}
+
+/* PWA install banner */
+.install-banner{display:none;background:var(--surface2);border:1px solid var(--accent2);border-radius:6px;padding:10px 14px;margin-bottom:14px;animation:slideDown .3s ease;align-items:center;gap:12px;flex-wrap:wrap;}
+.install-banner.vis{display:flex;}
+.install-banner p{font-size:11px;color:var(--accent2);flex:1;}
+.install-banner strong{color:var(--accent);}
+
+/* Perimeter edit mode */
+.perim-btn{display:flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 9px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.perim-btn:hover{border-color:#50c878;color:#50c878;}
+.perim-btn.on{background:#50c87822;border-color:#50c878;color:#50c878;}
+.perim-badge{display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #50c878;flex-shrink:0;vertical-align:middle;margin-right:3px;}
+.perim-badge.filled{background:#50c878;}
+.surface-bar{display:flex;gap:0;border-top:1px solid var(--border);}
+.surface-stat{flex:1;padding:10px 12px;border-right:1px solid var(--border);text-align:center;}
+.surface-stat:last-child{border-right:none;}
+.surface-stat label{font-size:9px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px;}
+.surface-stat span{font-size:14px;color:#50c878;font-variant-numeric:tabular-nums;font-weight:500;}
+
+/* Visibility toggle buttons */
+.vis-btn{font-size:9px;padding:3px 8px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;opacity:.45;}
+.vis-btn.on{opacity:1;color:var(--text);border-color:var(--text-dim);}
+.vis-btn:hover{border-color:var(--text);color:var(--text);}
+
+/* Export filename input */
+.fname-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.fname-row label{font-size:9px;color:var(--text-dim);white-space:nowrap;letter-spacing:.05em;text-transform:uppercase;}
+.fname-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:4px 7px;outline:none;min-width:0;}
+.fname-input:focus{border-color:var(--accent2);}
+
+/* Offset modal */
+.offset-coords{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:10px 0;}
+.offset-field label{font-size:10px;color:var(--text-dim);display:block;margin-bottom:3px;}
+.offset-field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 8px;outline:none;}
+.offset-field input:focus{border-color:var(--accent2);}
+.offset-source{font-size:11px;color:var(--text-dim);background:var(--surface2);border-radius:4px;padding:8px 10px;margin-bottom:10px;}
+.offset-source strong{color:var(--text);}
+.offset-arrow{display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:18px;margin:4px 0;}
+
+/* Croquis overlay */
+.croquis-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;display:none;align-items:center;justify-content:center;cursor:zoom-out;flex-direction:column;gap:10px;}
+.croquis-overlay.vis{display:flex;}
+.croquis-overlay img{max-width:95vw;max-height:88vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6);object-fit:contain;}
+.croquis-hint{font-size:11px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;letter-spacing:.05em;}
+.croquis-name{font-size:12px;color:rgba(255,255,255,.8);font-family:'Syne',sans-serif;font-weight:600;}
+
+/* ── RAPPORT MODAL ──────────────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.vis{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;animation:slideDown .25s ease;}
+.modal h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.modal .modal-sub{font-size:10px;color:var(--text-dim);margin-bottom:16px;letter-spacing:.05em;}
+.modal-section{font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin:14px 0 8px;}
+.check-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer;}
+.check-row:hover{border-color:var(--text-dim);}
+.check-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;}
+.check-row .cr-label{flex:1;font-size:12px;color:var(--text);}
+.check-row .cr-desc{font-size:10px;color:var(--text-dim);}
+.modal-email{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:8px 10px;outline:none;margin-top:4px;}
+.modal-email:focus{border-color:var(--accent2);}
+.modal-actions{display:flex;gap:8px;margin-top:16px;}
+
+/* Zoom controls */
+.zoom-controls{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.zoom-btn{width:26px;height:26px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .15s;font-family:'DM Mono',monospace;}
+.zoom-btn:hover{border-color:var(--text-dim);color:var(--text);}
+.zoom-level{font-size:9px;color:var(--text-dim);min-width:30px;text-align:center;font-family:'DM Mono',monospace;}
+
+/* Contour toggle button */
+.contour-btn{display:flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 9px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.contour-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.contour-btn.on{background:var(--yellow)22;border-color:var(--yellow);color:var(--yellow);}
+
+/* Tab order highlight on dist inputs */
+.dist-item input:focus{box-shadow:0 0 0 2px var(--accent)44;}
+
+/* ── UNKNOWN POINTS (U) ─────────────────────────────────────────────────────── */
+.u-list{display:flex;flex-direction:column;gap:7px;}
+.u-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:border-color .2s;}
+.u-card.resolved{border-color:#7060e055;}
+.u-card.active{border-color:#9070ff;}
+.u-card-header{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;}
+.u-card-header:hover{background:rgba(255,255,255,.03);}
+.u-badge{font-family:'Syne',sans-serif;font-weight:800;font-size:11px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#7060e022;color:#9070ff;border:1px solid #7060e055;}
+.u-status{font-size:10px;color:var(--text-dim);flex:1;}
+.u-obs-dots{display:flex;gap:3px;align-items:center;}
+.u-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .2s;}
+.u-dot.filled{background:#9070ff;box-shadow:0 0 5px #9070ff88;}
+.u-dot.min{background:var(--yellow);box-shadow:0 0 5px var(--yellow)88;}
+.u-actions{display:flex;gap:5px;align-items:center;}
+.u-activate-btn{font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid #7060e055;background:#7060e011;color:#9070ff;cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap;}
+.u-activate-btn:hover{background:#7060e033;}
+.u-activate-btn.active-ref{background:#7060e033;border-color:#9070ff;}
+.u-del-btn{font-size:10px;padding:3px 7px;border-radius:3px;border:1px solid #3a2020;background:transparent;color:var(--red);cursor:pointer;font-family:'DM Mono',monospace;}
+.u-del-btn:hover{background:#2a1515;}
+.u-body{display:none;padding:0 10px 10px;border-top:1px solid var(--border);}
+.u-body.open{display:block;}
+.u-obs-list{margin-top:6px;display:flex;flex-direction:column;gap:3px;}
+.u-obs-item{font-size:10px;color:var(--text-dim);padding:4px 6px;background:var(--bg);border-radius:3px;display:flex;gap:8px;}
+.u-obs-item span:first-child{color:var(--text);font-weight:500;min-width:30px;}
+.u-coords{font-size:11px;color:#9070ff;margin-top:6px;font-variant-numeric:tabular-nums;}
+.u-add-btn{display:flex;align-items:center;gap:5px;background:transparent;border:1px dashed var(--border);border-radius:4px;padding:7px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);cursor:pointer;width:100%;justify-content:center;transition:all .2s;margin-top:2px;}
+.u-add-btn:hover{border-color:#9070ff;color:#9070ff;}
+
+/* dist-item for U */
+.dist-item.u-ref{border-color:#7060e055;}
+.dist-item.u-ref label{color:#9070ff;}
+
+/* Recalc notification */
+.recalc-banner{display:none;background:var(--surface2);border:1px solid #7060e0;border-radius:6px;padding:9px 13px;margin-bottom:10px;animation:slideDown .3s ease;flex-wrap:wrap;gap:8px;align-items:center;}
+.recalc-banner.vis{display:flex;}
+.recalc-banner p{font-size:11px;color:var(--text);flex:1;}
+.recalc-banner strong{color:#9070ff;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="logo-area">
+    <h1>TOPO·SURVEY</h1>
+    <p>Relevé topographique — Trilatération 3D</p>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="wake-btn" id="wake-btn" onclick="toggleWakeLock()" title="Empêcher l'écran de s'éteindre">
+        <span>☀</span><span id="wake-label">Écran actif</span>
+      </button>
+      <button class="quick-btn" id="quick-btn" onclick="toggleQuickMode()" title="Mode saisie rapide">
+        <span>⚡</span><span id="quick-label">Mode rapide</span>
+      </button>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
+        <span class="theme-icon">🌙</span><span id="theme-label">Mode clair</span>
+      </button>
+      <div class="badge">v2.1 · terrain</div>
+    </div>
+    <div class="save-indicator" id="si">
+      <div class="sdot"></div><span id="sl">Aucune sauvegarde</span>
+    </div>
+  </div>
+</header>
+
+<div id="restore-banner"></div>
+<div class="install-banner" id="install-banner">
+  <p>📲 <strong>Installer Topo·Survey</strong> sur l'écran d'accueil pour l'utiliser sans navigateur</p>
+  <div class="brow" style="margin-top:0">
+    <button class="btn btn-primary" style="width:auto;padding:5px 13px;font-size:11px" id="install-btn">Installer</button>
+    <button class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="document.getElementById('install-banner').classList.remove('vis')">Plus tard</button>
+  </div>
+</div>
+
+<div class="layout">
+<!-- LEFT -->
+<div class="left-col" style="display:flex;flex-direction:column;gap:12px">
+
+  <!-- Recalc notification banner -->
+  <div class="recalc-banner" id="recalc-banner">
+    <p id="recalc-msg">U affiné — recalcul en cours…</p>
+    <div class="brow" style="margin-top:0">
+      <button class="btn" style="font-size:11px;padding:5px 11px;background:#7060e0;color:#fff;border:none" onclick="acceptRecalc()">✓ Accepter</button>
+      <button class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="cancelRecalc()">✕ Annuler</button>
+    </div>
+  </div>
+
+  <div class="panel hide-quick" id="u-panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:#9070ff;box-shadow:0 0 8px #9070ff88"></div>
+      <h2>Points inconnus</h2>
+      <span style="font-size:9px;color:var(--text-dim);margin-left:auto" id="u-count-label">Aucun</span>
+    </div>
+    <div class="panel-body">
+      <div class="u-list" id="u-list"></div>
+      <button class="u-add-btn" onclick="addUnknownPoint()">＋ Nouveau point inconnu</button>
+    </div>
+  </div>
+
+  <div class="panel hide-quick">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--accent);box-shadow:0 0 8px var(--accent)"></div>
+      <h2>Points de référence</h2>
+      <span style="font-size:9px;color:var(--text-dim);margin-left:auto" id="ref-count-label">2 actifs min.</span>
+      <button id="croquis-btn" onclick="showCroquis()" title="Voir le croquis de référence"
+        style="display:none;margin-left:8px;padding:3px 9px;font-size:10px;border-radius:4px;border:1px solid var(--accent2);background:var(--accent2)22;color:var(--accent2);cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap">
+        🗺 Croquis
+      </button>
+    </div>
+    <div class="panel-body">
+      <div class="ref-list" id="ref-list"></div>
+      <div class="colin-warn" id="colin-warn">⚠ Références colinéaires — ajoutez un point hors de cet axe.</div>
+      <div style="display:flex;gap:7px;margin-top:2px">
+        <button class="ref-add-btn" style="flex:1" onclick="addRef()">＋ Nouveau point de référence</button>
+        <label class="ref-add-btn" style="flex:0 0 auto;width:auto;padding:7px 12px;cursor:pointer" title="Charger un croquis de référence">
+          📎 Croquis
+          <input type="file" accept="image/*" style="display:none" onchange="loadCroquis(this)">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel hide-quick">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--yellow);box-shadow:0 0 8px var(--yellow)"></div>
+      <h2>Niveau laser</h2>
+      <div class="info-btn" id="laser-info-btn" onclick="toggleLaserInfo()" title="Explications">ℹ</div>
+    </div>
+    <div class="info-box" id="laser-info-box">
+      <p><strong>HI</strong> — Hauteur du faisceau laser au-dessus du sol, mesurée sur la mire posée au pied du trépied.</p>
+      <p><strong>Mire référence</strong> — Lecture de mire au point de cote zéro (votre altitude de référence). Si prise au pied du trépied, HI = Mire référence.</p>
+      <p style="margin-top:4px;color:var(--accent2)">Z = mire référence − mire en P</p>
+    </div>
+    <div class="panel-body">
+      <div class="irow">
+        <div class="ig"><label>HI (m)</label><input type="text" inputmode="text" id="hi" value="1.200"></div>
+        <div class="ig"><label>Mire référence (m)</label><input type="text" inputmode="text" id="mire-ref" value="1.200"></div>
+      </div>
+      <div style="margin-top:7px">
+        <div class="ig">
+          <label>Seuil d'alerte spread</label>
+          <div style="display:flex;align-items:center;gap:7px">
+            <input type="range" id="spread-threshold" min="100" max="1000" step="50" value="200"
+              oninput="syncSpreadThreshold('slider')"
+              style="flex:1;min-width:0;accent-color:var(--yellow)">
+            <input type="text" inputmode="decimal" id="spread-threshold-input" value="200"
+              oninput="syncSpreadThreshold('input')"
+              style="width:52px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--yellow);font-family:'DM Mono',monospace;font-size:12px;padding:3px 5px;text-align:right;outline:none">
+            <span style="font-size:10px;color:var(--text-dim);flex-shrink:0">mm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--accent2);box-shadow:0 0 8px var(--accent2)"></div>
+      <h2>Mesure d'un point</h2>
+    </div>
+    <div class="panel-body">
+      <div class="sec-label">Distances au télémètre (min. 2)</div>
+      <div class="dist-grid" id="dist-grid"></div>
+      <!-- U observations -->
+      <div id="u-dist-section" style="display:none;margin-top:8px">
+        <div class="sec-label" style="margin-top:0">Observations vers points inconnus (optionnel)</div>
+        <div class="dist-grid" id="u-dist-grid"></div>
+      </div>
+      <div class="vbar"><span class="vlabel" id="vlabel">— Entrez au moins 2 distances</span><div class="vdots" id="vdots"></div></div>
+      <div class="dop-bar" id="dop-bar" style="display:none">
+        <span class="dop-icon" id="dop-icon">◉</span>
+        <span class="dop-text" id="dop-text"></span>
+      </div>
+
+      <!-- Mire en P seule sur sa ligne, Nom pleine largeur en dessous -->
+      <div class="dist-grid" style="margin-top:8px;grid-template-columns:1fr">
+        <div class="dist-item" style="border-color:var(--yellow);--rc:var(--yellow)">
+          <label><span class="rdot" style="background:var(--yellow)"></span>MIRE EN P</label>
+          <input type="text" inputmode="decimal" id="mire-p" placeholder="—" oninput="updateValidity()" data-next="pname">
+          <span class="dist-unit">m</span>
+        </div>
+      </div>
+      <div class="ig" style="margin-top:6px">
+        <label style="font-size:10px;color:var(--text-dim);letter-spacing:.05em">Nom du point (optionnel)</label>
+        <input type="text" id="pname" placeholder="—" data-next="perim-check"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;padding:5px 8px;width:100%;outline:none">
+      </div>
+      <!-- Perimeter checkbox -->
+      <div id="perim-row" style="display:flex;align-items:center;gap:8px;margin-top:7px;padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;cursor:pointer" onclick="document.getElementById('perim-check').click()">
+        <input type="checkbox" id="perim-check" style="width:16px;height:16px;accent-color:#50c878;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation()">
+        <span style="font-size:11px;color:var(--text-dim)">Point de <strong style="color:#50c878">périmètre</strong></span>
+      </div>
+      <div class="err" id="err"></div>
+
+      <!-- Side selector: shown only when exactly 2 refs and ambiguity exists -->
+      <div class="side-selector" id="side-sel">
+        <span>⚠ 2 cercles = 2 solutions — choisissez le bon côté :</span>
+        <button class="side-btn active" id="side-btn-auto" onclick="setSide('auto')">Auto</button>
+        <button class="side-btn" id="side-btn-flip" onclick="setSide('flip')">⇄ Miroir</button>
+      </div>
+      <div class="mirror-note" id="mirror-note"></div>
+
+      <div class="result-box" id="rbox">
+        <div class="rcoords">
+          <div class="ci"><label>X (m)</label><span id="rx">—</span></div>
+          <div class="ci"><label>Y (m)</label><span id="ry">—</span></div>
+          <div class="ci"><label>Z (m)</label><span id="rz">—</span></div>
+        </div>
+        <div class="prow" id="prow" style="display:none">
+          <span class="plabel">Précision</span>
+          <div class="pbarw"><div class="pbar" id="pbar"></div></div>
+          <span class="pval" id="pval"></span>
+        </div>
+        <div class="pdetail" id="pdet"></div>
+      </div>
+      <div class="brow">
+        <button class="btn btn-primary" id="btn-confirm" onclick="confirmAndAdd()" disabled style="flex:1;background:var(--accent2)">＋ Confirmer le point</button>
+      </div>
+    </div>
+  </div>
+
+
+</div><!-- end left -->
+
+<!-- RIGHT -->
+<div class="canvas-col" style="display:flex;flex-direction:column;gap:12px">
+
+  <div class="canvas-wrap">
+    <div class="canvas-hdr">
+      <div class="chl">
+        <div class="ph-dot" style="background:var(--yellow);box-shadow:0 0 8px var(--yellow)"></div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Plan 2D — Vue de dessus</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="contour-btn" id="tin-btn" onclick="toggleTIN()" title="Maillage triangulaire">
+          <span>△</span><span id="tin-label">Maillage</span>
+        </button>
+        <button class="contour-btn" id="contour-btn" onclick="toggleContours()" title="Courbes de niveau">
+          <span>⛰</span><span id="contour-label">Courbes</span>
+        </button>
+        <button class="perim-btn" id="perim-edit-btn" onclick="togglePerimEdit()" title="Éditer l'ordre du périmètre">
+          <span>⬡</span><span id="perim-edit-label">Périmètre</span>
+        </button>
+        <button class="contour-btn" id="coupe-xz-btn" onclick="toggleCoupeXZ()" title="Coupe XZ">
+          <span>↕</span><span id="coupe-xz-label">Coupe XZ</span>
+        </button>
+        <button class="contour-btn" id="coupe-yz-btn" onclick="toggleCoupeYZ()" title="Coupe YZ">
+          <span>↔</span><span id="coupe-yz-label">Coupe YZ</span>
+        </button>
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="zoomCanvas(-1)" title="Dézoomer">−</button>
+          <span class="zoom-level" id="zoom-level">100%</span>
+          <button class="zoom-btn" onclick="zoomCanvas(1)" title="Zoomer">+</button>
+          <button class="zoom-btn" onclick="resetView()" title="Réinitialiser la vue" style="font-size:10px">⌂</button>
+        </div>
+      </div>
+    </div>
+    <canvas id="canvas" height="400"></canvas>
+    <!-- Visibility toggles bar -->
+    <div style="display:flex;gap:4px;padding:6px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--surface2)">
+      <button id="vis-grid" class="vis-btn on" onclick="toggleVis('grid')" title="Grille">⊞ Grille</button>
+      <button id="vis-axes" class="vis-btn on" onclick="toggleVis('axes')" title="Axes X/Y">⊕ Axes</button>
+      <button id="vis-refLabels" class="vis-btn on" onclick="toggleVis('refLabels')" title="Labels refs">◆ Réfs</button>
+      <button id="vis-pointLabels" class="vis-btn on" onclick="toggleVis('pointLabels')" title="Labels points">○ Labels</button>
+      <button id="vis-points" class="vis-btn on" onclick="toggleVis('points')" title="Points">● Points</button>
+      <button id="vis-perim" class="vis-btn on" onclick="toggleVis('perim')" title="Périmètre">⬡ Périm.</button>
+    </div>
+    <div class="stats-bar">
+      <div class="stat"><label>Points</label><span id="sc">0</span></div>
+      <div class="stat"><label>Emprise X</label><span id="sx">—</span></div>
+      <div class="stat"><label>Emprise Y</label><span id="sy">—</span></div>
+      <div class="stat"><label>ΔZ max</label><span id="sz">—</span></div>
+      <div class="stat"><label>Préc. moy.</label><span id="sp">—</span></div>
+    </div>
+  </div>
+
+  <!-- Coupe XZ — plan vertical perpendiculaire à Y -->
+  <div class="canvas-wrap" id="coupe-xz-panel" style="display:none">
+    <div class="canvas-hdr">
+      <div class="chl">
+        <div class="ph-dot" style="background:#e09863;box-shadow:0 0 8px #e0986388"></div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Coupe XZ</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:10px;color:var(--text-dim)">Y =</span>
+        <input type="text" id="coupe-xz-val" value="0.000" inputmode="decimal"
+          style="width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:3px 6px;outline:none"
+          oninput="renderCoupeXZ()">
+        <span style="font-size:10px;color:var(--text-dim)">m · tol ±</span>
+        <input type="text" id="coupe-xz-tol" value="0.50" inputmode="decimal"
+          style="width:50px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:3px 6px;outline:none"
+          oninput="renderCoupeXZ()">
+        <span style="font-size:10px;color:var(--text-dim)">m</span>
+        <input type="range" id="coupe-xz-slider" min="0" max="100" value="50" step="1"
+          style="width:80px;accent-color:#e09863" oninput="syncCoupeXZSlider()">
+        <button id="coupe-xz-pts-btn" class="vis-btn on" onclick="toggleCoupePts('xz')" title="Afficher/masquer les points">● Pts</button>
+      </div>
+    </div>
+    <canvas id="canvas-xz" style="display:block;width:100%;aspect-ratio:3/1"></canvas>
+  </div>
+
+  <!-- Coupe YZ — plan vertical perpendiculaire à X -->
+  <div class="canvas-wrap" id="coupe-yz-panel" style="display:none">
+    <div class="canvas-hdr">
+      <div class="chl">
+        <div class="ph-dot" style="background:#63b4e0;box-shadow:0 0 8px #63b4e088"></div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Coupe YZ</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:10px;color:var(--text-dim)">X =</span>
+        <input type="text" id="coupe-yz-val" value="0.000" inputmode="decimal"
+          style="width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:3px 6px;outline:none"
+          oninput="renderCoupeYZ()">
+        <span style="font-size:10px;color:var(--text-dim)">m · tol ±</span>
+        <input type="text" id="coupe-yz-tol" value="0.50" inputmode="decimal"
+          style="width:50px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:3px 6px;outline:none"
+          oninput="renderCoupeYZ()">
+        <span style="font-size:10px;color:var(--text-dim)">m</span>
+        <input type="range" id="coupe-yz-slider" min="0" max="100" value="50" step="1"
+          style="width:80px;accent-color:#63b4e0" oninput="syncCoupeYZSlider()">
+        <button id="coupe-yz-pts-btn" class="vis-btn on" onclick="toggleCoupePts('yz')" title="Afficher/masquer les points">● Pts</button>
+      </div>
+    </div>
+    <canvas id="canvas-yz" style="display:block;width:100%;aspect-ratio:3/1"></canvas>
+  </div>
+
+  <!-- Surface panel — shown when 3+ perimeter points -->
+  <div class="panel" id="surface-panel" style="display:none">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:#50c878;box-shadow:0 0 8px #50c87888"></div>
+      <h2>Superficie du terrain</h2>
+      <span style="font-size:9px;color:var(--text-dim);margin-left:auto" id="perim-pt-count"></span>
+    </div>
+    <div class="surface-bar">
+      <div class="surface-stat">
+        <label>Surface projetée</label>
+        <span id="surf-proj">—</span>
+        <small style="font-size:9px;color:var(--text-dim);display:block;margin-top:1px">cadastrale (plan)</small>
+      </div>
+      <div class="surface-stat">
+        <label>Surface réelle</label>
+        <span id="surf-real">—</span>
+        <small style="font-size:9px;color:var(--text-dim);display:block;margin-top:1px">terrain (pente)</small>
+      </div>
+      <div class="surface-stat">
+        <label>Périmètre</label>
+        <span id="perim-len">—</span>
+        <small style="font-size:9px;color:var(--text-dim);display:block;margin-top:1px">contour</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--text-dim)"></div>
+      <h2>Points relevés</h2>
+      <span class="cbadge" id="cbadge">0</span>
+    </div>
+    <div class="twrap">
+      <table>
+        <thead><tr><th>#</th><th>Nom</th><th>X (m)</th><th>Y (m)</th><th>Z (m)</th><th>Paires</th><th>Précision</th><th>Déviation</th><th>⬡</th><th></th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="9"><div class="empty-state"><span class="ico">⊕</span>Aucun point relevé</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--text-dim)"></div>
+      <h2>Export &amp; Session</h2>
+    </div>
+    <div class="panel-body">
+      <div class="sec-label" style="margin-top:0">Données brutes</div>
+      <div class="fname-row">
+        <label>Nom</label>
+        <input type="text" class="fname-input" id="fname-csv" placeholder="points.csv">
+        <span style="font-size:9px;color:var(--text-dim)">.csv</span>
+      </div>
+      <div class="brow" style="margin-top:0">
+        <button class="btn btn-ghost" style="flex:1" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="exportJSON()">⬇ JSON</button>
+        <label class="btn btn-ghost" style="flex:1;cursor:pointer" title="Importer un CSV ou JSON">⬆ Importer
+          <input type="file" accept=".csv,.json" style="display:none" onchange="importFile(this)">
+        </label>
+      </div>
+      <div class="fname-row" style="margin-top:8px">
+        <label>Nom</label>
+        <input type="text" class="fname-input" id="fname-json" placeholder="session.json">
+        <span style="font-size:9px;color:var(--text-dim)">.json</span>
+      </div>
+
+      <div class="sec-label">Maillage 3D — Inventor / CAO</div>
+      <div class="fname-row">
+        <label>Nom</label>
+        <input type="text" class="fname-input" id="fname-mesh" placeholder="terrain">
+        <span style="font-size:9px;color:var(--text-dim)">.obj / .dxf</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+        <span style="font-size:10px;color:var(--text-dim)">Unité :</span>
+        <select id="export-unit" style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:3px 7px;outline:none">
+          <option value="1000">mm (Inventor défaut)</option>
+          <option value="100">cm</option>
+          <option value="1" selected>m</option>
+        </select>
+      </div>
+      <div class="brow" style="margin-top:0">
+        <button class="btn btn-ghost" style="flex:1" onclick="exportOBJ()" title="Wavefront OBJ">⬇ OBJ</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="exportDXF()" title="DXF 3DFACE">⬇ DXF</button>
+      </div>
+      <div class="brow">
+        <button class="btn btn-ghost" style="flex:1;color:var(--red);border-color:#3a2020" onclick="clearAll()">✕ Reset</button>
+        <button class="btn btn-primary" style="flex:1" onclick="openRapportModal()">📤 Rapport</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end right -->
+</div><!-- end layout -->
+</div><!-- end app -->
+
+<!-- ── OFFSET MODAL ──────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="offset-overlay" onclick="if(event.target===this)closeOffsetModal()">
+  <div class="modal">
+    <h3 id="off-title">📐 Offset d'un point</h3>
+    <p class="modal-sub" id="off-subtitle">Créer un nouveau point décalé depuis un point existant</p>
+
+    <div class="offset-source" id="offset-source-info"></div>
+
+    <div class="modal-section">Décalage à appliquer (cm)</div>
+    <div class="offset-coords">
+      <div class="offset-field"><label>ΔX (cm)</label><input type="text" inputmode="decimal" id="off-dx" value="0" placeholder="0"></div>
+      <div class="offset-field"><label>ΔY (cm)</label><input type="text" inputmode="decimal" id="off-dy" value="0" placeholder="0"></div>
+      <div class="offset-field"><label>ΔZ (cm)</label><input type="text" inputmode="decimal" id="off-dz" value="0" placeholder="0"></div>
+    </div>
+
+    <div class="modal-section">Résultat</div>
+    <div class="offset-coords" style="margin-bottom:4px">
+      <div class="offset-field"><label>X final (m)</label><input type="text" id="off-rx" readonly style="opacity:.6"></div>
+      <div class="offset-field"><label>Y final (m)</label><input type="text" id="off-ry" readonly style="opacity:.6"></div>
+      <div class="offset-field"><label>Z final (m)</label><input type="text" id="off-rz" readonly style="opacity:.6"></div>
+    </div>
+
+    <div class="modal-section">Nom du point offsetté</div>
+    <input type="text" class="modal-email" id="off-name" placeholder="ex: P3-off, haie-corr…" style="margin-bottom:4px">
+    <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-dim);cursor:pointer;margin-top:6px">
+      <input type="checkbox" id="off-perim" style="accent-color:var(--accent);width:15px;height:15px">
+      Point de périmètre
+    </label>
+
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-primary" style="flex:1" id="off-confirm-btn" onclick="confirmOffset()">✓ Créer le point</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeOffsetModal()">✕ Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CROQUIS OVERLAY ───────────────────────────────────────────────────── -->
+<div class="croquis-overlay" id="croquis-overlay" onclick="hideCroquis()">
+  <div class="croquis-name" id="croquis-name"></div>
+  <img id="croquis-img" src="" alt="Croquis de référence">
+  <div class="croquis-hint">Appuyez n'importe où pour fermer</div>
+</div>
+
+<!-- ── RAPPORT MODAL ─────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="rapport-overlay" onclick="if(event.target===this)closeRapportModal()">
+  <div class="modal">
+    <h3>📤 Exporter le rapport</h3>
+    <p class="modal-sub" id="rpt-mode-note">Choisissez les fichiers à inclure dans le ZIP</p>
+
+    <div class="modal-section">Plan &amp; données</div>
+    <label class="check-row">
+      <input type="checkbox" id="rpt-png" checked>
+      <div><div class="cr-label">🗺 Plan 2D (PNG)</div><div class="cr-desc" id="rpt-png-desc">Capture de la vue actuelle</div></div>
+    </label>
+    <label class="check-row">
+      <input type="checkbox" id="rpt-csv" checked>
+      <div><div class="cr-label">📋 Points relevés (CSV)</div><div class="cr-desc">ID, Nom, X, Y, Z, Précision…</div></div>
+    </label>
+
+    <div class="modal-section">Maillage 3D</div>
+    <label class="check-row">
+      <input type="checkbox" id="rpt-obj">
+      <div><div class="cr-label">⬡ Maillage OBJ</div><div class="cr-desc">Inventor / Fusion 360</div></div>
+    </label>
+    <label class="check-row">
+      <input type="checkbox" id="rpt-dxf">
+      <div><div class="cr-label">⬡ Maillage DXF</div><div class="cr-desc">AutoCAD / Inventor</div></div>
+    </label>
+
+    <div class="modal-section">Session</div>
+    <label class="check-row">
+      <input type="checkbox" id="rpt-json">
+      <div><div class="cr-label">{ } JSON session complète</div><div class="cr-desc">Réimport possible dans l'app</div></div>
+    </label>
+
+    <div class="modal-section">Nom du fichier ZIP</div>
+    <div class="fname-row" style="margin-bottom:10px">
+      <input type="text" class="fname-input" id="fname-zip" placeholder="rapport">
+      <span style="font-size:9px;color:var(--text-dim)">.zip</span>
+    </div>
+
+    <div class="modal-section">Destinataire (optionnel)</div>
+    <input type="email" class="modal-email" id="rpt-email" placeholder="nom@exemple.com">
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="flex:1" id="rpt-send-btn" onclick="sendRapport()">📦 Créer le ZIP</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeRapportModal()">✕ Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip" id="tip"></div>
+
+<script>
+const STORAGE_KEY = 'topo_survey_v2';
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// ── NUMBER PARSING ─────────────────────────────────────────────────────────────
+// Normalize comma→dot and parse float robustly (handles iOS locale)
+const _nativePF = parseFloat;
+function pf(val){
+  if(typeof val === 'number') return val;
+  if(val === null || val === undefined || val === '') return NaN;
+  return _nativePF(String(val).trim().replace(',','.'));
+}
+function pfOr(val, fallback=0){ const n=pf(val); return isNaN(n)?fallback:n; }
+
+// Auto-normalize input values on blur: replace comma with dot
+function normalizeInput(el){
+  if(!el) return;
+  const v = el.value.replace(',','.');
+  if(v !== el.value) el.value = v;
+}
+// Attach normalizer to all numeric inputs dynamically
+function attachNormalizers(){
+  document.querySelectorAll('input[inputmode="decimal"]').forEach(el=>{
+    el.addEventListener('blur', ()=>normalizeInput(el));
+  });
+}
+// Also normalize text inputs that should be numeric (mire-p, hi, mire-ref, ref coords)
+['mire-p','hi','mire-ref'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('blur', ()=>normalizeInput(el));
+});
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const isLight = document.body.classList.toggle('light');
+  document.getElementById('theme-label').textContent = isLight ? 'Mode sombre' : 'Mode clair';
+  document.querySelector('.theme-icon').textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('topo_theme', isLight ? 'light' : 'dark');
+  renderCanvas();
+}
+if(localStorage.getItem('topo_theme')==='light'){
+  document.body.classList.add('light');
+  document.getElementById('theme-label').textContent='Mode sombre';
+  document.querySelector('.theme-icon').textContent='☀️';
+}
+
+// ── WAKE LOCK ─────────────────────────────────────────────────────────────────
+let wakeLock = null;
+async function toggleWakeLock(){
+  const btn = document.getElementById('wake-btn');
+  const lbl = document.getElementById('wake-label');
+  if(!('wakeLock' in navigator)){
+    btn.classList.add('unsupported');
+    lbl.textContent = 'Non supporté';
+    return;
+  }
+  if(wakeLock){
+    await wakeLock.release();
+    wakeLock = null;
+    btn.classList.remove('on');
+    lbl.textContent = 'Écran actif';
+  } else {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      btn.classList.add('on');
+      lbl.textContent = 'Écran bloqué ✓';
+      wakeLock.addEventListener('release', ()=>{
+        wakeLock = null;
+        btn.classList.remove('on');
+        lbl.textContent = 'Écran actif';
+      });
+    } catch(e) {
+      lbl.textContent = 'Erreur';
+    }
+  }
+}
+// Re-acquire wake lock when page becomes visible again
+document.addEventListener('visibilitychange', async ()=>{
+  if(wakeLock && document.visibilityState === 'visible'){
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
+  }
+});
+
+// ── LASER INFO ────────────────────────────────────────────────────────────────
+function toggleLaserInfo(){
+  const box = document.getElementById('laser-info-box');
+  const btn = document.getElementById('laser-info-btn');
+  const visible = box.classList.toggle('vis');
+  btn.classList.toggle('on', visible);
+}
+
+// ── QUICK MODE ────────────────────────────────────────────────────────────────
+let quickMode = false;
+function toggleQuickMode(){
+  quickMode = !quickMode;
+  document.body.classList.toggle('quick-mode', quickMode);
+  const btn = document.getElementById('quick-btn');
+  btn.classList.toggle('on', quickMode);
+  document.getElementById('quick-label').textContent = quickMode ? 'Mode complet' : 'Mode rapide';
+  renderCanvas();
+}
+
+// ── KEYBOARD NAVIGATION ───────────────────────────────────────────────────────
+// Enter on any input jumps to the next field or triggers button
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Enter') return;
+  const el = document.activeElement;
+  if(!el) return;
+
+  // Distance input → next distance or mire-p
+  if(el.closest('.dist-item')){
+    e.preventDefault();
+    const distInputs = [...document.querySelectorAll('.dist-item input:not(:disabled)')];
+    const idx = distInputs.indexOf(el);
+    if(idx >= 0 && idx < distInputs.length - 1){
+      distInputs[idx+1].focus();
+    } else {
+      document.getElementById('mire-p').focus();
+    }
+    return;
+  }
+
+  // data-next attribute
+  const next = el.dataset.next;
+  if(next){
+    e.preventDefault();
+    const target = document.getElementById(next);
+    if(target){
+      if(target.tagName === 'BUTTON' && !target.disabled){ target.click(); }
+      else { target.focus(); target.select && target.select(); }
+    }
+    return;
+  }
+
+  // ref coord inputs → next ref coord or first dist input
+  if(el.closest('.rc2')){
+    e.preventDefault();
+    const allRefInputs = [...document.querySelectorAll('.rc2 input:not(:disabled)')];
+    const idx = allRefInputs.indexOf(el);
+    if(idx >= 0 && idx < allRefInputs.length - 1){
+      allRefInputs[idx+1].focus();
+    } else {
+      const firstDist = document.querySelector('.dist-item input:not(:disabled)');
+      if(firstDist) firstDist.focus();
+    }
+  }
+});
+
+// Auto-focus first dist input after buildDistGrid
+function focusFirstDist(){
+  const first = document.querySelector('.dist-item input:not(:disabled)');
+  if(first) first.focus();
+}
+
+// ── GEOMETRY QUALITY (DOP + COLINEARITY) ──────────────────────────────────────
+function checkGeometry(){
+  const ar = refs.filter(r => r.x !== '' && r.y !== '');
+  const colinWarn = document.getElementById('colin-warn');
+  const dopBar = document.getElementById('dop-bar');
+
+  if(ar.length < 2){ dopBar.style.display='none'; colinWarn.classList.remove('vis'); return; }
+
+  // Check colinearity: all points on same line → cross products all ~0
+  let colinear = false;
+  if(ar.length >= 3){
+    const ax=pf(ar[0].x), ay=pf(ar[0].y);
+    colinear = ar.slice(1).every((r,i) => {
+      const bx=pf(ar[1].x)-ax, by=pf(ar[1].y)-ay;
+      const cx=pf(r.x)-ax,    cy=pf(r.y)-ay;
+      return Math.abs(bx*cy - by*cx) < 0.01 * (Math.sqrt(bx*bx+by*by)+0.001);
+    });
+  } else if(ar.length === 2){
+    colinear = false; // 2 points are always "colinear" but that's expected
+  }
+  colinWarn.classList.toggle('vis', colinear && ar.length >= 3);
+
+  // Compute geometric DOP for each active pair
+  // DOP = 1/sin(angle between the two bearing lines from P to refs)
+  // Since we don't know P yet, we use the angle subtended by the baseline at a typical distance
+  // Simplified: use the angles between all ref pairs as seen from their midpoint
+  const dopScores = [];
+  for(let i=0;i<ar.length;i++) for(let j=i+1;j<ar.length;j++){
+    const x1=pf(ar[i].x), y1=pf(ar[i].y);
+    const x2=pf(ar[j].x), y2=pf(ar[j].y);
+    const dist = Math.sqrt((x2-x1)**2+(y2-y1)**2);
+    // Good geometry: refs far apart relative to typical measurement distance
+    // We estimate typical measurement ~10m, score based on baseline length
+    const score = Math.min(1, dist / 5); // 5m baseline = score 1.0
+    dopScores.push(score);
+  }
+  const avgDop = dopScores.reduce((a,b)=>a+b,0)/dopScores.length;
+
+  dopBar.style.display = 'flex';
+  if(colinear && ar.length>=3){
+    dopBar.className='dop-bar bad';
+    document.getElementById('dop-icon').textContent='✕';
+    document.getElementById('dop-text').textContent='Géométrie dégénérée — références colinéaires';
+  } else if(avgDop >= 0.7){
+    dopBar.className='dop-bar good';
+    document.getElementById('dop-icon').textContent='◉';
+    document.getElementById('dop-text').textContent=`Géométrie favorable (base ~${(avgDop*5).toFixed(1)} m moy.)`;
+  } else if(avgDop >= 0.3){
+    dopBar.className='dop-bar warn';
+    document.getElementById('dop-icon').textContent='◎';
+    document.getElementById('dop-text').textContent=`Géométrie acceptable — écartez davantage les références`;
+  } else {
+    dopBar.className='dop-bar bad';
+    document.getElementById('dop-icon').textContent='○';
+    document.getElementById('dop-text').textContent=`Géométrie faible — références trop proches`;
+  }
+}
+
+// ── UNKNOWN POINTS (U) ────────────────────────────────────────────────────────
+
+function addUnknownPoint(){
+  const id = 'U' + uAutoIdx++;
+  unknownPoints.push({
+    id,
+    name: '',
+    color: '#9070ff',
+    observations: [],
+    x: null, y: null,
+    xAlt: null, yAlt: null,
+    status: 'collecting',
+    precision: null,
+    lockedSide: null,
+    dependents: []
+  });
+  buildUPanel();
+  buildUDistGrid();
+  setTimeout(()=>{ const b=document.getElementById('ubody-'+id); if(b) b.classList.add('open'); }, 50);
+  saveAll();
+}
+
+function renameUnknownPoint(id, name){
+  const u = unknownPoints.find(u => u.id === id);
+  if(!u) return;
+  u.name = name.trim();
+  // Update header label
+  const lbl = document.querySelector(`#ucard-${id} .u-name-lbl`);
+  if(lbl) lbl.textContent = uDisplayLabel(u);
+  // Update dist grid label
+  const dlbl = document.querySelector(`#udi-${id} label`);
+  if(dlbl) dlbl.innerHTML = `<span class="rdot" style="background:#9070ff"></span>${uDisplayLabel(u)}`;
+  renderCanvas(); saveAll();
+}
+
+// Label shown in header and dist grid: "U1" or "U1 (nom)" if named
+function uDisplayLabel(u){
+  return u.name ? `${u.id} (${u.name})` : u.id;
+}
+
+function deleteUnknownPoint(id){
+  unknownPoints = unknownPoints.filter(u => u.id !== id);
+  // Remove from active refs if it was active
+  buildUPanel();
+  buildUDistGrid();
+  buildDistGrid();
+  renderCanvas();
+  saveAll();
+}
+
+function deleteUObs(uId, idx){
+  const u = unknownPoints.find(u => u.id === uId);
+  if(!u) return;
+  u.observations.splice(idx, 1);
+  // Reset to collecting if we removed an obs
+  if(u.status !== 'collecting') u.status = 'collecting';
+  u.x = null; u.y = null; u.xAlt = null; u.yAlt = null; u.lockedSide = null;
+  buildUPanel(); renderCanvas(); saveAll();
+}
+
+function resetUToCollecting(uId){
+  const u = unknownPoints.find(u => u.id === uId);
+  if(!u) return;
+  u.status = 'collecting';
+  u.x = null; u.y = null; u.xAlt = null; u.yAlt = null; u.lockedSide = null;
+  buildUPanel(); renderCanvas(); saveAll();
+}
+
+function toggleUActive(id){
+  const u = unknownPoints.find(u => u.id === id);
+  if(!u || (u.status !== 'resolved' && u.status !== 'active')) return;
+  u.status = u.status === 'active' ? 'resolved' : 'active';
+  buildUPanel(); buildDistGrid(); buildUDistGrid(); checkGeometry(); renderCanvas(); saveAll();
+}
+
+// Find the convergence cluster among all intersection points (both sides of each pair)
+// This is the "nuage de points" approach — find the densest region
+function computeU(u){
+  const validObs = u.observations.filter(o =>
+    typeof o.stationX === 'number' && typeof o.stationY === 'number' && o.dist > 0
+  );
+  if(validObs.length < 2) return null;
+
+  // Collect ALL intersection points from every pair (both p1 and p2)
+  const allPts = [];
+  for(let i=0;i<validObs.length;i++){
+    for(let j=i+1;j<validObs.length;j++){
+      const o1=validObs[i], o2=validObs[j];
+      const res=trilaterate2(o1.stationX,o1.stationY,o2.stationX,o2.stationY,o1.dist,o2.dist);
+      if(!res) continue;
+      const w = 1/(o1.dist*o2.dist);
+      allPts.push({x:res.p1.x, y:res.p1.y, w});
+      if(res.ambiguous) allPts.push({x:res.p2.x, y:res.p2.y, w});
+    }
+  }
+  if(!allPts.length) return null;
+
+  // Find the densest cluster using mean-shift-like approach:
+  // For each candidate point, compute how many other points are within radius R
+  // The point with the most neighbours (weighted) is the convergence zone
+  const R = 1.5; // search radius in metres — adjust if needed
+  let bestScore = -1, bestSeed = allPts[0];
+  allPts.forEach(seed => {
+    const score = allPts.reduce((s,p) => {
+      const d = dist2(seed, p);
+      return s + (d < R ? p.w / (d*d + 0.01) : 0); // weighted by proximity
+    }, 0);
+    if(score > bestScore){ bestScore = score; bestSeed = seed; }
+  });
+
+  // Weighted average of all points within R of the best seed
+  const cluster = allPts.filter(p => dist2(p, bestSeed) < R);
+  const final = weightedAvg(cluster);
+
+  // The "other side" is the cluster on the opposite side
+  // Find points far from the chosen cluster
+  const R2 = dist2(allPts[0], allPts[allPts.length-1]) * 0.3 + 0.5;
+  const otherPts = allPts.filter(p => dist2(p, final) > R);
+  const altFinal = otherPts.length >= 2 ? weightedAvg(otherPts) : null;
+
+  const prec = precScore(cluster, final);
+  return {
+    x: final.x, y: final.y,
+    xAlt: altFinal ? altFinal.x : null,
+    yAlt: altFinal ? altFinal.y : null,
+    precision: prec ? prec.score : null,
+    nObs: validObs.length
+  };
+}
+
+// Called automatically after each new observation — only refreshes canvas circles
+function refineU(uId){
+  buildUPanel();
+  renderCanvas();
+  saveAll();
+}
+
+// Called manually by operator when ready to compute U position
+function computeUPosition(uId){
+  const u = unknownPoints.find(u => u.id === uId);
+  if(!u || u.observations.length < 2) return;
+  const result = computeU(u);
+  if(!result){ alert('Calcul impossible — vérifiez les observations.'); return; }
+
+  u.x = result.x;
+  u.y = result.y;
+  u.xAlt = result.xAlt;
+  u.yAlt = result.yAlt;
+  u.precision = result.precision;
+  u.status = 'preview';
+
+  // Keep the U body open after calculation
+  buildUPanel();
+  setTimeout(()=>{ const b=document.getElementById('ubody-'+uId); if(b) b.classList.add('open'); }, 30);
+  renderCanvas();
+  saveAll();
+}
+
+// Like computeU but forces a specific side — kept for flipUSide
+function computeUWithSide(u, side){
+  const validObs = u.observations.filter(o =>
+    typeof o.stationX === 'number' && typeof o.stationY === 'number' && o.dist > 0
+  );
+  if(validObs.length < 2) return null;
+  const pairResults = [];
+  for(let i=0;i<validObs.length;i++) for(let j=i+1;j<validObs.length;j++){
+    const o1=validObs[i], o2=validObs[j];
+    const res=trilaterate2(o1.stationX,o1.stationY,o2.stationX,o2.stationY,o1.dist,o2.dist);
+    if(res) pairResults.push({res, w:1/(o1.dist*o2.dist)});
+  }
+  if(!pairResults.length) return null;
+  const cands = pairResults.map(pr=>({x:pr.res[side].x, y:pr.res[side].y, w:pr.w}));
+  const final = weightedAvg(cands);
+  const prec = precScore(cands, final);
+  return {x:final.x, y:final.y, precision: prec?prec.score:null};
+}
+
+function confirmUPosition(uId){
+  const u = unknownPoints.find(u => u.id === uId);
+  if(!u) return;
+  u.status = 'resolved';
+  u.xAlt = null; u.yAlt = null;
+  buildUPanel();
+  setTimeout(()=>{ const b=document.getElementById('ubody-'+uId); if(b) b.classList.add('open'); }, 30);
+  renderCanvas();
+  saveAll();
+}
+
+// Flip to other side during preview
+function flipUSide(uId){
+  const u = unknownPoints.find(u => u.id === uId);
+  if(!u || u.xAlt === null) return;
+  const tmpX=u.x, tmpY=u.y;
+  u.x=u.xAlt; u.y=u.yAlt;
+  u.xAlt=tmpX; u.yAlt=tmpY;
+  buildUPanel();
+  setTimeout(()=>{ const b=document.getElementById('ubody-'+uId); if(b) b.classList.add('open'); }, 30);
+  renderCanvas();
+  saveAll();
+}
+
+function triggerCascadeRecalc(u, delta){
+  // Compute new positions for all dependents
+  const affected = [];
+  const topo = topologicalOrder(u.id);
+
+  topo.forEach(ptId => {
+    const pt = points.find(p => p.id === ptId);
+    if(!pt) return;
+    const newPos = recomputePoint(pt);
+    if(newPos) affected.push({ pt, newX: newPos.x, newY: newPos.y, newPrec: newPos.precision });
+  });
+
+  if(!affected.length) return;
+
+  pendingRecalc = { uId: u.id, delta, affected };
+
+  const maxDelta = affected.reduce((mx,a) => {
+    const d = Math.sqrt((a.pt.x-a.newX)**2+(a.pt.y-a.newY)**2);
+    return Math.max(mx, d);
+  }, 0);
+
+  const banner = document.getElementById('recalc-banner');
+  document.getElementById('recalc-msg').innerHTML =
+    `<strong>${u.id}</strong> affiné (Δ ${(delta*1000).toFixed(1)} mm) — <strong>${affected.length}</strong> point(s) recalculable(s) · Δmax ${(maxDelta*1000).toFixed(1)} mm`;
+  banner.classList.add('vis');
+}
+
+function topologicalOrder(uId){
+  // BFS from uId through dependents
+  const visited = [], queue = [uId];
+  const ptIds = [];
+  while(queue.length){
+    const id = queue.shift();
+    if(visited.includes(id)) continue;
+    visited.push(id);
+    // Collect points that depend on this id
+    points.forEach(p => {
+      if(p.usedRefs && p.usedRefs.includes(id)) ptIds.push(p.id);
+    });
+    // Also recurse through U dependents
+    const u = unknownPoints.find(u => u.id === id);
+    if(u) u.dependents.forEach(d => queue.push(d));
+  }
+  return [...new Set(ptIds)];
+}
+
+function recomputePoint(pt){
+  // Rebuild candidates using stored raw observations
+  if(!pt.rawObs || !pt.rawObs.length) return null;
+  const cands=[], pairLbls=[];
+  const obs = pt.rawObs;
+  for(let i=0;i<obs.length;i++) for(let j=i+1;j<obs.length;j++){
+    const o1=obs[i], o2=obs[j];
+    const res=trilaterate2(o1.refX,o1.refY,o2.refX,o2.refY,o1.dist,o2.dist);
+    if(res){
+      const chosen=pickSide(res.p1,res.p2,false);
+      cands.push({x:chosen.x,y:chosen.y,w:1/(o1.dist*o2.dist)});
+      pairLbls.push(o1.refId+o2.refId);
+    }
+  }
+  if(!cands.length) return null;
+  const final=weightedAvg(cands);
+  const prec=precScore(cands,final);
+  return { x:final.x, y:final.y, precision:prec?prec.score:null };
+}
+
+function acceptRecalc(){
+  if(!pendingRecalc) return;
+  pendingRecalc.affected.forEach(({pt, newX, newY, newPrec}) => {
+    pt.x = newX; pt.y = newY;
+    if(newPrec !== null) pt.precision = newPrec;
+    pt.recalculated = true;
+  });
+  pendingRecalc = null;
+  document.getElementById('recalc-banner').classList.remove('vis');
+  renderTable(); renderCanvas(); updateStats(); saveAll();
+}
+
+function cancelRecalc(){
+  pendingRecalc = null;
+  document.getElementById('recalc-banner').classList.remove('vis');
+}
+
+// ── U PANEL ───────────────────────────────────────────────────────────────────
+function buildUPanel(){
+  const list = document.getElementById('u-list');
+  const label = document.getElementById('u-count-label');
+  label.textContent = unknownPoints.length ? `${unknownPoints.length} point(s)` : 'Aucun';
+  if(!unknownPoints.length){ list.innerHTML=''; return; }
+
+  list.innerHTML = unknownPoints.map(u => {
+    const nObs = u.observations.length;
+    const dots = Array.from({length: Math.max(3, nObs)}, (_,i) =>
+      `<div class="u-dot ${i<nObs?(nObs>=3?'filled':'min'):''}"></div>`
+    ).join('');
+
+    const statusText =
+      u.status==='active'     ? '● Actif comme référence' :
+      u.status==='resolved'   ? `◎ Résolu (${nObs} obs)` :
+      u.status==='preview'    ? `◑ Aperçu — confirmez la position` :
+                                `○ Collecte (${nObs} obs)`;
+
+    const canActivate = u.status === 'resolved' || u.status === 'active';
+    const displayLabel = uDisplayLabel(u);
+
+    const obsList = u.observations.map((o,i) =>
+      `<div class="u-obs-item">
+        <span>${o.stationId}</span>
+        <span>d=${fmt(o.dist,3)} m</span>
+        <span style="color:var(--text-dim)">(${o.stationX.toFixed(2)}, ${o.stationY.toFixed(2)})</span>
+        <button onclick="event.stopPropagation();deleteUObs('${u.id}',${i})"
+          style="margin-left:auto;font-size:9px;padding:1px 5px;border-radius:3px;border:1px solid #3a2020;background:transparent;color:var(--red);cursor:pointer;font-family:'DM Mono',monospace">✕</button>
+      </div>`
+    ).join('');
+
+    // Action buttons depending on status
+    let actionSection = '';
+    if(u.status === 'collecting'){
+      actionSection = nObs >= 2
+        ? `<button class="u-activate-btn" style="width:100%;margin-top:8px;text-align:center;background:#7060e022;padding:8px"
+            onclick="event.stopPropagation();computeUPosition('${u.id}')">
+            ◉ Calculer la position de ${uDisplayLabel(u)}<br>
+            <span style="font-size:9px;opacity:.7">${nObs} observations · les cercles convergents indiquent le point</span>
+           </button>`
+        : `<div style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center">Encore ${2-nObs} observation(s) minimum requise(s) depuis des stations différentes</div>`;
+    } else if(u.status === 'preview'){
+      const coords  = `X:${fmt(u.x)} Y:${fmt(u.y)}${u.precision?` · ${u.precision}%`:''}`;
+      const coordsAlt = u.xAlt!==null ? `X:${fmt(u.xAlt)} Y:${fmt(u.yAlt)}` : null;
+      actionSection = `
+        <div class="u-coords" style="margin-top:8px">
+          <strong style="color:#9070ff">Solution A :</strong> ${coords}
+          ${coordsAlt ? `<br><span style="color:var(--text-dim)">Solution B : ${coordsAlt}</span>` : ''}
+        </div>
+        <div class="brow" style="margin-top:8px;gap:6px">
+          <button class="u-activate-btn" style="flex:1;text-align:center;background:#a8e06322;color:var(--accent);border-color:var(--accent2)"
+            onclick="event.stopPropagation();confirmUPosition('${u.id}')">✓ Confirmer A</button>
+          ${coordsAlt ? `<button class="u-activate-btn" style="flex:1;text-align:center"
+            onclick="event.stopPropagation();flipUSide('${u.id}')">⇄ Essayer B</button>` : ''}
+          <button class="u-activate-btn" style="flex:1;text-align:center;background:#e0636322;color:var(--red);border-color:#3a2020"
+            onclick="event.stopPropagation();resetUToCollecting('${u.id}')">↩ Recollecte</button>
+        </div>`;
+    } else {
+      const coords = u.x !== null ? `X:${fmt(u.x)} Y:${fmt(u.y)}${u.precision?` · ${u.precision}%`:''}` : '';
+      actionSection = coords ? `<div class="u-coords" style="margin-top:6px">Position : ${coords}</div>` : '';
+    }
+
+    return `<div class="u-card ${u.status}" id="ucard-${u.id}">
+      <div class="u-card-header" onclick="toggleUBody('${u.id}')">
+        <div class="u-badge">${u.id}</div>
+        <span class="u-name-lbl u-status" style="font-weight:500;color:var(--text)">${displayLabel}</span>
+        <span class="u-status" style="margin-left:4px;font-size:9px">${statusText}</span>
+        <div class="u-obs-dots">${dots}</div>
+        <div class="u-actions">
+          ${canActivate?`<button class="u-activate-btn ${u.status==='active'?'active-ref':''}"
+            onclick="event.stopPropagation();toggleUActive('${u.id}')">${u.status==='active'?'Désactiver':'Activer réf.'}</button>`:''}
+          <button class="u-del-btn" onclick="event.stopPropagation();deleteUnknownPoint('${u.id}')">✕</button>
+        </div>
+      </div>
+      <div class="u-body" id="ubody-${u.id}">
+        <div class="ig" style="margin-bottom:7px;margin-top:2px">
+          <label>Nom personnalisé (optionnel)</label>
+          <input type="text" value="${u.name}" placeholder=""
+            oninput="renameUnknownPoint('${u.id}',this.value)"
+            onclick="event.stopPropagation()"
+            style="background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:5px 8px;width:100%;outline:none">
+        </div>
+        ${actionSection}
+        <div class="u-obs-list" style="margin-top:8px">${obsList||'<div style="font-size:10px;color:var(--text-dim);padding:4px 0">Aucune observation enregistrée</div>'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleUBody(id){
+  const body = document.getElementById('ubody-'+id);
+  if(body) body.classList.toggle('open');
+}
+
+// ── U DIST GRID (in measurement panel) ───────────────────────────────────────
+function buildUDistGrid(){
+  const section = document.getElementById('u-dist-section');
+  const grid = document.getElementById('u-dist-grid');
+  // Only show U points still in collecting phase (not yet resolved/active)
+  const collectingU = unknownPoints.filter(u => u.status === 'collecting' || u.status === 'preview');
+  if(!collectingU.length){ section.style.display='none'; grid.innerHTML=''; return; }
+  section.style.display='block';
+  grid.innerHTML = collectingU.map(u => `
+    <div class="dist-item u-ref" id="udi-${u.id}" style="--rc:#9070ff">
+      <label><span class="rdot" style="background:#9070ff"></span>${uDisplayLabel(u)}</label>
+      <input type="text" inputmode="decimal" id="du-${u.id}" placeholder="—" oninput="updateValidity()">
+      <span class="dist-unit">m</span>
+    </div>`).join('');
+}
+
+// Helper: get all active known refs (fixed + active U)
+function getAllActiveRefs(){
+  const fixed = refs.filter(r => r.x!=='' && r.y!=='');
+  const uRefs = unknownPoints
+    .filter(u => u.status==='active' && u.x!==null)
+    .map(u => ({id:u.id, x:String(u.x), y:String(u.y), color:u.color, isU:true}));
+  return [...fixed, ...uRefs];
+}
+// Palette of colors cycling for new refs
+const REF_COLORS = [
+  '#e0c563','#63b4e0','#a8e063','#e063b4','#e09863','#9863e0',
+  '#63e0b4','#e06363','#63a8e0','#c8e063','#e063a8','#63e0e0',
+];
+// Ref label sequence: A,B,C…Z,A2,B2…
+function nextRefId(){
+  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const used = refs.map(r=>r.id);
+  for(let n=1;;n++){
+    for(const l of letters){
+      const id = n===1 ? l : l+n;
+      if(!used.includes(id)) return id;
+    }
+  }
+}
+
+let refs = [
+  {id:'A', color:'#e0c563', active:true, x:'', y:''},
+  {id:'B', color:'#63b4e0', active:true, x:'', y:''},
+];
+let points = [];
+let autoIdx = 1;
+let unknownPoints = []; // array of U-point objects
+let uAutoIdx = 1;
+let pendingRecalc = null; // { oldPoints, newPoints, uId, delta }
+
+// ── SAVE/LOAD ──────────────────────────────────────────────────────────────────
+function saveAll(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      refs: refs.map(r=>({id:r.id,active:true,x:r.x,y:r.y,color:r.color,name:r.name||''})),
+      hi: document.getElementById('hi').value,
+      mireRef: document.getElementById('mire-ref').value,
+      spreadThreshold: pf(document.getElementById('spread-threshold').value)||200,
+      points, autoIdx,
+      unknownPoints, uAutoIdx,
+      perimOrder,
+      croquis: cropisData ? {data:cropisData,name:cropisName} : null,
+      savedAt: new Date().toISOString()
+    }));
+    showSave('saved');
+  }catch(e){showSave('err');}
+}
+function loadSaved(){try{const r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+
+function showSave(s){
+  const el=document.getElementById('si'), lb=document.getElementById('sl');
+  el.className='save-indicator';
+  if(s==='saving'){el.classList.add('saving');lb.textContent='Sauvegarde…';}
+  else if(s==='saved'){
+    el.classList.add('saved');
+    const n=new Date();
+    lb.textContent=`Sauvegardé à ${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}:${n.getSeconds().toString().padStart(2,'0')}`;
+  }else{lb.textContent='Erreur';}
+}
+
+function restoreSession(data){
+  if(data.refs){
+    refs = data.refs.map((r,i)=>({
+      id: r.id,
+      color: r.color || REF_COLORS[i % REF_COLORS.length],
+      active: true,
+      x: r.x || '',
+      y: r.y || '',
+      name: r.name || ''
+    }));
+  }
+  if(data.hi) document.getElementById('hi').value = data.hi;
+  if(data.mireRef) document.getElementById('mire-ref').value = data.mireRef;
+  if(data.spreadThreshold){
+    const sl = document.getElementById('spread-threshold');
+    const inp = document.getElementById('spread-threshold-input');
+    if(sl)  sl.value  = data.spreadThreshold;
+    if(inp) inp.value = data.spreadThreshold;
+  }
+
+  points = (data.points || []).map(p=>({
+    ...p,
+    // Ensure all fields exist (backwards compat)
+    rawObs: p.rawObs || [],
+    usedRefs: p.usedRefs || [],
+    perim: p.perim || false,
+    recalculated: p.recalculated || false
+  }));
+  autoIdx = data.autoIdx || (points.length ? Math.max(...points.map(p=>p.id)) + 1 : 1);
+
+  unknownPoints = (data.unknownPoints || []).map(u=>({
+    ...u,
+    name: u.name || '',
+    xAlt: u.xAlt || null,
+    yAlt: u.yAlt || null,
+    lockedSide: u.lockedSide || null,
+    dependents: u.dependents || []
+  }));
+  uAutoIdx = data.uAutoIdx || (unknownPoints.length ? unknownPoints.length + 1 : 1);
+
+  perimOrder = data.perimOrder || [];
+
+  // Restore croquis if present in session
+  if(data.croquis && data.croquis.data){
+    cropisData = data.croquis.data;
+    cropisName = data.croquis.name || '';
+    try { localStorage.setItem('topo_croquis', JSON.stringify({data:cropisData,name:cropisName})); } catch(e){}
+    updateCroquisBtn();
+  }
+
+  editingPointId = null;
+  tinCache = null; tinPointsHash = '';
+  view.zoom = 1; view.panX = 0; view.panY = 0;
+  document.getElementById('zoom-level').textContent = '100%';
+
+  buildAll();
+  updateSurface();
+  showSave('saved');
+  initExportNames();
+}
+
+function showRestoreBanner(data){
+  const hasData = (data.points&&data.points.length) || (data.refs&&data.refs.some(r=>r.x!==''||r.y!==''));
+  if(!data||!hasData) return;
+  const d=new Date(data.savedAt);
+  const ds=d.toLocaleDateString('fr-FR')+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('restore-banner').innerHTML=`<div class="restore-banner">
+    <p>💾 Session précédente : <strong>${data.points.length} point(s)</strong> — ${ds}</p>
+    <div class="brow" style="margin-top:0">
+      <button class="btn btn-primary" style="width:auto;padding:5px 13px;font-size:11px"
+        onclick="restoreSession(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(data))}')));document.getElementById('restore-banner').innerHTML=''">↩ Restaurer</button>
+      <button class="btn btn-ghost" style="font-size:11px;padding:5px 11px"
+        onclick="localStorage.removeItem('${STORAGE_KEY}');document.getElementById('restore-banner').innerHTML=''">Ignorer</button>
+    </div>
+  </div>`;
+}
+
+// ── REF CARDS ─────────────────────────────────────────────────────────────────
+function addRef(){
+  const id = nextRefId();
+  const color = REF_COLORS[(refs.length) % REF_COLORS.length];
+  refs.push({id, color, active:true, x:'', y:'', name:''});
+  buildAll(); checkGeometry();
+  setTimeout(()=>{ const b=document.getElementById('rb-'+id); if(b) b.classList.add('open'); }, 50);
+  saveAll();
+}
+
+function deleteRef(id){
+  const activeCount = refs.length;
+  if(activeCount <= 2){
+    const c=document.getElementById('card-'+id);
+    if(c){ c.style.borderColor='var(--red)'; setTimeout(()=>{c.style.borderColor='';},700); }
+    return;
+  }
+  refs = refs.filter(r=>r.id!==id);
+  buildAll(); checkGeometry(); saveAll();
+}
+
+function refDisplayLabel(r){
+  return r.name ? `${r.id} (${r.name})` : r.id;
+}
+
+function renameRef(id, name){
+  const r = refs.find(r=>r.id===id);
+  if(!r) return;
+  r.name = name.trim();
+  // Update header label live
+  const lbl = document.querySelector(`#card-${id} .rtitle`);
+  if(lbl) lbl.textContent = refSubtitle(r);
+  // Update dist grid label live
+  const dlbl = document.querySelector(`#di-${id} label`);
+  if(dlbl) dlbl.innerHTML = `<span class="rdot" style="background:${r.color}"></span>vers ${refDisplayLabel(r)}`;
+  saveAll();
+}
+
+function buildRefCards(){
+  const label = document.getElementById('ref-count-label');
+  label.textContent = `${refs.length} actif(s) · min. 2`;
+
+  document.getElementById('ref-list').innerHTML = refs.map(r=>`
+    <div class="ref-card" id="card-${r.id}" style="--rc:${r.color}">
+      <div class="rch" onclick="toggleRefBody('${r.id}')">
+        <div class="rname" style="background:${r.color}22;color:${r.color};border:1px solid ${r.color}55">${r.id}</div>
+        <span class="rtitle">${refSubtitle(r)}</span>
+        <button class="r-del-btn" onclick="event.stopPropagation();deleteRef('${r.id}')" title="Supprimer">✕</button>
+      </div>
+      <div class="rcb" id="rb-${r.id}">
+        <div class="ig" style="margin-bottom:7px;margin-top:2px">
+          <label>Nom personnalisé (optionnel)</label>
+          <input type="text" value="${r.name||''}" placeholder=""
+            oninput="renameRef('${r.id}',this.value)"
+            onclick="event.stopPropagation()"
+            style="background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:5px 8px;width:100%;outline:none">
+        </div>
+        <div class="rc2">
+          <div class="ig"><label>X (m)</label>
+            <input type="text" inputmode="text" id="rx-${r.id}" value="${r.x}" placeholder="0.000"
+              oninput="updateRefCoord('${r.id}','x',this.value)"></div>
+          <div class="ig"><label>Y (m)</label>
+            <input type="text" inputmode="text" id="ry-${r.id}" value="${r.y}" placeholder="0.000"
+              oninput="updateRefCoord('${r.id}','y',this.value)"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleRefBody(id){
+  const body = document.getElementById('rb-'+id);
+  if(body) body.classList.toggle('open');
+}
+
+function refSubtitle(r){
+  const coords = (r.x===''||r.y==='') ? 'Coordonnées manquantes' : `(${pf(r.x).toFixed(2)}, ${pf(r.y).toFixed(2)})`;
+  return r.name ? `${r.name} · ${coords}` : coords;
+}
+
+function updateRefCoord(id,axis,val){
+  const r=refs.find(r=>r.id===id);
+  if(!r) return;
+  // Normalize comma→dot
+  const normalized = String(val).replace(',','.');
+  r[axis]=normalized;
+  // Update input value if normalized differs
+  const inputEl = document.getElementById(axis==='x'?`rx-${id}`:`ry-${id}`);
+  if(inputEl && inputEl.value !== normalized) inputEl.value = normalized;
+  const t=document.querySelector(`#card-${id} .rtitle`);
+  if(t) t.textContent=refSubtitle(r);
+  rebuildDistItem(r);
+  updateValidity(); checkGeometry(); renderCanvas(); saveAll();
+}
+
+// Rebuild just the dist-item for one ref, preserving any value already entered
+function rebuildDistItem(r){
+  const el=document.getElementById('di-'+r.id);
+  if(!el) return;
+  const ready=r.x!==''&&r.y!=='';
+  const prev=document.getElementById('d-'+r.id);
+  const prevVal=prev?prev.value:'';
+  // Find next dist or mire-p
+  const active=refs;
+  const idx=active.findIndex(rf=>rf.id===r.id);
+  const nextId = idx>=0 && idx<active.length-1 ? `d-${active[idx+1].id}` : 'mire-p';
+  el.className='dist-item '+(ready?'active-ref':'inactive');
+  el.style.setProperty('--rc',r.color);
+  el.innerHTML=`
+    <label><span class="rdot" style="background:${r.color}"></span>vers ${refDisplayLabel(r)}</label>
+    <input type="text" inputmode="decimal" id="d-${r.id}" placeholder="—" value="${prevVal}"
+      oninput="updateValidity()" data-next="${nextId}" ${ready?'':'disabled'}>
+    <span class="dist-unit">m</span>`;
+}
+
+// ── DIST GRID ─────────────────────────────────────────────────────────────────
+function buildDistGrid(){
+  const active = refs; // all refs are always active
+  const activeU = unknownPoints.filter(u=>u.status==='active'&&u.x!==null);
+  const all = [
+    ...active.map((r,i)=>({...r, nextHint: i<active.length-1?`d-${active[i+1].id}`:activeU.length?`d-${activeU[0].id}`:'mire-p', isU:false})),
+    ...activeU.map((u,i)=>({...u, x:String(u.x), y:String(u.y), nextHint: i<activeU.length-1?`d-${activeU[i+1].id}`:'mire-p', isU:true}))
+  ];
+  document.getElementById('dist-grid').innerHTML=all.map(r=>{
+    const ready = r.x!==''&&r.y!=='';
+    const cls = ready ? (r.isU?'u-ref':'active-ref') : 'inactive';
+    const col = r.color||'#9070ff';
+    return `<div class="dist-item ${cls}" id="di-${r.id}" style="--rc:${col}">
+      <label><span class="rdot" style="background:${col}"></span>vers ${r.isU ? uDisplayLabel(r) : refDisplayLabel(r)}</label>
+      <input type="text" inputmode="decimal" id="d-${r.id}" placeholder="—" oninput="updateValidity()" data-next="${r.nextHint}" ${ready?'':'disabled'}>
+      <span class="dist-unit">m</span>
+    </div>`;
+  }).join('');
+}
+
+// ── VALIDITY ──────────────────────────────────────────────────────────────────
+function getFilledRefs(){
+  // Fixed refs with coords and a distance entered
+  const fixedFilled = refs.filter(r=>{
+    if(r.x===''||r.y==='') return false;
+    const inp=document.getElementById('d-'+r.id);
+    if(!inp) return false;
+    const v=pf(inp.value);
+    return !isNaN(v)&&v>0;
+  });
+  // Active U refs
+  const uFilled = unknownPoints.filter(u=>{
+    if(u.status!=='active'||u.x===null) return false;
+    const inp=document.getElementById('d-'+u.id);
+    if(!inp) return false;
+    const v=pf(inp.value);
+    return !isNaN(v)&&v>0;
+  }).map(u=>({id:u.id, x:String(u.x), y:String(u.y), color:u.color, isU:true}));
+  return [...fixedFilled, ...uFilled];
+}
+
+function updateValidity(){
+  const filled=getFilledRefs();
+  const pairs=[];
+  for(let i=0;i<filled.length;i++) for(let j=i+1;j<filled.length;j++) pairs.push([filled[i],filled[j]]);
+  const mireOk=!isNaN(pf(document.getElementById('mire-p').value));
+  const active=refs;
+
+  document.getElementById('vdots').innerHTML=active.map(r=>{
+    const f=filled.find(f=>f.id===r.id);
+    return `<div class="vd ${f?'on':''}" style="${f?'background:'+r.color+';box-shadow:0 0 5px '+r.color:''}"></div>`;
+  }).join('');
+
+  const lb=document.getElementById('vlabel');
+  const btnC=document.getElementById('btn-confirm');
+
+  if(pairs.length===0){
+    lb.textContent=`${filled.length}/2 distances min. requises`;
+    btnC.disabled=true;
+    // Clear preview if inputs incomplete
+    document.getElementById('rbox').classList.remove('vis');
+    document.getElementById('side-sel').classList.remove('vis');
+    document.getElementById('mirror-note').classList.remove('vis');
+    lastCalcState=null;
+  } else if(!mireOk){
+    lb.textContent=`${pairs.length} paire(s) · Mire en P manquante`;
+    btnC.disabled=true;
+  } else {
+    // Auto-calculate live preview
+    calculatePreview();
+    btnC.disabled=false;
+  }
+}
+
+// ── MATH ──────────────────────────────────────────────────────────────────────
+
+// Returns BOTH intersection points (or one if on the axis, null if no solution)
+function trilaterate2(xa,ya,xb,yb,da,db){
+  const dab=Math.sqrt((xb-xa)**2+(yb-ya)**2);
+  if(dab<0.001) return null;
+  const lx=(da*da-db*db+dab*dab)/(2*dab);
+  const ly2=da*da-lx*lx;
+  if(ly2<-0.0001) return null;
+  const ly=Math.sqrt(Math.max(0,ly2));
+  const ct=(xb-xa)/dab, st=(yb-ya)/dab;
+  const p1={x:xa+lx*ct-ly*st, y:ya+lx*st+ly*ct};
+  const p2={x:xa+lx*ct+ly*st, y:ya+lx*st-ly*ct};
+  return {p1, p2, ambiguous: ly>0.001};
+}
+
+function weightedAvg(cands){
+  const tw=cands.reduce((s,c)=>s+c.w,0);
+  return {x:cands.reduce((s,c)=>s+c.x*c.w,0)/tw, y:cands.reduce((s,c)=>s+c.y*c.w,0)/tw};
+}
+function precScore(cands,final){
+  if(cands.length<=1) return null;
+  const spread=cands.reduce((mx,c)=>Math.max(mx,Math.sqrt((c.x-final.x)**2+(c.y-final.y)**2)),0);
+  return {score:Math.round(Math.max(0,Math.min(100,100*(1-spread/0.10)))), spread};
+}
+function dist2(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);}
+
+// Pick the solution closest to a reference point (barycenter or fallback)
+function pickSide(p1,p2,flip){
+  if(flip) return p2;
+  // Auto: prefer solution closest to existing barycenter, else p1 (positive ly)
+  if(points.length>=1){
+    const cx=points.reduce((s,p)=>s+p.x,0)/points.length;
+    const cy=points.reduce((s,p)=>s+p.y,0)/points.length;
+    const ref={x:cx,y:cy};
+    return dist2(p1,ref)<=dist2(p2,ref)?p1:p2;
+  }
+  return p1;
+}
+
+// ── SIDE STATE ────────────────────────────────────────────────────────────────
+let sideFlip = false;
+let lastCalcState = null;
+let editingPointId = null; // id of point being edited, null = new point
+
+function setSide(mode){
+  sideFlip = (mode==='flip');
+  document.getElementById('side-btn-auto').classList.toggle('active', !sideFlip);
+  document.getElementById('side-btn-flip').classList.toggle('active', sideFlip);
+  if(lastCalcState) applyCalc(lastCalcState);
+}
+
+// ── CALCULATE PREVIEW (called live from updateValidity) ───────────────────────
+function calculatePreview(){
+  const errEl=document.getElementById('err'), rbox=document.getElementById('rbox');
+  errEl.classList.remove('vis');
+
+  const filled=getFilledRefs();
+  const pairs=[];
+  for(let i=0;i<filled.length;i++) for(let j=i+1;j<filled.length;j++) pairs.push([filled[i],filled[j]]);
+  const mireP=pf(document.getElementById('mire-p').value);
+  const name=document.getElementById('pname').value.trim()||('P'+autoIdx);
+
+  if(pairs.length===0){errEl.textContent='⚠ Entrez au moins 2 distances valides.';errEl.classList.add('vis');return;}
+  if(isNaN(mireP)){errEl.textContent='⚠ Entrez la lecture de mire.';errEl.classList.add('vis');return;}
+
+  // Build candidates — for each pair, resolve ambiguity
+  const rawPairs=[];
+  let anyAmbiguous=false;
+
+  pairs.forEach(([r1,r2])=>{
+    const d1=pf(document.getElementById('d-'+r1.id).value);
+    const d2=pf(document.getElementById('d-'+r2.id).value);
+    const res=trilaterate2(pf(r1.x),pf(r1.y),pf(r2.x),pf(r2.y),d1,d2);
+    if(res){
+      rawPairs.push({r1,r2,d1,d2,res});
+      if(res.ambiguous) anyAmbiguous=true;
+    }
+  });
+
+  if(rawPairs.length===0){errEl.textContent='⚠ Aucune paire géométriquement valide.';errEl.classList.add('vis');return;}
+
+  // Show/hide side selector: only useful when exactly 1 pair (pure 2-point case)
+  const selEl=document.getElementById('side-sel');
+  const noteEl=document.getElementById('mirror-note');
+  const showSel = rawPairs.length===1 && anyAmbiguous;
+  selEl.classList.toggle('vis', showSel);
+
+  // Store for live flip
+  lastCalcState={rawPairs, mireP, name};
+
+  applyCalc(lastCalcState);
+}
+
+function applyCalc(state){
+  const {rawPairs, mireP, name} = state;
+  const rbox=document.getElementById('rbox');
+  const noteEl=document.getElementById('mirror-note');
+
+  const cands=[], pairLbls=[];
+
+  rawPairs.forEach(({r1,r2,d1,d2,res})=>{
+    let chosen;
+    if(!res.ambiguous){
+      chosen=res.p1;
+    } else if(rawPairs.length===1){
+      // Pure 2-point: use sideFlip + auto
+      chosen=pickSide(res.p1,res.p2,sideFlip);
+    } else {
+      // Multiple pairs: vote — each pair picks its own best solution by auto logic
+      chosen=pickSide(res.p1,res.p2,false);
+    }
+    cands.push({x:chosen.x,y:chosen.y,w:1/(d1*d2)});
+    pairLbls.push(r1.id+r2.id);
+  });
+
+  const final=weightedAvg(cands);
+  const prec=precScore(cands,final);
+  const hi=pf(document.getElementById('hi').value)||0;
+  const mRef=pf(document.getElementById('mire-ref').value)||0;
+  const z=(hi-mireP)-(hi-mRef);
+
+  document.getElementById('rx').textContent=fmt(final.x);
+  document.getElementById('ry').textContent=fmt(final.y);
+  document.getElementById('rz').textContent=fmt(z);
+
+  if(prec){
+    document.getElementById('prow').style.display='flex';
+    const spreadMm = prec.spread * 1000;
+    const threshold = pf(document.getElementById('spread-threshold').value) || 200;
+    const col = spreadMm <= threshold*0.5 ? 'var(--accent)' : spreadMm <= threshold ? 'var(--yellow)' : 'var(--red)';
+    document.getElementById('pbar').style.cssText=`width:${prec.score}%;background:${col}`;
+    document.getElementById('pval').textContent=prec.score+'%';
+    document.getElementById('pdet').innerHTML=
+      `${cands.length} paires (${pairLbls.join(', ')}) · ` +
+      `<span style="color:${col};font-weight:500">spread ${spreadMm.toFixed(1)} mm</span>` +
+      (spreadMm > threshold ? ` <span style="color:var(--red)">⚠ > ${threshold} mm</span>` : '');
+  }else{
+    document.getElementById('prow').style.display='none';
+    const isSingle=rawPairs.length===1&&rawPairs[0].res.ambiguous;
+    const autoLabel=points.length>=1?'auto (barycentre)':'auto (côté +)';
+    document.getElementById('pdet').textContent=`Paire unique (${pairLbls[0]}) · ${sideFlip?'côté miroir':autoLabel}`;
+  }
+
+  // Mirror note: show the coordinates of the OTHER solution so user can compare
+  if(rawPairs.length===1&&rawPairs[0].res.ambiguous){
+    const other=sideFlip?rawPairs[0].res.p1:rawPairs[0].res.p2;
+    noteEl.textContent=`Autre solution : X=${fmt(other.x)} Y=${fmt(other.y)} — cliquez "⇄ Miroir" pour basculer`;
+    noteEl.classList.add('vis');
+  }else{
+    noteEl.classList.remove('vis');
+  }
+
+  rbox.classList.add('vis');
+  document.getElementById('btn-confirm').disabled=false;
+  document.getElementById('vlabel').textContent=`${cands.length} paire(s) · ${fmt(final.x)}, ${fmt(final.y)}, Z=${fmt(z)} — Confirmez ✓`;
+  // Update the ghost point on canvas
+  renderCanvas(final);
+}
+
+function confirmAndAdd(){
+  // If no lastCalcState, calculate first
+  if(!lastCalcState){ calculatePreview(); }
+  if(!lastCalcState) return;
+  const {rawPairs, mireP, name} = lastCalcState;
+
+  // Recompute final position
+  const cands=[], pairLbls=[];
+  rawPairs.forEach(({r1,r2,d1,d2,res})=>{
+    let chosen;
+    if(!res.ambiguous) chosen=res.p1;
+    else if(rawPairs.length===1) chosen=pickSide(res.p1,res.p2,sideFlip);
+    else chosen=pickSide(res.p1,res.p2,false);
+    cands.push({x:chosen.x,y:chosen.y,w:1/(d1*d2)});
+    pairLbls.push(r1.id+r2.id);
+  });
+
+  const final=weightedAvg(cands);
+  const prec=precScore(cands,final);
+  const hi=pf(document.getElementById('hi').value)||0;
+  const mRef=pf(document.getElementById('mire-ref').value)||0;
+  const z=(hi-mireP)-(hi-mRef);
+
+  const dists={};
+  getFilledRefs().forEach(r=>{dists[r.id]=pf(document.getElementById('d-'+r.id).value);});
+
+  // Build rawObs for future recomputation (stores ref coords at time of measurement)
+  const rawObs = getFilledRefs().map(r=>({
+    refId: r.id,
+    refX: pf(r.x),
+    refY: pf(r.y),
+    dist: pf(document.getElementById('d-'+r.id).value)
+  }));
+
+  const isPerim = document.getElementById('perim-check').checked;
+
+  const pt={id:autoIdx++,name,x:final.x,y:final.y,z,nPairs:cands.length,
+    precision:prec?prec.score:null,spread:prec?prec.spread:null,pairLbls,dists,mireP,
+    rawObs, usedRefs: getFilledRefs().map(r=>r.id),
+    perim: isPerim
+  };
+
+  // Record U observations from the U dist section
+  unknownPoints.forEach(u => {
+    const inp = document.getElementById('du-'+u.id);
+    if(!inp) return;
+    const d = pf(inp.value);
+    if(isNaN(d)||d<=0) return;
+
+    // Rule: if U was already used as a ref, block new observations
+    const usedAsRef = points.some(p => p.usedRefs && p.usedRefs.includes(u.id));
+    if(usedAsRef && u.status !== 'collecting'){
+      // Would need cascade recalc — warn but allow with explicit action
+      console.warn(`U ${u.id} used as ref, new obs skipped`);
+      return;
+    }
+
+    // If U is resolved/active, revert to collecting since we're adding obs
+    if(u.status === 'resolved' || u.status === 'active'){
+      if(!usedAsRef){
+        u.status = 'collecting';
+        u.x = null; u.y = null; u.xAlt = null; u.yAlt = null; u.lockedSide = null;
+      }
+    }
+
+    u.observations.push({
+      stationId: pt.name,
+      stationX: pt.x,
+      stationY: pt.y,
+      dist: d
+    });
+    if(pt.usedRefs.includes(u.id)) u.dependents.push(pt.id);
+    refineU(u.id);
+  });
+
+  // (distances and mire already cleared above)
+  // (distances and mire already cleared above)
+
+  // Reset inputs
+  refs.filter(r=>r.active!==false).forEach(r=>{const i=document.getElementById('d-'+r.id);if(i)i.value='';});
+  unknownPoints.forEach(u=>{const i=document.getElementById('du-'+u.id);if(i)i.value='';});
+  document.getElementById('mire-p').value='';
+
+  const nameEl = document.getElementById('pname');
+  const currentName = nameEl.value.trim();
+  if(!editingPointId){
+    // Auto-increment name only for new points
+    if(currentName){
+      const match = currentName.match(/^(.*?)(\d+)$/);
+      if(match) nameEl.value = match[1] + (parseInt(match[2]) + 1);
+    } else {
+      nameEl.value = '';
+    }
+  } else {
+    nameEl.value = '';
+  }
+  nameEl.select();
+  document.getElementById('rbox').classList.remove('vis');
+  document.getElementById('side-sel').classList.remove('vis');
+  document.getElementById('mirror-note').classList.remove('vis');
+  lastCalcState=null; sideFlip=false;
+  document.getElementById('side-btn-auto').classList.add('active');
+  document.getElementById('side-btn-flip').classList.remove('active');
+
+  // Reset edit mode button
+  const btnC = document.getElementById('btn-confirm');
+  btnC.textContent = '＋ Confirmer le point';
+  btnC.style.background = 'var(--accent2)';
+  btnC.style.color = '';
+
+  // Spread threshold warning
+  if(prec && prec.spread !== null){
+    const spreadMm = prec.spread * 1000;
+    const threshold = pf(document.getElementById('spread-threshold').value) || 200;
+    if(spreadMm > threshold){
+      const ok = confirm(
+        `⚠ Spread élevé : ${spreadMm.toFixed(1)} mm\n` +
+        `Seuil configuré : ${threshold} mm\n\n` +
+        `Le point "${name}" présente une incohérence entre les paires de mesures.\n` +
+        `Confirmer quand même ?`
+      );
+      if(!ok) return;
+    }
+  }
+
+  showSave('saving');
+
+  if(editingPointId !== null){
+    const idx = points.findIndex(p=>p.id===editingPointId);
+    if(idx>=0){
+      // Preserve fields not recalculated (offsetFrom, etc.)
+      const preserved = { offsetFrom: points[idx].offsetFrom };
+      pt.id = editingPointId;
+      points[idx] = {...pt, ...preserved};
+      if(isPerim && !perimOrder.includes(pt.id)) perimOrder.push(pt.id);
+      if(!isPerim) perimOrder = perimOrder.filter(i=>i!==pt.id);
+    }
+    editingPointId = null;
+    autoIdx--;
+  } else {
+    points.push(pt);
+    if(isPerim) perimOrder.push(pt.id);
+  }
+
+  document.getElementById('perim-check').checked = false;
+  tinCache=null; tinPointsHash='';
+  const savedPtId = pt.id;
+  updateValidity(); renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
+  // Cascade: update any offset points that depend on this point
+  cascadeOffsets(savedPtId);
+  if(showCoupeXZ) renderCoupeXZ();
+  if(showCoupeYZ) renderCoupeYZ();
+  setTimeout(focusFirstDist, 50);
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+function fmt(n,d=3){return typeof n==='number'?n.toFixed(d):'—';}
+
+function renderTable(){
+  document.getElementById('cbadge').textContent=points.length;
+  if(!points.length){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="9"><div class="empty-state"><span class="ico">⊕</span>Aucun point relevé</div></td></tr>`;
+    return;
+  }
+  document.getElementById('tbody').innerHTML=points.map(p=>{
+    const pc=p.precision, col=pc==null?'var(--text-dim)':pc>70?'var(--accent)':pc>40?'var(--yellow)':'var(--red)';
+    const perimIdx = perimOrder.indexOf(p.id);
+    const perimBadge = perimIdx>=0
+      ? `<span style="color:#50c878;font-size:11px;cursor:pointer" onclick="removeFromPerim(${p.id})" title="Retirer du périmètre (ordre ${perimIdx+1})">⬡${perimIdx+1}</span>`
+      : `<span style="color:var(--border);font-size:11px;cursor:pointer" onclick="addToPerim(${p.id})" title="Ajouter au périmètre">⬡</span>`;
+    const pLabel = p.name ? `${p.id} (${p.name})` : `${p.id}`;
+    return `<tr class="${perimIdx>=0?'perim-row':''}" ondblclick="openOffsetModal(${p.id})" title="Double-clic pour créer un offset">
+      <td>${p.id}</td>
+      <td style="cursor:default">${pLabel}</td>
+      <td>${fmt(p.x)}</td><td>${fmt(p.y)}</td>
+      <td style="color:${p.z>=0?'var(--accent)':'var(--red)'}">${fmt(p.z)}</td>
+      <td style="color:var(--text-dim)">${p.nPairs}</td>
+      <td style="color:${col}">${pc!=null?pc+'%':'—'}</td>
+      <td>${(()=>{
+        if(p.spread==null) return '<span style="color:var(--text-dim)">—</span>';
+        const mm = (p.spread*1000).toFixed(1);
+        const thr = pf(document.getElementById('spread-threshold').value)||200;
+        const sc = p.spread*1000 <= thr*0.5 ? 'var(--accent)' : p.spread*1000 <= thr ? 'var(--yellow)' : 'var(--red)';
+        const warn = p.spread*1000 > thr ? ' ⚠' : '';
+        return `<span style="color:${sc};font-weight:${warn?'600':'400'}">${mm} mm${warn}</span>`;
+      })()}</td>
+      <td>${perimBadge}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-danger" onclick="editPoint(${p.id})" title="Recalculer les distances">📐</button>
+        <button class="btn btn-danger" onclick="deletePoint(${p.id})">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function editPoint(id){
+  const p = points.find(p=>p.id===id);
+  if(!p) return;
+
+  // Offset points go to the offset modal
+  if(p.offsetFrom){
+    editOffsetModal(id);
+    return;
+  }
+
+  editingPointId = id;
+
+  // Pre-fill ALL fields
+  document.getElementById('pname').value = p.name || '';
+  document.getElementById('mire-p').value = fmt(p.mireP);
+  document.getElementById('perim-check').checked = perimOrder.includes(id);
+
+  // Pre-fill distances from stored dists
+  refs.forEach(r=>{
+    const inp = document.getElementById('d-'+r.id);
+    if(inp) inp.value = (p.dists && p.dists[r.id]) ? fmt(p.dists[r.id], 3) : '';
+  });
+  // Clear U distances
+  unknownPoints.forEach(u=>{
+    const inp = document.getElementById('du-'+u.id);
+    if(inp) inp.value = '';
+  });
+
+  // Update button
+  const btnC = document.getElementById('btn-confirm');
+  btnC.textContent = `✓ Mettre à jour ${p.id}`;
+  btnC.style.background = 'var(--yellow)';
+  btnC.style.color = '#1a1a00';
+
+  btnC.scrollIntoView({behavior:'smooth', block:'center'});
+  updateValidity();
+}
+
+// Quick rename directly in the table — no recalculation needed
+function renamePoint(id, newName){
+  const p = points.find(p=>p.id===id);
+  if(!p) return;
+  p.name = newName;
+  saveAll();
+  // Update canvas label live
+  renderCanvas();
+}
+
+function deletePoint(id){
+  points=points.filter(p=>p.id!==id);
+  perimOrder=perimOrder.filter(i=>i!==id);
+  renderTable();renderCanvas();updateStats();updateSurface();saveAll();
+}
+
+function updateStats(){
+  document.getElementById('sc').textContent=points.length;
+  if(!points.length){['sx','sy','sz','sp'].forEach(i=>document.getElementById(i).textContent='—');return;}
+  const xs=points.map(p=>p.x),ys=points.map(p=>p.y),zs=points.map(p=>p.z);
+  document.getElementById('sx').textContent=fmt(Math.max(...xs)-Math.min(...xs),2)+' m';
+  document.getElementById('sy').textContent=fmt(Math.max(...ys)-Math.min(...ys),2)+' m';
+  document.getElementById('sz').textContent=fmt(Math.max(...zs)-Math.min(...zs),3)+' m';
+  const pr=points.filter(p=>p.precision!=null).map(p=>p.precision);
+  document.getElementById('sp').textContent=pr.length?Math.round(pr.reduce((a,b)=>a+b,0)/pr.length)+'%':'—';
+}
+
+// ── COUPES ────────────────────────────────────────────────────────────────────
+let showCoupeXZ = false;
+let showCoupeYZ = false;
+const coupeShowPts = { xz: true, yz: true };
+
+function toggleCoupePts(type){
+  coupeShowPts[type] = !coupeShowPts[type];
+  const btn = document.getElementById(`coupe-${type}-pts-btn`);
+  if(btn) btn.classList.toggle('on', coupeShowPts[type]);
+  if(type==='xz') renderCoupeXZ();
+  else renderCoupeYZ();
+}
+
+function toggleCoupeXZ(){
+  showCoupeXZ = !showCoupeXZ;
+  document.getElementById('coupe-xz-btn').classList.toggle('on', showCoupeXZ);
+  document.getElementById('coupe-xz-label').textContent = showCoupeXZ ? 'Coupe XZ ✓' : 'Coupe XZ';
+  document.getElementById('coupe-xz-panel').style.display = showCoupeXZ ? 'block' : 'none';
+  if(showCoupeXZ){ initCoupeSlider('xz'); renderCoupeXZ(); }
+  renderCanvas();
+}
+
+function toggleCoupeYZ(){
+  showCoupeYZ = !showCoupeYZ;
+  document.getElementById('coupe-yz-btn').classList.toggle('on', showCoupeYZ);
+  document.getElementById('coupe-yz-label').textContent = showCoupeYZ ? 'Coupe YZ ✓' : 'Coupe YZ';
+  document.getElementById('coupe-yz-panel').style.display = showCoupeYZ ? 'block' : 'none';
+  if(showCoupeYZ){ initCoupeSlider('yz'); renderCoupeYZ(); }
+  renderCanvas();
+}
+
+function initCoupeSlider(type){
+  if(!points.length) return;
+  if(type==='xz'){
+    const ys=points.map(p=>p.y),mn=Math.min(...ys),mx=Math.max(...ys);
+    document.getElementById('coupe-xz-val').value=fmt((mn+mx)/2);
+    document.getElementById('coupe-xz-slider').value=50;
+  } else {
+    const xs=points.map(p=>p.x),mn=Math.min(...xs),mx=Math.max(...xs);
+    document.getElementById('coupe-yz-val').value=fmt((mn+mx)/2);
+    document.getElementById('coupe-yz-slider').value=50;
+  }
+}
+
+function syncCoupeXZSlider(){
+  if(!points.length) return;
+  const ys=points.map(p=>p.y),mn=Math.min(...ys),mx=Math.max(...ys);
+  const val=mn+(pf(document.getElementById('coupe-xz-slider').value)/100)*(mx-mn);
+  document.getElementById('coupe-xz-val').value=fmt(val);
+  renderCoupeXZ(); renderCanvas();
+}
+
+function syncCoupeYZSlider(){
+  if(!points.length) return;
+  const xs=points.map(p=>p.x),mn=Math.min(...xs),mx=Math.max(...xs);
+  const val=mn+(pf(document.getElementById('coupe-yz-slider').value)/100)*(mx-mn);
+  document.getElementById('coupe-yz-val').value=fmt(val);
+  renderCoupeYZ(); renderCanvas();
+}
+
+function drawCoupe(canvasId, pts, hAxis, vAxis, hLabel, vLabel, color, showPts=true){
+  const cvs=document.getElementById(canvasId);
+  if(!cvs) return;
+  const dpr=window.devicePixelRatio||1;
+  const rect=cvs.getBoundingClientRect();
+  const W=Math.round(rect.width)||600, H=Math.round(rect.height)||200;
+  cvs.width=W*dpr; cvs.height=H*dpr;
+  const c=cvs.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.fillStyle=themeColor('#121614','#eef2ee'); c.fillRect(0,0,W,H);
+  if(!pts.length){
+    c.fillStyle=themeColor('#4a5a4d','#6a8a6a');c.font='11px DM Mono,monospace';c.textAlign='center';
+    c.fillText('Aucun point dans cette coupe — élargissez la tolérance',W/2,H/2);
+    return;
+  }
+  const pad=40;
+  const hs=pts.map(p=>p[hAxis]),vs=pts.map(p=>p[vAxis]);
+  let mnH=Math.min(...hs),mxH=Math.max(...hs),mnV=Math.min(...vs),mxV=Math.max(...vs);
+  const mgH=Math.max((mxH-mnH)*0.1,0.5),mgV=Math.max((mxV-mnV)*0.15,0.2);
+  mnH-=mgH;mxH+=mgH;mnV-=mgV;mxV+=mgV;
+  const rH=mxH-mnH,rV=mxV-mnV,avW=W-2*pad,avH=H-2*pad;
+  const scH=avW/rH,scV=avH/rV;
+  function toCp(h,v){return{cx:pad+(h-mnH)*scH,cy:pad+avH-(v-mnV)*scV};}
+  // Grid
+  c.strokeStyle=themeColor('#1e2420','#d8e4d8');c.lineWidth=0.8;
+  const stepH=niceStep(rH/5),stepV=niceStep(rV/4);
+  for(let h=Math.ceil(mnH/stepH)*stepH;h<=mxH;h=Math.round((h+stepH)*1e8)/1e8){
+    const{cx}=toCp(h,0);c.beginPath();c.moveTo(cx,pad);c.lineTo(cx,pad+avH);c.stroke();
+    c.fillStyle=themeColor('#3a4a3d','#8aaa8a');c.font='8px DM Mono,monospace';c.textAlign='center';
+    c.fillText(h.toFixed(2),cx,pad+avH+12);
+  }
+  for(let v=Math.ceil(mnV/stepV)*stepV;v<=mxV;v=Math.round((v+stepV)*1e8)/1e8){
+    const{cy}=toCp(0,v);c.beginPath();c.moveTo(pad,cy);c.lineTo(pad+avW,cy);c.stroke();
+    c.fillStyle=themeColor('#3a4a3d','#8aaa8a');c.font='8px DM Mono,monospace';c.textAlign='right';
+    c.fillText(v.toFixed(2),pad-4,cy+3);
+  }
+  // Axis labels
+  c.fillStyle=themeColor('#c8d8ca','#2a3a2a');c.font='bold 9px Syne,sans-serif';c.textAlign='center';
+  c.fillText(hLabel,W/2,H-2);
+  c.save();c.translate(10,H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText(vLabel,0,0);c.restore();
+  // Sorted by horizontal axis
+  const sorted=[...pts].sort((a,b)=>a[hAxis]-b[hAxis]);
+  // Profile line (dashed)
+  if(sorted.length>=2){
+    c.beginPath();
+    sorted.forEach((p,i)=>{const{cx,cy}=toCp(p[hAxis],p[vAxis]);i===0?c.moveTo(cx,cy):c.lineTo(cx,cy);});
+    c.strokeStyle=color+'88';c.lineWidth=1.5;c.setLineDash([4,3]);c.stroke();c.setLineDash([]);
+  }
+  // Points
+  if(showPts){
+  sorted.forEach(p=>{
+    const{cx,cy}=toCp(p[hAxis],p[vAxis]);
+    c.beginPath();c.arc(cx,cy,5,0,Math.PI*2);c.fillStyle=color+'55';c.fill();
+    c.beginPath();c.arc(cx,cy,4,0,Math.PI*2);c.fillStyle=color;c.fill();
+    const lbl=p.name?`${p.id}(${p.name})`:`${p.id}`;
+    c.fillStyle=themeColor('#c8d8ca','#2a3a2a');c.font='9px DM Mono,monospace';c.textAlign='left';
+    c.fillText(lbl,cx+6,cy-3);
+    c.fillStyle=themeColor('#5a7a5d','#7a9a7d');c.fillText('z='+fmt(p.z,2),cx+6,cy+8);
+  });
+  }
+  // Info
+  c.fillStyle=color+'88';c.font='9px DM Mono,monospace';c.textAlign='right';
+  c.fillText(`${pts.length} pt(s)`,W-pad,pad-5);
+}
+
+function renderCoupeXZ(){
+  if(!showCoupeXZ) return;
+  const yVal=pf(document.getElementById('coupe-xz-val').value)||0;
+  const tol=pf(document.getElementById('coupe-xz-tol').value)||0.5;
+  drawCoupe('canvas-xz',points.filter(p=>Math.abs(p.y-yVal)<=tol),'x','z','X (m)','Z (m)','#e09863',coupeShowPts.xz);
+  renderCanvas();
+}
+
+function renderCoupeYZ(){
+  if(!showCoupeYZ) return;
+  const xVal=pf(document.getElementById('coupe-yz-val').value)||0;
+  const tol=pf(document.getElementById('coupe-yz-tol').value)||0.5;
+  drawCoupe('canvas-yz',points.filter(p=>Math.abs(p.x-xVal)<=tol),'y','z','Y (m)','Z (m)','#63b4e0',coupeShowPts.yz);
+  renderCanvas();
+}
+
+function syncSpreadThreshold(source){
+  const slider = document.getElementById('spread-threshold');
+  const input  = document.getElementById('spread-threshold-input');
+  if(source === 'slider'){
+    input.value = slider.value;
+  } else {
+    const v = pf(input.value)||200;
+    // Slider stays within 100-1000, input can go beyond
+    slider.value = Math.max(100, Math.min(1000, v));
+  }
+  renderTable();
+}
+const canvasVis = { grid:true, axes:true, refLabels:true, pointLabels:true, points:true, perim:true };
+function toggleVis(key){
+  canvasVis[key] = !canvasVis[key];
+  const btn = document.getElementById('vis-'+key);
+  if(btn) btn.classList.toggle('on', canvasVis[key]);
+  renderCanvas();
+}
+
+// ── OFFSET ────────────────────────────────────────────────────────────────────
+let offsetSourceId = null;
+let offsetEditingId = null;
+
+function openOffsetModal(sourceId){
+  const src = points.find(p=>p.id===sourceId);
+  if(!src) return;
+  offsetSourceId = sourceId;
+  offsetEditingId = null;
+  const srcLabel = src.name ? `${src.id} (${src.name})` : src.id;
+  document.getElementById('off-title').textContent = '📐 Offset d\'un point';
+  document.getElementById('off-subtitle').textContent = 'Créer un nouveau point décalé depuis un point existant';
+  document.getElementById('offset-source-info').innerHTML =
+    `Source : <strong>${srcLabel}</strong> — X:${fmt(src.x)} Y:${fmt(src.y)} Z:${fmt(src.z)}`;
+  document.getElementById('off-dx').value = '0';
+  document.getElementById('off-dy').value = '0';
+  document.getElementById('off-dz').value = '0';
+  document.getElementById('off-name').value = `${src.id}-off`;
+  document.getElementById('off-perim').checked = false;
+  document.getElementById('off-confirm-btn').textContent = '✓ Créer le point';
+  _attachOffsetListeners();
+  updateOffsetResult();
+  document.getElementById('offset-overlay').classList.add('vis');
+  setTimeout(()=>document.getElementById('off-dx').focus(), 100);
+}
+
+function editOffsetModal(offsetPtId){
+  const pt = points.find(p=>p.id===offsetPtId);
+  if(!pt || !pt.offsetFrom) return;
+  const src = points.find(p=>p.id===pt.offsetFrom);
+  if(!src) return;
+  offsetSourceId = src.id;
+  offsetEditingId = offsetPtId;
+  const srcLabel = src.name ? `${src.id} (${src.name})` : src.id;
+  document.getElementById('off-title').textContent = '📐 Modifier l\'offset';
+  document.getElementById('off-subtitle').textContent = 'Modifier le décalage du point existant';
+  document.getElementById('offset-source-info').innerHTML =
+    `Source : <strong>${srcLabel}</strong> — X:${fmt(src.x)} Y:${fmt(src.y)} Z:${fmt(src.z)}`;
+  const d = pt.offsetDelta || {dx:0,dy:0,dz:0};
+  document.getElementById('off-dx').value = (d.dx*100).toFixed(1);
+  document.getElementById('off-dy').value = (d.dy*100).toFixed(1);
+  document.getElementById('off-dz').value = (d.dz*100).toFixed(1);
+  document.getElementById('off-name').value = pt.name || '';
+  document.getElementById('off-perim').checked = perimOrder.includes(offsetPtId);
+  document.getElementById('off-confirm-btn').textContent = '✓ Mettre à jour';
+  _attachOffsetListeners();
+  updateOffsetResult();
+  document.getElementById('offset-overlay').classList.add('vis');
+  setTimeout(()=>document.getElementById('off-dx').focus(), 100);
+}
+
+function _attachOffsetListeners(){
+  ['off-dx','off-dy','off-dz'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.removeEventListener('input', updateOffsetResult);
+    el.addEventListener('input', updateOffsetResult);
+  });
+}
+
+function updateOffsetResult(){
+  const src = points.find(p=>p.id===offsetSourceId);
+  if(!src) return;
+  const dx = (pf(document.getElementById('off-dx').value)||0)/100;
+  const dy = (pf(document.getElementById('off-dy').value)||0)/100;
+  const dz = (pf(document.getElementById('off-dz').value)||0)/100;
+  document.getElementById('off-rx').value = fmt(src.x+dx);
+  document.getElementById('off-ry').value = fmt(src.y+dy);
+  document.getElementById('off-rz').value = fmt(src.z+dz);
+}
+
+function closeOffsetModal(){
+  document.getElementById('offset-overlay').classList.remove('vis');
+  offsetSourceId = null; offsetEditingId = null;
+}
+
+function confirmOffset(){
+  const src = points.find(p=>p.id===offsetSourceId);
+  if(!src) return;
+  const dx = (pf(document.getElementById('off-dx').value)||0)/100;
+  const dy = (pf(document.getElementById('off-dy').value)||0)/100;
+  const dz = (pf(document.getElementById('off-dz').value)||0)/100;
+  const name = document.getElementById('off-name').value.trim() || `${src.id}-off`;
+  const isPerim = document.getElementById('off-perim').checked;
+  if(offsetEditingId !== null){
+    const pt = points.find(p=>p.id===offsetEditingId);
+    if(pt){
+      pt.name=name; pt.x=src.x+dx; pt.y=src.y+dy; pt.z=src.z+dz;
+      pt.offsetDelta={dx,dy,dz}; pt.perim=isPerim;
+      if(isPerim && !perimOrder.includes(pt.id)) perimOrder.push(pt.id);
+      if(!isPerim) perimOrder=perimOrder.filter(i=>i!==pt.id);
+    }
+  } else {
+    const newPt={
+      id:autoIdx++, name, x:src.x+dx, y:src.y+dy, z:src.z+dz,
+      nPairs:src.nPairs, precision:src.precision, spread:src.spread,
+      pairLbls:src.pairLbls, dists:{...src.dists}, mireP:src.mireP,
+      rawObs:src.rawObs?[...src.rawObs]:[], usedRefs:src.usedRefs?[...src.usedRefs]:[],
+      perim:isPerim, offsetFrom:src.id, offsetDelta:{dx,dy,dz}
+    };
+    points.push(newPt);
+    if(isPerim) perimOrder.push(newPt.id);
+  }
+  tinCache=null; tinPointsHash='';
+  closeOffsetModal();
+  renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
+}
+
+// Cascade update: when source point changes, update all its offset dependents
+function cascadeOffsets(srcId){
+  const src = points.find(p=>p.id===srcId);
+  if(!src) return;
+  let updated=0;
+  points.filter(p=>p.offsetFrom===srcId).forEach(pt=>{
+    const d=pt.offsetDelta||{dx:0,dy:0,dz:0};
+    pt.x=src.x+d.dx; pt.y=src.y+d.dy; pt.z=src.z+d.dz;
+    updated++;
+  });
+  if(updated>0){ tinCache=null; tinPointsHash=''; renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll(); }
+}
+
+let cropisData = null;
+let cropisName = '';
+
+// Load from localStorage on startup
+(function(){
+  try {
+    const saved = localStorage.getItem('topo_croquis');
+    if(saved){
+      const d = JSON.parse(saved);
+      cropisData = d.data;
+      cropisName = d.name || '';
+      updateCroquisBtn();
+    }
+  } catch(e){}
+})();
+
+function loadCroquis(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    cropisData = e.target.result;
+    cropisName = file.name;
+    try { localStorage.setItem('topo_croquis', JSON.stringify({data:cropisData,name:cropisName})); } catch(e){}
+    updateCroquisBtn();
+    showCroquis();
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function updateCroquisBtn(){
+  const btn = document.getElementById('croquis-btn');
+  if(btn) btn.style.display = cropisData ? 'inline-block' : 'none';
+}
+
+function showCroquis(){
+  if(!cropisData) return;
+  document.getElementById('croquis-img').src = cropisData;
+  document.getElementById('croquis-name').textContent = cropisName;
+  document.getElementById('croquis-overlay').classList.add('vis');
+}
+
+function hideCroquis(){
+  document.getElementById('croquis-overlay').classList.remove('vis');
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') hideCroquis(); });
+
+// ── ZOOM / PAN ────────────────────────────────────────────────────────────────
+const view = { zoom: 1, panX: 0, panY: 0 };
+const ZOOM_STEPS = [0.25,0.33,0.5,0.67,0.75,1,1.25,1.5,2,2.5,3,4,5,6,7,8,10];
+
+function zoomCanvas(dir){
+  const idx = ZOOM_STEPS.findIndex(z => Math.abs(z - view.zoom) < 0.01);
+  const newIdx = Math.max(0, Math.min(ZOOM_STEPS.length-1, (idx < 0 ? 5 : idx) + dir));
+  view.zoom = ZOOM_STEPS[newIdx];
+  document.getElementById('zoom-level').textContent = Math.round(view.zoom*100)+'%';
+  renderCanvas();
+}
+
+function resetView(){
+  view.zoom = 1; view.panX = 0; view.panY = 0;
+  document.getElementById('zoom-level').textContent = '100%';
+  renderCanvas();
+}
+
+// Pan state
+let _pan = { active: false, startX: 0, startY: 0, startPanX: 0, startPanY: 0 };
+let _pinch = { active: false, startDist: 0, startZoom: 1 };
+
+function _getCanvasPos(e){
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+// Mouse pan
+canvas.addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  if(perimEditMode) return; // perim edit uses click, not pan
+  _pan.active = true;
+  _pan.startX = e.clientX; _pan.startY = e.clientY;
+  _pan.startPanX = view.panX; _pan.startPanY = view.panY;
+  canvas.style.cursor = 'grabbing';
+});
+document.addEventListener('mousemove', e => {
+  if(!_pan.active) return;
+  view.panX = _pan.startPanX + (e.clientX - _pan.startX);
+  view.panY = _pan.startPanY + (e.clientY - _pan.startY);
+  renderCanvas();
+});
+document.addEventListener('mouseup', () => {
+  if(!_pan.active) return;
+  _pan.active = false;
+  canvas.style.cursor = 'default';
+});
+
+// Mouse wheel zoom (centered on cursor) — smooth and slow on trackpad
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const pos = _getCanvasPos(e);
+  const oldZoom = view.zoom;
+
+  let newZoom;
+  if(e.ctrlKey || e.deltaMode === 0){
+    // Trackpad pinch (ctrlKey) or pixel-mode scroll — very fine
+    const factor = 1 - e.deltaY * 0.003;
+    newZoom = Math.max(0.25, Math.min(10, oldZoom * factor));
+  } else {
+    // Mouse wheel — step through ZOOM_STEPS
+    const dir = e.deltaY < 0 ? 1 : -1;
+    const idx = ZOOM_STEPS.findIndex(z => Math.abs(z - view.zoom) < 0.01);
+    const cur = idx < 0 ? 5 : idx;
+    const newIdx = Math.max(0, Math.min(ZOOM_STEPS.length-1, cur + dir));
+    newZoom = ZOOM_STEPS[newIdx];
+  }
+
+  const ratio = newZoom / oldZoom;
+  view.panX = pos.x - ratio * (pos.x - view.panX);
+  view.panY = pos.y - ratio * (pos.y - view.panY);
+  view.zoom = newZoom;
+  document.getElementById('zoom-level').textContent = Math.round(view.zoom*100)+'%';
+  renderCanvas();
+}, { passive: false });
+
+// Touch pan (1 finger) and pinch zoom (2 fingers)
+canvas.addEventListener('touchstart', e => {
+  if(e.touches.length === 1){
+    _pinch.active = false;
+    _pan.active = true;
+    _pan.startX = e.touches[0].clientX; _pan.startY = e.touches[0].clientY;
+    _pan.startPanX = view.panX; _pan.startPanY = view.panY;
+  } else if(e.touches.length === 2){
+    _pan.active = false;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    _pinch.active = true;
+    _pinch.startDist = Math.sqrt(dx*dx+dy*dy);
+    _pinch.startZoom = view.zoom; // capture current zoom at gesture start
+    _pinch.startPanX = view.panX;
+    _pinch.startPanY = view.panY;
+    const rect = canvas.getBoundingClientRect();
+    _pinch.midX = (e.touches[0].clientX + e.touches[1].clientX)/2 - rect.left;
+    _pinch.midY = (e.touches[0].clientY + e.touches[1].clientY)/2 - rect.top;
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  if(_pan.active && e.touches.length === 1){
+    view.panX = _pan.startPanX + (e.touches[0].clientX - _pan.startX);
+    view.panY = _pan.startPanY + (e.touches[0].clientY - _pan.startY);
+    renderCanvas();
+  } else if(_pinch.active && e.touches.length === 2){
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    const ratio = dist / _pinch.startDist;
+    // Apply ratio to the zoom captured at gesture start — prevents drift
+    const newZoom = Math.max(0.15, Math.min(6, _pinch.startZoom * ratio));
+    // Zoom centered on pinch midpoint
+    const zRatio = newZoom / _pinch.startZoom;
+    view.zoom = newZoom;
+    view.panX = _pinch.midX - zRatio * (_pinch.midX - _pinch.startPanX);
+    view.panY = _pinch.midY - zRatio * (_pinch.midY - _pinch.startPanY);
+    document.getElementById('zoom-level').textContent = Math.round(view.zoom*100)+'%';
+    renderCanvas();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  if(e.touches.length < 2){ _pinch.active = false; }
+  if(e.touches.length === 0){ _pan.active = false; }
+});
+
+// Double-tap to reset view
+let _lastTap = 0;
+canvas.addEventListener('touchend', e => {
+  const now = Date.now();
+  if(now - _lastTap < 300 && e.changedTouches.length === 1){ resetView(); }
+  _lastTap = now;
+});
+let showContours = false;
+
+function toggleContours(){
+  showContours = !showContours;
+  const btn = document.getElementById('contour-btn');
+  btn.classList.toggle('on', showContours);
+  document.getElementById('contour-label').textContent = showContours ? 'Courbes ✓' : 'Courbes';
+  renderCanvas();
+}
+
+// IDW interpolation: estimate Z at (qx,qy) from known points
+function idwZ(qx, qy, pts, power=2){
+  let num=0, den=0;
+  for(const p of pts){
+    const d2=(qx-p.x)**2+(qy-p.y)**2;
+    if(d2 < 1e-10) return p.z; // exactly on a point
+    const w = 1 / Math.pow(d2, power/2);
+    num += w * p.z;
+    den += w;
+  }
+  return den===0 ? 0 : num/den;
+}
+
+// Marching Squares — returns array of line segments [{x1,y1,x2,y2}] for a given isolevel
+function marchingSquares(grid, nx, ny, cellW, cellH, originX, originY, level){
+  const segs = [];
+  // linear interpolation along edge
+  function lerp(v0, v1, p0, p1){
+    const t = (level - v0) / (v1 - v0);
+    return p0 + t * (p1 - p0);
+  }
+  for(let iy=0; iy<ny-1; iy++){
+    for(let ix=0; ix<nx-1; ix++){
+      const x0=originX+ix*cellW, y0=originY+iy*cellH;
+      const x1=x0+cellW,         y1=y0+cellH;
+      // Corner values (world coords → canvas Y is flipped later by toC)
+      const bl=grid[iy  ][ix  ]; // bottom-left
+      const br=grid[iy  ][ix+1]; // bottom-right
+      const tr=grid[iy+1][ix+1]; // top-right
+      const tl=grid[iy+1][ix  ]; // top-left
+      // Case index
+      const idx =
+        (bl>=level?1:0)|(br>=level?2:0)|(tr>=level?4:0)|(tl>=level?8:0);
+      if(idx===0||idx===15) continue;
+      // Edge midpoints by interpolation
+      const bot = {x:lerp(bl,br,x0,x1), y:y0};
+      const rgt = {x:x1, y:lerp(br,tr,y0,y1)};
+      const top = {x:lerp(tl,tr,x0,x1), y:y1};
+      const lft = {x:x0, y:lerp(bl,tl,y0,y1)};
+      // Lookup table of segment pairs
+      const lut = [
+        null,           // 0
+        [lft,bot],      // 1
+        [bot,rgt],      // 2
+        [lft,rgt],      // 3
+        [rgt,top],      // 4
+        [lft,bot,rgt,top], // 5 saddle — two segments
+        [bot,top],      // 6
+        [lft,top],      // 7
+        [lft,top],      // 8  (mirror of 7)
+        [bot,top],      // 9
+        [lft,bot,rgt,top], // 10 saddle
+        [rgt,top],      // 11
+        [lft,rgt],      // 12
+        [bot,rgt],      // 13
+        [lft,bot],      // 14
+        null            // 15
+      ];
+      const e = lut[idx];
+      if(!e) continue;
+      if(e.length===2) segs.push({x1:e[0].x,y1:e[0].y,x2:e[1].x,y2:e[1].y});
+      else { // saddle: two segments
+        segs.push({x1:e[0].x,y1:e[0].y,x2:e[1].x,y2:e[1].y});
+        segs.push({x1:e[2].x,y1:e[2].y,x2:e[3].x,y2:e[3].y});
+      }
+    }
+  }
+  return segs;
+}
+
+// Draw contour lines on the canvas given the current transform
+function drawContours(toC, mnX, mnY, rX, rY, surveyPts){
+  if(!surveyPts.length) return;
+
+  const zs = surveyPts.map(p=>p.z);
+  const zMin=Math.min(...zs), zMax=Math.max(...zs), zRange=zMax-zMin;
+  if(zRange < 0.005) return; // not enough relief
+
+  // Choose contour interval: aim for 5-10 lines
+  const rawInterval = zRange / 7;
+  const intervals = [0.01,0.02,0.05,0.10,0.20,0.25,0.50,1.00,2.00,5.00];
+  const interval = intervals.find(v => v >= rawInterval) || rawInterval;
+
+  // Build interpolation grid (world coordinates)
+  const GRID = 60; // grid resolution
+  const nx = GRID, ny = GRID;
+  const cellW = rX / (nx-1), cellH = rY / (ny-1);
+
+  // Fill grid with IDW-interpolated Z values
+  const grid = [];
+  for(let iy=0; iy<ny; iy++){
+    grid[iy] = [];
+    for(let ix=0; ix<nx; ix++){
+      const wx = mnX + ix * cellW;
+      const wy = mnY + iy * cellH;
+      grid[iy][ix] = idwZ(wx, wy, surveyPts);
+    }
+  }
+
+  // Determine contour levels
+  const firstLevel = Math.ceil(zMin / interval) * interval;
+  const levels = [];
+  for(let l=firstLevel; l<=zMax+1e-9; l=Math.round((l+interval)*1e6)/1e6) levels.push(l);
+
+  // Color scale: blue (low) → green → yellow → red (high)
+  function contourColor(z, alpha=0.7){
+    const t = zRange>0 ? (z-zMin)/zRange : 0.5;
+    let r,g,b;
+    if(t<0.25){const s=t/0.25;      r=0;         g=~~(255*s); b=255;}
+    else if(t<0.5){const s=(t-0.25)/0.25; r=0;   g=255;       b=~~(255*(1-s));}
+    else if(t<0.75){const s=(t-0.5)/0.25; r=~~(255*s); g=255; b=0;}
+    else{const s=(t-0.75)/0.25;     r=255;        g=~~(255*(1-s)); b=0;}
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  // Draw each contour level
+  levels.forEach((level, li) => {
+    const segs = marchingSquares(grid, nx, ny, cellW, cellH, mnX, mnY, level);
+    if(!segs.length) return;
+
+    // Major = every 5th interval; if fewer than 5 levels total, all are major
+    const isMajor = levels.length <= 5 ||
+      Math.abs(Math.round(level/interval/5)*interval*5 - level) < interval*0.01;
+    const col = contourColor(level, isMajor ? 0.85 : 0.5);
+    ctx.strokeStyle = col;
+    ctx.lineWidth = isMajor ? 1.5 : 0.8;
+    ctx.setLineDash([]);
+
+    segs.forEach(s => {
+      const p1 = toC(s.x1, s.y1);
+      const p2 = toC(s.x2, s.y2);
+      ctx.beginPath();
+      ctx.moveTo(p1.cx, p1.cy);
+      ctx.lineTo(p2.cx, p2.cy);
+      ctx.stroke();
+    });
+
+    // Labels on ALL levels — at least 1 guaranteed, then every ~100px
+    const labelText = level.toFixed(2) + 'm';
+    ctx.save();
+    ctx.font = 'bold 9px DM Mono,monospace';
+    const textW = ctx.measureText(labelText).width + 4;
+    let distAccum = 0;
+    const labelSpacing = 100;
+    let nextLabel = 0; // start immediately — guarantees first label on first eligible segment
+    let labelPlaced = false;
+
+    segs.forEach(s => {
+      const p1 = toC(s.x1, s.y1);
+      const p2 = toC(s.x2, s.y2);
+      const segLen = Math.sqrt((p2.cx-p1.cx)**2+(p2.cy-p1.cy)**2);
+      distAccum += segLen;
+
+      if(distAccum >= nextLabel){
+        nextLabel = distAccum + labelSpacing;
+        labelPlaced = true;
+        const mx = (p1.cx+p2.cx)/2, my = (p1.cy+p2.cy)/2;
+        const angle = Math.atan2(p2.cy-p1.cy, p2.cx-p1.cx);
+
+        ctx.save();
+        ctx.translate(mx, my);
+        const a = angle > Math.PI/2 || angle < -Math.PI/2 ? angle + Math.PI : angle;
+        ctx.rotate(a);
+        ctx.fillStyle = themeColor('rgba(12,15,12,0.9)', 'rgba(238,242,238,0.9)');
+        ctx.fillRect(-textW/2, -7, textW, 10);
+        ctx.fillStyle = contourColor(level, 1.0);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, 0, 0);
+        ctx.restore();
+      }
+    });
+
+    // If no label was placed (very short contour), force one on the middle segment
+    if(!labelPlaced && segs.length > 0){
+      const s = segs[Math.floor(segs.length/2)];
+      const p1 = toC(s.x1, s.y1);
+      const p2 = toC(s.x2, s.y2);
+      const mx = (p1.cx+p2.cx)/2, my = (p1.cy+p2.cy)/2;
+      const angle = Math.atan2(p2.cy-p1.cy, p2.cx-p1.cx);
+      ctx.save();
+      ctx.translate(mx, my);
+      const a = angle > Math.PI/2 || angle < -Math.PI/2 ? angle + Math.PI : angle;
+      ctx.rotate(a);
+      ctx.fillStyle = themeColor('rgba(12,15,12,0.9)', 'rgba(238,242,238,0.9)');
+      ctx.fillRect(-textW/2, -7, textW, 10);
+      ctx.fillStyle = contourColor(level, 1.0);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(labelText, 0, 0);
+      ctx.restore();
+    }
+
+    ctx.restore();
+  });
+}
+
+// ── CANVAS ────────────────────────────────────────────────────────────────────
+function isLight(){ return document.body.classList.contains('light'); }
+function themeColor(dark, light){ return isLight() ? light : dark; }
+
+function renderCanvas(ghostPt){
+  // Read CSS dimensions — must match the canvas element's rendered size
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const W = Math.round(rect.width) || canvas.offsetWidth || 700;
+  const H = Math.round(rect.height) || 400;
+
+  // Set internal resolution to physical pixels
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale all drawing by dpr
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=themeColor('#121614','#eef2ee');
+  ctx.fillRect(0,0,W,H);
+
+  const ar=refs.filter(r=>r.x!==''&&r.y!=='');
+
+  // Determine mirror point for bounds
+  let mirrorPt=null;
+  if(lastCalcState&&lastCalcState.rawPairs.length===1&&lastCalcState.rawPairs[0].res.ambiguous){
+    const res=lastCalcState.rawPairs[0].res;
+    mirrorPt=sideFlip?res.p1:res.p2;
+  }
+
+  const allForBounds=[
+    ...ar.map(r=>({x:pf(r.x),y:pf(r.y)})),
+    ...points.map(p=>({x:p.x,y:p.y})),
+    ...unknownPoints.filter(u=>u.x!==null).map(u=>({x:u.x,y:u.y})),
+    ...unknownPoints.flatMap(u=>u.observations.map(o=>({x:o.stationX,y:o.stationY})))
+  ];
+  if(ghostPt) allForBounds.push(ghostPt);
+  if(mirrorPt) allForBounds.push(mirrorPt);
+
+  // Include both intersection solutions in bounds when in 2-point mode
+  if(lastCalcState&&lastCalcState.rawPairs.length===1&&lastCalcState.rawPairs[0].res.ambiguous){
+    const res=lastCalcState.rawPairs[0].res;
+    allForBounds.push(res.p1, res.p2);
+  }
+
+  if(!allForBounds.length){
+    ctx.fillStyle=themeColor('#4a5a4d','#6a8a6a');ctx.font='12px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText('Définissez au moins 2 références avec coordonnées',W/2,H/2);return;
+  }
+
+  const xs=allForBounds.map(p=>p.x),ys=allForBounds.map(p=>p.y), pad=44;
+  let mnX=Math.min(...xs),mxX=Math.max(...xs),mnY=Math.min(...ys),mxY=Math.max(...ys);
+  const mg=Math.max((mxX-mnX)*.18,(mxY-mnY)*.18,2);
+  mnX-=mg;mxX+=mg;mnY-=mg;mxY+=mg;
+  const rX=mxX-mnX,rY=mxY-mnY,avW=W-2*pad,avH=H-2*pad;
+  const sc=Math.min(avW/rX,avH/rY),dW=rX*sc,dH=rY*sc;
+  const oX=pad+(avW-dW)/2,oY=pad+(avH-dH)/2;
+  // Apply zoom and pan
+  const z=view.zoom, px=view.panX, py=view.panY;
+  const cx0=W/2, cy0=H/2; // zoom center
+  function toC(wx,wy){
+    const bx=oX+(wx-mnX)*sc, by=oY+dH-(wy-mnY)*sc;
+    return {
+      cx: cx0 + (bx - cx0)*z + px,
+      cy: cy0 + (by - cy0)*z + py
+    };
+  }
+  // Inverse: canvas pixel → world coords (for hit testing)
+  function fromC(cx,cy){
+    const bx=(cx - cx0 - px)/z + cx0;
+    const by=(cy - cy0 - py)/z + cy0;
+    return { wx: mnX + (bx-oX)/sc, wy: mnY + (oY+dH-by)/sc };
+  }
+  canvas._fromC = fromC;
+
+  // Grid — adapts to zoom level
+  if(canvasVis.grid){
+  const visW=W/(sc*z), visH=H/(sc*z);
+  const step=niceStep(Math.max(visW,visH)/6);
+  const subStep=niceStep(step/5);
+  const showSubGrid=z>=2;
+  if(showSubGrid){
+    ctx.strokeStyle=themeColor('#181f1a','#e4ece4');ctx.lineWidth=0.4;
+    for(let gx=Math.ceil(mnX/subStep)*subStep;gx<=mnX+rX;gx=Math.round((gx+subStep)*1e8)/1e8){
+      const{cx}=toC(gx,mnY);ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+    }
+    for(let gy=Math.ceil(mnY/subStep)*subStep;gy<=mnY+rY;gy=Math.round((gy+subStep)*1e8)/1e8){
+      const{cy}=toC(mnX,gy);ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+    }
+  }
+  ctx.strokeStyle=themeColor('#1e2420','#d8e4d8');ctx.lineWidth=1;
+  for(let gx=Math.ceil(mnX/step)*step;gx<=mnX+rX;gx=Math.round((gx+step)*1e8)/1e8){
+    const{cx}=toC(gx,mnY);ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  }
+  for(let gy=Math.ceil(mnY/step)*step;gy<=mnY+rY;gy=Math.round((gy+step)*1e8)/1e8){
+    const{cy}=toC(mnX,gy);ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  }
+  const dec=step<0.01?3:step<0.1?2:1;
+  ctx.fillStyle=themeColor('#3a4a3d','#8aaa8a');ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
+  for(let gx=Math.ceil(mnX/step)*step;gx<=mnX+rX;gx=Math.round((gx+step)*1e8)/1e8){
+    const{cx}=toC(gx,mnY);ctx.fillText(gx.toFixed(dec),cx,H-4);
+  }
+  ctx.textAlign='left';
+  for(let gy=Math.ceil(mnY/step)*step;gy<=mnY+rY;gy=Math.round((gy+step)*1e8)/1e8){
+    const{cy}=toC(mnX,gy);ctx.fillText(gy.toFixed(dec),4,cy+3);
+  }
+  } // end grid
+
+  // ── Axes X et Y ──────────────────────────────────────────────────────────────
+  if(canvasVis.axes){
+    const orig = toC(0,0);
+    // X axis (vertical on plan = up)
+    const xTop = toC(0, mnY+rY*0.02);
+    const xBot = toC(0, mnY-rY*0.02);
+    // Only draw if origin is in view range
+    ctx.strokeStyle='#e0636388';ctx.lineWidth=1.5;ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(orig.cx,0);ctx.lineTo(orig.cx,H);ctx.stroke();
+    // Y axis (horizontal on plan)
+    ctx.strokeStyle='#63b4e088';
+    ctx.beginPath();ctx.moveTo(0,orig.cy);ctx.lineTo(W,orig.cy);ctx.stroke();
+    // Labels
+    ctx.font='bold 11px Syne,sans-serif';ctx.textAlign='left';
+    ctx.fillStyle='#e06363cc';ctx.fillText('X',orig.cx+4,14);
+    ctx.fillStyle='#63b4e0cc';ctx.fillText('Y',W-18,orig.cy-4);
+    // Origin dot
+    ctx.beginPath();ctx.arc(orig.cx,orig.cy,4,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=1;ctx.stroke();
+  }
+
+  // ── Coupe lines on plan ───────────────────────────────────────────────────────
+  if(showCoupeXZ){
+    const yVal = pf(document.getElementById('coupe-xz-val').value)||0;
+    const tol  = pf(document.getElementById('coupe-xz-tol').value)||0.5;
+    const y1=toC(mnX,yVal), y2=toC(mnX+rX,yVal);
+    ctx.strokeStyle='#e09863';ctx.lineWidth=2;ctx.setLineDash([6,3]);
+    ctx.beginPath();ctx.moveTo(0,y1.cy);ctx.lineTo(W,y1.cy);ctx.stroke();
+    // Tolerance band
+    const yt1=toC(mnX,yVal+tol), yt2=toC(mnX,yVal-tol);
+    ctx.fillStyle='#e0986318';
+    ctx.fillRect(0,yt1.cy,W,yt2.cy-yt1.cy);
+    ctx.setLineDash([]);
+    ctx.fillStyle='#e09863';ctx.font='bold 10px DM Mono,monospace';ctx.textAlign='left';
+    ctx.fillText(`XZ  Y=${yVal.toFixed(2)}m`,4,y1.cy-5);
+  }
+  if(showCoupeYZ){
+    const xVal = pf(document.getElementById('coupe-yz-val').value)||0;
+    const tol  = pf(document.getElementById('coupe-yz-tol').value)||0.5;
+    const x1=toC(xVal,mnY);
+    ctx.strokeStyle='#63b4e0';ctx.lineWidth=2;ctx.setLineDash([6,3]);
+    ctx.beginPath();ctx.moveTo(x1.cx,0);ctx.lineTo(x1.cx,H);ctx.stroke();
+    // Tolerance band
+    const xt1=toC(xVal-tol,mnY), xt2=toC(xVal+tol,mnY);
+    ctx.fillStyle='#63b4e018';
+    ctx.fillRect(xt1.cx,0,xt2.cx-xt1.cx,H);
+    ctx.setLineDash([]);
+    ctx.fillStyle='#63b4e0';ctx.font='bold 10px DM Mono,monospace';ctx.textAlign='left';
+    ctx.fillText(`YZ  X=${xVal.toFixed(2)}m`,x1.cx+5,14);
+  }
+
+  // TIN mesh (drawn before contours and points)
+  if(showTIN && points.length >= 3){
+    drawTIN(toC, points, getTIN());
+  }
+
+  // Contour lines (drawn before points so they appear underneath)
+  if(showContours && points.length >= 3){
+    drawContours(toC, mnX, mnY, rX, rY, points);
+  }
+
+  // Ref-to-ref dashed lines
+  ctx.setLineDash([3,5]);ctx.lineWidth=1;  for(let i=0;i<ar.length;i++) for(let j=i+1;j<ar.length;j++){
+    const p1=toC(pf(ar[i].x),pf(ar[i].y));
+    const p2=toC(pf(ar[j].x),pf(ar[j].y));
+    ctx.strokeStyle=ar[i].color+'44';
+    ctx.beginPath();ctx.moveTo(p1.cx,p1.cy);ctx.lineTo(p2.cx,p2.cy);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Measurement circles (2-point mode visual aid)
+  if(lastCalcState&&lastCalcState.rawPairs.length===1){
+    const{r1,r2,d1,d2}=lastCalcState.rawPairs[0];
+    const c1=toC(pf(r1.x),pf(r1.y));
+    const c2=toC(pf(r2.x),pf(r2.y));
+    ctx.setLineDash([2,4]);ctx.lineWidth=1;
+    ctx.strokeStyle=r1.color+'55';
+    ctx.beginPath();ctx.arc(c1.cx,c1.cy,d1*sc*z,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle=r2.color+'55';
+    ctx.beginPath();ctx.arc(c2.cx,c2.cy,d2*sc*z,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Mirror solution (greyed ghost)
+  if(mirrorPt){
+    const{cx,cy}=toC(mirrorPt.x,mirrorPt.y);
+    ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);
+    ctx.fillStyle=themeColor('#ffffff12','#00000012');ctx.fill();
+    ctx.strokeStyle=themeColor('#ffffff2a','#0000002a');ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=themeColor('#ffffff55','#00000055');ctx.font='9px DM Mono,monospace';ctx.textAlign='left';
+    ctx.fillText('? miroir',cx+10,cy+3);
+  }
+
+  // Confirmed survey points
+  if(canvasVis.points && points.length){
+    const zs=points.map(p=>p.z),zmn=Math.min(...zs),zmx=Math.max(...zs),zr=zmx-zmn||1;
+
+    // Draw offset arrows first (below points)
+    points.filter(p=>p.offsetFrom).forEach(p=>{
+      const src = points.find(s=>s.id===p.offsetFrom);
+      if(!src) return;
+      const s=toC(src.x,src.y), e=toC(p.x,p.y);
+      ctx.beginPath();ctx.moveTo(s.cx,s.cy);ctx.lineTo(e.cx,e.cy);
+      ctx.strokeStyle='rgba(160,160,255,0.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();
+      ctx.setLineDash([]);
+      // Arrowhead
+      const ang=Math.atan2(e.cy-s.cy,e.cx-s.cx);
+      ctx.beginPath();ctx.moveTo(e.cx,e.cy);
+      ctx.lineTo(e.cx-8*Math.cos(ang-0.4),e.cy-8*Math.sin(ang-0.4));
+      ctx.lineTo(e.cx-8*Math.cos(ang+0.4),e.cy-8*Math.sin(ang+0.4));
+      ctx.closePath();ctx.fillStyle='rgba(160,160,255,0.5)';ctx.fill();
+    });
+
+    points.forEach(p=>{
+      const{cx,cy}=toC(p.x,p.y);
+      const t2=(p.z-zmn)/zr;
+      const col=`rgb(${~~(168*(1-t2)+99*t2)},${~~(224*(1-t2)+200*t2)},${~~(99*(1-t2)+99*t2)})`;
+      const isOffset = !!p.offsetFrom;
+      if(p.precision!=null){
+        ctx.beginPath();ctx.arc(cx,cy,11,0,Math.PI*2);
+        ctx.fillStyle=p.precision>70?'#a8e06320':p.precision>40?'#e0c56320':'#e0636320';ctx.fill();
+      }
+      // Offset points get dashed ring
+      if(isOffset){ctx.setLineDash([2,2]);ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.strokeStyle='rgba(160,160,255,0.7)';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);}
+      ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fillStyle=col+'55';ctx.fill();
+      ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+      // Label: P1 (nom) format
+      const pLabel = p.name ? `${p.id} (${p.name})` : p.id;
+      ctx.fillStyle=themeColor('#c8d8ca','#2a3a2a');ctx.font='10px Syne,sans-serif';ctx.textAlign='left';
+      if(canvasVis.pointLabels) ctx.fillText(pLabel,cx+8,cy-4);
+      ctx.fillStyle=themeColor('#5a7a5d','#7a9a7d');ctx.font='9px DM Mono,monospace';
+      ctx.fillText('z='+fmt(p.z,2),cx+8,cy+7);
+      if(p.precision!=null){
+        ctx.fillStyle=p.precision>70?'#a8e063':p.precision>40?'#e0c563':'#e06363';
+        ctx.fillText(p.precision+'%',cx+8,cy+17);
+      }
+    });
+  }
+
+  // Ghost point (pending confirmation) — dashed circle
+  if(ghostPt){
+    const{cx,cy}=toC(ghostPt.x,ghostPt.y);
+    ctx.beginPath();ctx.arc(cx,cy,12,0,Math.PI*2);
+    ctx.fillStyle=themeColor('#ffffff0a','#0000000a');ctx.fill();
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);
+    ctx.strokeStyle=themeColor('#ffffffaa','#000000aa');ctx.lineWidth=1.5;ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);
+    ctx.fillStyle=themeColor('#ffffffcc','#000000cc');ctx.fill();
+    ctx.fillStyle=themeColor('#ffffffbb','#000000bb');ctx.font='bold 10px Syne,sans-serif';ctx.textAlign='left';
+    ctx.fillText('?',cx+12,cy+4);
+  }
+
+  // Ref points — diamonds
+  ar.forEach(r=>{
+    const{cx,cy}=toC(pf(r.x),pf(r.y)),s=8;
+    ctx.beginPath();ctx.arc(cx,cy,14,0,Math.PI*2);ctx.fillStyle=r.color+'14';ctx.fill();
+    ctx.beginPath();ctx.moveTo(cx,cy-s);ctx.lineTo(cx+s,cy);ctx.lineTo(cx,cy+s);ctx.lineTo(cx-s,cy);ctx.closePath();
+    ctx.fillStyle=r.color+'44';ctx.fill();ctx.strokeStyle=r.color;ctx.lineWidth=1.5;ctx.stroke();
+    if(canvasVis.refLabels){
+    ctx.fillStyle=r.color;ctx.font='bold 11px Syne,sans-serif';ctx.textAlign='center';
+    ctx.fillText(refDisplayLabel(r),cx,cy-s-5);
+    }
+  });
+
+  // Perimeter polygon
+  if(canvasVis.perim){
+  const perimSeq = perimEditMode ? perimEditSeq : perimOrder;
+  const perimPts = perimSeq.map(id=>points.find(p=>p.id===id)).filter(Boolean);
+  if(perimPts.length >= 2){
+    ctx.strokeStyle='#50c878';
+    ctx.lineWidth=2;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    const f=toC(perimPts[0].x,perimPts[0].y);
+    ctx.moveTo(f.cx,f.cy);
+    perimPts.slice(1).forEach(p=>{ const{cx,cy}=toC(p.x,p.y); ctx.lineTo(cx,cy); });
+    if(!perimEditMode && perimPts.length>=3) ctx.closePath(); // close only in normal mode
+    ctx.stroke();
+    // Fill with semi-transparent green
+    if(!perimEditMode && perimPts.length>=3){
+      ctx.fillStyle='#50c87812';
+      ctx.fill();
+    }
+    // Order numbers on perimeter points
+    perimPts.forEach((p,i)=>{
+      const{cx,cy}=toC(p.x,p.y);
+      ctx.fillStyle='#50c878';
+      ctx.font='bold 10px Syne,sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(i+1,cx,cy-14);
+    });
+  }
+  // Edit mode: highlight remaining perimeter points not yet tapped
+  if(perimEditMode){
+    points.filter(p=>p.perim&&!perimEditSeq.includes(p.id)).forEach(p=>{
+      const{cx,cy}=toC(p.x,p.y);
+      ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);
+      ctx.strokeStyle='#50c87866';ctx.lineWidth=2;ctx.setLineDash([3,3]);ctx.stroke();
+      ctx.setLineDash([]);
+    });
+    // Edit mode hint
+    ctx.fillStyle='#50c878';ctx.font='10px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText('Tapez les points dans l\'ordre du périmètre — retapez le dernier pour terminer',W/2,H-8);
+  }
+  } // end perim
+  // U points — collecting: show circles, preview: show A/B, resolved/active: solid dot
+  unknownPoints.filter(u=>u.x!==null||u.observations.length>0).forEach(u=>{
+    // Draw observation circles during collecting/preview
+    if(u.status==='collecting'||u.status==='preview'){
+      u.observations.forEach(o=>{
+        const sc2=toC(o.stationX,o.stationY);
+        ctx.beginPath();ctx.arc(sc2.cx,sc2.cy,o.dist*sc*z,0,Math.PI*2);
+        ctx.strokeStyle='#9070ff44';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.stroke();
+        ctx.setLineDash([]);
+      });
+    }
+    // Draw alternate solution ghost in preview
+    if(u.status==='preview'&&u.xAlt!==null){
+      const{cx,cy}=toC(u.xAlt,u.yAlt);
+      ctx.beginPath();ctx.arc(cx,cy,9,0,Math.PI*2);
+      ctx.fillStyle='#9070ff18';ctx.fill();
+      ctx.strokeStyle='#9070ff55';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#9070ff88';ctx.font='bold 9px Syne,sans-serif';ctx.textAlign='center';
+      ctx.fillText('B',cx,cy+3);
+    }
+    // Draw U dot if position known
+    if(u.x!==null){
+      const{cx,cy}=toC(u.x,u.y);
+      const isActive=u.status==='active', isPreview=u.status==='preview';
+      ctx.beginPath();ctx.arc(cx,cy,13,0,Math.PI*2);ctx.fillStyle='#9070ff18';ctx.fill();
+      if(!isActive&&!isPreview){ctx.setLineDash([3,3]);}
+      ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);
+      ctx.fillStyle=isActive?'#9070ff33':isPreview?'#9070ff55':'#9070ff18';ctx.fill();
+      ctx.strokeStyle=isPreview?'#c0a0ff':'#9070ff';ctx.lineWidth=isPreview?2.5:1.5;ctx.stroke();
+      ctx.setLineDash([]);
+      if(isPreview){
+        ctx.fillStyle='#c0a0ff';ctx.font='bold 10px Syne,sans-serif';ctx.textAlign='center';
+        ctx.fillText('A',cx,cy+3);
+      }
+      ctx.fillStyle='#b090ff';ctx.font='bold 11px Syne,sans-serif';ctx.textAlign='center';
+      ctx.fillText(uDisplayLabel(u),cx,cy-14);
+      if(u.precision!=null&&u.status!=='collecting'){
+        ctx.fillStyle=u.precision>70?'#a8e063':u.precision>40?'#e0c563':'#e06363';
+        ctx.font='9px DM Mono,monospace';ctx.fillText(u.precision+'%',cx+16,cy+3);
+      }
+    } else if(u.observations.length>0){
+      // No position yet — label near first station
+      const o=u.observations[0];
+      const{cx,cy}=toC(o.stationX,o.stationY);
+      ctx.fillStyle='#9070ff88';ctx.font='10px DM Mono,monospace';ctx.textAlign='center';
+      ctx.fillText(uDisplayLabel(u)+' ?',cx,cy-22);
+    }
+  });
+
+  // Store toC for tooltip reuse
+  canvas._toC=toC; canvas._mnX=mnX; canvas._mnY=mnY; canvas._sc=sc; canvas._dH=dH;
+}
+
+function niceStep(raw){
+  const mg=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/mg;
+  if(n<1.5)return mg;if(n<3.5)return 2*mg;if(n<7.5)return 5*mg;return 10*mg;
+}
+
+// tooltip
+canvas.addEventListener('click', e => {
+  if(!perimEditMode) return;
+  const rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const toC=canvas._toC;
+  if(!toC) return;
+  // Find nearest perimeter-tagged point
+  let best=null, bestD=Infinity;
+  points.filter(p=>p.perim).forEach(p=>{
+    const{cx,cy}=toC(p.x,p.y);
+    const d=Math.sqrt((mx-cx)**2+(my-cy)**2);
+    if(d<24&&d<bestD){bestD=d;best=p;}
+  });
+  if(best) perimEditTap(best.id);
+});
+// Canvas double-click → open offset modal on nearest point
+canvas.addEventListener('dblclick', e => {
+  if(perimEditMode) return;
+  const rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const toC=canvas._toC; if(!toC) return;
+  let best=null, bestD=Infinity;
+  points.forEach(p=>{
+    const{cx,cy}=toC(p.x,p.y);
+    const d=Math.sqrt((mx-cx)**2+(my-cy)**2);
+    if(d<20&&d<bestD){bestD=d;best=p;}
+  });
+  if(best) openOffsetModal(best.id);
+});
+
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const tip=document.getElementById('tip');
+  const toC=canvas._toC;
+  if(!toC){tip.classList.remove('vis');return;}
+  for(const p of points){
+    const{cx,cy}=toC(p.x,p.y);
+    if(Math.abs(mx-cx)<14&&Math.abs(my-cy)<14){
+      tip.innerHTML=`<b>${p.name}</b> X:${fmt(p.x)} Y:${fmt(p.y)} Z:${fmt(p.z)}${p.precision!=null?' · '+p.precision+'% prec.':''}`;
+      tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-8)+'px';tip.classList.add('vis');return;
+    }
+  }
+  const ar=refs.filter(r=>r.x!==''&&r.y!=='');
+  for(const r of ar){
+    const{cx,cy}=toC(pf(r.x),pf(r.y));
+    if(Math.abs(mx-cx)<14&&Math.abs(my-cy)<14){
+      tip.innerHTML=`<b>Réf. ${r.id}</b> X:${pf(r.x).toFixed(3)} Y:${pf(r.y).toFixed(3)}`;
+      tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-8)+'px';tip.classList.add('vis');return;
+    }
+  }
+  tip.classList.remove('vis');
+});
+canvas.addEventListener('mouseleave',()=>document.getElementById('tip').classList.remove('vis'));
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportJSON(){
+  const hasData = points.length || refs.some(r=>r.x!==''||r.y!=='') || unknownPoints.length;
+  if(!hasData){ alert('Aucune donnée à exporter.'); return; }
+  const dateSlug = new Date().toISOString().slice(0,10);
+  const data = {
+    refs, points, autoIdx,
+    unknownPoints, uAutoIdx,
+    perimOrder,
+    hi: document.getElementById('hi').value,
+    mireRef: document.getElementById('mire-ref').value,
+    spreadThreshold: pf(document.getElementById('spread-threshold').value)||200,
+    croquis: cropisData ? {data:cropisData,name:cropisName} : null,
+    savedAt: new Date().toISOString()
+  };
+  const content = JSON.stringify(data,null,2);
+  const filename = getExportName('fname-json', `session_${dateSlug}`) + '.json';
+  dlOrShare(filename, content, 'application/json');
+}
+
+// ── EXPORT FILENAME HELPERS ───────────────────────────────────────────────────
+function getExportName(fieldId, defaultName){
+  const el = document.getElementById(fieldId);
+  const val = el ? el.value.trim() : '';
+  return val || defaultName;
+}
+
+function initExportNames(){
+  const slug = new Date().toISOString().slice(0,10);
+  const set = (id, val) => { const el=document.getElementById(id); if(el && !el.value) el.value=val; };
+  set('fname-csv',  `points_${slug}`);
+  set('fname-json', `session_${slug}`);
+  set('fname-mesh', `terrain_${slug}`);
+}
+
+function exportCSV(){
+  if(!points.length)return;
+  const rows=[['ID','Nom','X','Y','Z','Nb_paires','Précision_%','Spread_mm','Mire']];
+  points.forEach(p=>rows.push([p.id,p.name,fmt(p.x),fmt(p.y),fmt(p.z),p.nPairs,
+    p.precision!=null?p.precision:'',p.spread!=null?(p.spread*1000).toFixed(1):'',fmt(p.mireP)]));
+  const name = getExportName('fname-csv', 'points_'+new Date().toISOString().slice(0,10));
+  dlOrShare(name+'.csv', rows.map(r=>r.join(',')).join('\n'), 'text/csv');
+}
+
+// Universal download/share — works on iOS, desktop, and iframe contexts
+async function dlOrShare(filename, content, type){
+  const file = new File([content], filename, {type});
+
+  // 1. Try Web Share API with files (iOS native)
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+    try { await navigator.share({files:[file], title:filename}); return; }
+    catch(e){ if(e.name==='AbortError') return; }
+  }
+
+  // 2. Try standard download (works on desktop, blocked in iframes)
+  try {
+    const url = URL.createObjectURL(new Blob([content],{type}));
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    // Check if download likely worked (no way to confirm, but give it a moment)
+    return;
+  } catch(e){}
+
+  // 3. Fallback: clipboard copy + alert (iframe / restricted context)
+  try {
+    await navigator.clipboard.writeText(content);
+    alert(`✓ Contenu copié dans le presse-papier !\n\nCollez-le dans un fichier texte et renommez-le "${filename}"`);
+    return;
+  } catch(e){}
+
+  // 4. Last resort: open in new tab
+  const blob = new Blob([content], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+function dl(fn,c,t){ dlOrShare(fn,c,t); }
+
+// ── IMPORT ────────────────────────────────────────────────────────────────────
+function importFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const content = e.target.result;
+    if(file.name.endsWith('.json')){
+      importJSON(content);
+    } else {
+      importCSV(content);
+    }
+    input.value = ''; // reset so same file can be re-imported
+  };
+  reader.readAsText(file);
+}
+
+function importCSV(content){
+  const lines = content.trim().split('\n').filter(l=>l.trim());
+  if(!lines.length){ alert('Fichier vide.'); return; }
+
+  // Detect header
+  const header = lines[0].split(',').map(h=>h.trim().toLowerCase());
+  const iX = header.findIndex(h=>h==='x (m)'||h==='x');
+  const iY = header.findIndex(h=>h==='y (m)'||h==='y');
+  const iZ = header.findIndex(h=>h==='z (m)'||h==='z');
+  const iNom = header.findIndex(h=>h==='nom'||h==='name');
+  const iPrec = header.findIndex(h=>h.includes('précision')||h.includes('precision'));
+
+  if(iX<0||iY<0||iZ<0){
+    alert('Colonnes X, Y, Z introuvables.\nFormat attendu : ID, Nom, X (m), Y (m), Z (m), …');
+    return;
+  }
+
+  const imported = [];
+  const dataLines = header.includes('id') ? lines.slice(1) : lines;
+
+  dataLines.forEach((line, i) => {
+    const cols = line.split(',').map(c=>c.trim());
+    const x = pf(cols[iX]);
+    const y = pf(cols[iY]);
+    const z = pf(cols[iZ]);
+    if(isNaN(x)||isNaN(y)||isNaN(z)) return;
+    const name = iNom>=0 && cols[iNom] ? cols[iNom] : ('IMP'+(autoIdx+i));
+    const precision = iPrec>=0 ? (pf(cols[iPrec])||null) : null;
+    imported.push({ id: autoIdx++, name, x, y, z,
+      nPairs: 1, precision, spread: null,
+      pairLbls:['CSV'], dists:{}, mireP: 0,
+      rawObs:[], usedRefs:[], imported: true });
+  });
+
+  if(!imported.length){ alert('Aucune ligne valide trouvée.'); return; }
+
+  const msg = `Importer ${imported.length} point(s) ?\n(ajout aux points existants)`;
+  if(!confirm(msg)) return;
+
+  points.push(...imported);
+  tinCache = null; tinPointsHash = '';
+  renderTable(); renderCanvas(); updateStats(); saveAll();
+  alert(`✓ ${imported.length} point(s) importé(s) avec succès.`);
+}
+
+function importJSON(content){
+  try{
+    const data = JSON.parse(content);
+    if(data.refs && Array.isArray(data.refs)){
+      const nPts = data.points ? data.points.length : 0;
+      const nRefs = data.refs.length;
+      const nU = data.unknownPoints ? data.unknownPoints.length : 0;
+      const savedAt = data.savedAt ? new Date(data.savedAt).toLocaleString('fr-FR') : 'date inconnue';
+      const msg = `Restaurer cette session ?\n\n` +
+        `◆ ${nRefs} référence(s)\n` +
+        (nPts ? `📍 ${nPts} point(s) relevé(s)\n` : `📍 Aucun point — session préparatoire\n`) +
+        (nU ? `● ${nU} point(s) inconnu(s)\n` : '') +
+        `🕐 ${savedAt}\n\n` +
+        `⚠ Les données actuelles seront remplacées.`;
+      if(confirm(msg)){
+        restoreSession(data);
+        document.getElementById('restore-banner').innerHTML = '';
+      }
+    } else if(Array.isArray(data)){
+      if(confirm(`Importer ${data.length} point(s) JSON en ajout ?`)){
+        data.forEach(p=>{ p.id = autoIdx++; points.push(p); });
+        tinCache=null; tinPointsHash='';
+        renderTable(); renderCanvas(); updateStats(); saveAll();
+      }
+    } else {
+      alert('Format JSON non reconnu.\nAttendez un fichier exporté par TOPO·SURVEY.');
+    }
+  } catch(e){
+    alert('Erreur lecture JSON : ' + e.message);
+  }
+}
+
+// ── DELAUNAY TRIANGULATION (Bowyer-Watson) ────────────────────────────────────
+function delaunay(pts){
+  if(pts.length < 3) return [];
+
+  // Find bounding super-triangle
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  pts.forEach(p=>{minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x);maxY=Math.max(maxY,p.y);});
+  const dx=maxX-minX, dy=maxY-minY, dmax=Math.max(dx,dy)*10;
+  const mx=(minX+maxX)/2, my=(minY+maxY)/2;
+  const st = [
+    {x:mx-dmax, y:my-dmax},
+    {x:mx,      y:my+dmax},
+    {x:mx+dmax, y:my-dmax},
+  ];
+  const stIdx = [pts.length, pts.length+1, pts.length+2];
+  const allPts = [...pts, ...st];
+
+  let triangles = [[stIdx[0],stIdx[1],stIdx[2]]]; // [i,j,k] indices into allPts
+
+  // Circumcircle test
+  function circumCircle(ax,ay,bx,by,cx,cy){
+    const D = 2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by));
+    if(Math.abs(D)<1e-10) return null;
+    const ux=((ax*ax+ay*ay)*(by-cy)+(bx*bx+by*by)*(cy-ay)+(cx*cx+cy*cy)*(ay-by))/D;
+    const uy=((ax*ax+ay*ay)*(cx-bx)+(bx*bx+by*by)*(ax-cx)+(cx*cx+cy*cy)*(bx-ax))/D;
+    const r2=(ax-ux)**2+(ay-uy)**2;
+    return {ux,uy,r2};
+  }
+
+  pts.forEach((p,pi)=>{
+    // Find all triangles whose circumcircle contains p
+    const bad = [], edges = [];
+    triangles.forEach(t=>{
+      const a=allPts[t[0]],b=allPts[t[1]],c=allPts[t[2]];
+      const cc=circumCircle(a.x,a.y,b.x,b.y,c.x,c.y);
+      if(cc && (p.x-cc.ux)**2+(p.y-cc.uy)**2 <= cc.r2+1e-10){
+        bad.push(t);
+        edges.push([t[0],t[1]],[t[1],t[2]],[t[2],t[0]]);
+      }
+    });
+    // Remove bad triangles
+    triangles = triangles.filter(t=>!bad.includes(t));
+    // Find boundary edges (appear only once)
+    const boundary = edges.filter(e=>
+      !edges.some((f,fi)=>edges.indexOf(e)!==fi&&((f[0]===e[0]&&f[1]===e[1])||(f[0]===e[1]&&f[1]===e[0])))
+    );
+    // Add new triangles
+    boundary.forEach(e=>triangles.push([e[0],e[1],pi]));
+  });
+
+  // Remove triangles that share a vertex with the super-triangle
+  return triangles
+    .filter(t=>!t.some(i=>i>=pts.length))
+    .map(t=>({a:t[0],b:t[1],c:t[2]}));
+}
+
+// Cache triangulation so we don't recompute on every render
+let tinCache = null;
+let tinPointsHash = '';
+let perimOrder = [];    // ordered array of point ids forming the perimeter
+let perimEditMode = false; // tap-to-reorder mode
+
+function getTIN(){
+  const hash = points.map(p=>`${p.x},${p.y}`).join('|');
+  if(hash !== tinPointsHash || !tinCache){
+    tinCache = delaunay(points);
+    tinPointsHash = hash;
+  }
+  return tinCache;
+}
+
+// ── PERIMETER ─────────────────────────────────────────────────────────────────
+function addToPerim(id){ if(!perimOrder.includes(id)){ perimOrder.push(id); renderTable(); renderCanvas(); updateSurface(); saveAll(); } }
+function removeFromPerim(id){ perimOrder=perimOrder.filter(i=>i!==id); renderTable(); renderCanvas(); updateSurface(); saveAll(); }
+
+let perimEditSeq = []; // temp sequence being built in edit mode
+
+function togglePerimEdit(){
+  perimEditMode = !perimEditMode;
+  const btn = document.getElementById('perim-edit-btn');
+  const lbl = document.getElementById('perim-edit-label');
+  btn.classList.toggle('on', perimEditMode);
+  if(perimEditMode){
+    lbl.textContent = 'Réordonner…';
+    perimEditSeq = [];
+    // Show hint on canvas
+  } else {
+    lbl.textContent = 'Périmètre';
+    if(perimEditSeq.length >= 3){
+      perimOrder = [...perimEditSeq];
+      updateSurface(); saveAll();
+    }
+    perimEditSeq = [];
+  }
+  renderCanvas();
+}
+
+// Called when user taps a perimeter point in edit mode
+function perimEditTap(id){
+  if(!perimEditMode) return;
+  if(perimEditSeq.includes(id)){
+    // Tapping again = done
+    togglePerimEdit();
+    return;
+  }
+  perimEditSeq.push(id);
+  renderCanvas();
+}
+
+// ── SURFACE CALCULATIONS ──────────────────────────────────────────────────────
+// Shoelace formula for projected area (2D)
+function shoelaceArea(pts){
+  let area = 0;
+  const n = pts.length;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    area += pts[i].x * pts[j].y;
+    area -= pts[j].x * pts[i].y;
+  }
+  return Math.abs(area)/2;
+}
+
+// Real surface area: sum of triangle areas in 3D using cross product
+function realSurfaceArea(pts){
+  if(pts.length < 3) return 0;
+  let area = 0;
+  const cx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
+  const cy=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+  const cz=pts.reduce((s,p)=>s+p.z,0)/pts.length;
+  const n=pts.length;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    const ax=pts[i].x-cx, ay=pts[i].y-cy, az=pts[i].z-cz;
+    const bx=pts[j].x-cx, by=pts[j].y-cy, bz=pts[j].z-cz;
+    // Cross product magnitude / 2
+    area += 0.5*Math.sqrt(
+      (ay*bz-az*by)**2 + (az*bx-ax*bz)**2 + (ax*by-ay*bx)**2
+    );
+  }
+  return area;
+}
+
+// Perimeter length (2D projected)
+function perimLength(pts){
+  let len=0;
+  for(let i=0;i<pts.length;i++){
+    const j=(i+1)%pts.length;
+    len+=Math.sqrt((pts[j].x-pts[i].x)**2+(pts[j].y-pts[i].y)**2);
+  }
+  return len;
+}
+
+function formatArea(m2){
+  if(m2>=10000) return (m2/10000).toFixed(4)+' ha';
+  return m2.toFixed(2)+' m²';
+}
+
+function updateSurface(){
+  const panel = document.getElementById('surface-panel');
+  const perimPts = perimOrder.map(id=>points.find(p=>p.id===id)).filter(Boolean);
+  if(perimPts.length < 3){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  document.getElementById('perim-pt-count').textContent = `${perimPts.length} points · ${perimPts.length>=3?'fermé':'ouvert'}`;
+  const proj = shoelaceArea(perimPts);
+  const real = realSurfaceArea(perimPts);
+  const plen = perimLength(perimPts);
+  document.getElementById('surf-proj').textContent = formatArea(proj);
+  document.getElementById('surf-real').textContent = formatArea(real);
+  document.getElementById('perim-len').textContent = plen.toFixed(2)+' m';
+}
+
+// ── TIN TOGGLE ────────────────────────────────────────────────────────────────
+let showTIN = false;
+function toggleTIN(){
+  showTIN = !showTIN;
+  document.getElementById('tin-btn').classList.toggle('on', showTIN);
+  document.getElementById('tin-label').textContent = showTIN ? 'Maillage ✓' : 'Maillage';
+  renderCanvas();
+}
+
+// ── DRAW TIN ──────────────────────────────────────────────────────────────────
+function drawTIN(toC, surveyPts, triangles){
+  if(!triangles.length) return;
+  const zs=surveyPts.map(p=>p.z), zMin=Math.min(...zs), zMax=Math.max(...zs), zR=zMax-zMin||1;
+
+  function zColor(z, alpha){
+    const t=(z-zMin)/zR;
+    let r,g,b;
+    if(t<0.25){const s=t/0.25;r=0;g=~~(200*s);b=200;}
+    else if(t<0.5){const s=(t-0.25)/0.25;r=0;g=200;b=~~(200*(1-s));}
+    else if(t<0.75){const s=(t-0.5)/0.25;r=~~(200*s);g=200;b=0;}
+    else{const s=(t-0.75)/0.25;r=200;g=~~(200*(1-s));b=0;}
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  triangles.forEach(({a,b,c})=>{
+    const pa=surveyPts[a], pb=surveyPts[b], pc=surveyPts[c];
+    const za=(pa.z+pb.z+pc.z)/3; // face average Z for color
+    const ca=toC(pa.x,pa.y), cb=toC(pb.x,pb.y), cc=toC(pc.x,pc.y);
+
+    // Filled face
+    ctx.beginPath();
+    ctx.moveTo(ca.cx,ca.cy); ctx.lineTo(cb.cx,cb.cy); ctx.lineTo(cc.cx,cc.cy);
+    ctx.closePath();
+    ctx.fillStyle=zColor(za, 0.25);
+    ctx.fill();
+
+    // Edges
+    ctx.strokeStyle=zColor(za, 0.6);
+    ctx.lineWidth=0.8;
+    ctx.stroke();
+  });
+}
+
+// ── EXPORT OBJ ────────────────────────────────────────────────────────────────
+function exportOBJ(){
+  if(points.length < 3){ alert('Il faut au moins 3 points pour générer un maillage.'); return; }
+  const tris = getTIN();
+  if(!tris.length){ alert('Triangulation impossible avec ces points.'); return; }
+
+  const factor = pf(document.getElementById('export-unit').value) || 1;
+  const unitLabel = factor===1000?'mm':factor===100?'cm':'m';
+  const dateSlug = new Date().toISOString().slice(0,10);
+
+  const lines = [
+    `# TOPO·SURVEY — Export OBJ`,
+    `# Unité : ${unitLabel} (facteur ×${factor})`,
+    `# ${points.length} sommets, ${tris.length} triangles`,
+    `# Généré le ${new Date().toLocaleDateString('fr-FR')}`,
+    ``,
+    `o Terrain`,
+    ``
+  ];
+
+  points.forEach(p=>{
+    const x=(p.x*factor).toFixed(4), y=(p.z*factor).toFixed(4), z=(-p.y*factor).toFixed(4);
+    lines.push(`v ${x} ${y} ${z}`);
+  });
+  lines.push(``);
+  tris.forEach(({a,b,c})=>{ lines.push(`f ${a+1} ${b+1} ${c+1}`); });
+
+  const meshName = getExportName('fname-mesh', `terrain_${dateSlug}`);
+  dlOrShare(`${meshName}_${unitLabel}.obj`, lines.join('\n'), 'text/plain');
+}
+
+function exportDXF(){
+  if(points.length < 3){ alert('Il faut au moins 3 points pour générer un maillage.'); return; }
+  const tris = getTIN();
+  if(!tris.length){ alert('Triangulation impossible avec ces points.'); return; }
+
+  const factor = pf(document.getElementById('export-unit').value) || 1;
+  const unitLabel = factor===1000?'mm':factor===100?'cm':'m';
+  const dateSlug = new Date().toISOString().slice(0,10);
+
+  const lines = [
+    '0','SECTION','2','HEADER',
+    '9','$ACADVER','1','AC1009',
+    '9','$INSUNITS','70', factor===1000?'4':factor===100?'5':'6', // 4=mm, 5=cm, 6=m
+    '0','ENDSEC',
+    '0','SECTION','2','ENTITIES',
+  ];
+
+  tris.forEach(({a,b,c})=>{
+    const pa=points[a], pb=points[b], pc=points[c];
+    lines.push(
+      '0','3DFACE','8','Terrain',
+      '10',(pa.x*factor).toFixed(4), '20',(pa.y*factor).toFixed(4), '30',(pa.z*factor).toFixed(4),
+      '11',(pb.x*factor).toFixed(4), '21',(pb.y*factor).toFixed(4), '31',(pb.z*factor).toFixed(4),
+      '12',(pc.x*factor).toFixed(4), '22',(pc.y*factor).toFixed(4), '32',(pc.z*factor).toFixed(4),
+      '13',(pc.x*factor).toFixed(4), '23',(pc.y*factor).toFixed(4), '33',(pc.z*factor).toFixed(4),
+    );
+  });
+
+  lines.push('0','ENDSEC','0','EOF');
+  const meshNameD = getExportName('fname-mesh', `terrain_${dateSlug}`);
+  dlOrShare(`${meshNameD}_${unitLabel}.dxf`, lines.join('\n'), 'application/dxf');
+}
+
+// ── RAPPORT ───────────────────────────────────────────────────────────────────
+function openRapportModal(){
+  if(!points.length){ alert('Aucun point relevé à exporter.'); return; }
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isHTTPS = location.protocol === 'https:';
+  const isLocal = location.protocol === 'file:';
+  const hasShare = !!navigator.share;
+  const hasZip = typeof fflate !== 'undefined';
+
+  // PNG only works with HTTPS (canvas tainted on file://)
+  const pngCheck = document.getElementById('rpt-png');
+  const pngDesc = document.getElementById('rpt-png-desc');
+  if(isLocal){
+    pngCheck.checked = false;
+    pngCheck.disabled = true;
+    pngDesc.textContent = '⚠ Non disponible en mode local (file://) — hébergez l\'app sur Netlify';
+    pngDesc.style.color = 'var(--red)';
+  } else {
+    pngCheck.disabled = false;
+    pngDesc.textContent = 'Capture de la vue actuelle';
+    pngDesc.style.color = '';
+  }
+
+  // Mode note
+  const note = document.getElementById('rpt-mode-note');
+  const btn = document.getElementById('rpt-send-btn');
+  if(isIOS && hasShare){
+    note.textContent = '📱 iOS — le ZIP sera partagé via la feuille native (Mail, AirDrop…)';
+    btn.textContent = '📦 Créer & Partager le ZIP';
+  } else if(!hasZip){
+    note.textContent = '⚠ Bibliothèque ZIP non disponible — fichiers téléchargés séparément';
+    btn.textContent = '⬇ Télécharger les fichiers';
+  } else {
+    note.textContent = '💻 Le ZIP sera téléchargé dans vos téléchargements';
+    btn.textContent = '📦 Télécharger le ZIP';
+  }
+
+  document.getElementById('rapport-overlay').classList.add('vis');
+  // Pre-fill ZIP name if empty
+  const fz = document.getElementById('fname-zip');
+  if(fz && !fz.value) fz.value = `rapport_${new Date().toISOString().slice(0,10)}`;
+}
+
+function closeRapportModal(){
+  document.getElementById('rapport-overlay').classList.remove('vis');
+}
+
+async function sendRapport(){
+  const wantPNG  = document.getElementById('rpt-png').checked && !document.getElementById('rpt-png').disabled;
+  const wantCSV  = document.getElementById('rpt-csv').checked;
+  const wantOBJ  = document.getElementById('rpt-obj').checked;
+  const wantDXF  = document.getElementById('rpt-dxf').checked;
+  const wantJSON = document.getElementById('rpt-json').checked;
+  const email    = document.getElementById('rpt-email').value.trim();
+
+  if(!wantPNG && !wantCSV && !wantOBJ && !wantDXF && !wantJSON){
+    alert('Sélectionnez au moins un fichier.'); return;
+  }
+
+  const btn = document.getElementById('rpt-send-btn');
+  btn.textContent = '⏳ Génération…'; btn.disabled = true;
+
+  const date = new Date().toLocaleDateString('fr-FR');
+  const dateSlug = new Date().toISOString().slice(0,10);
+
+  // Collect file contents
+  const zipFiles = {}; // { filename: Uint8Array }
+
+  // CSV
+  if(wantCSV){
+    const rows=[['ID','Nom','X','Y','Z','Paires','Précision_%','Spread_mm','Mire','Périmètre']];
+    points.forEach(p=>rows.push([p.id,p.name,fmt(p.x),fmt(p.y),fmt(p.z),p.nPairs,
+      p.precision!=null?p.precision:'',p.spread!=null?(p.spread*1000).toFixed(1):'',
+      fmt(p.mireP),perimOrder.includes(p.id)?'oui':'']));
+    zipFiles[`topo_points_${dateSlug}.csv`] = strToU8(rows.map(r=>r.join(',')).join('\n'));
+  }
+
+  // OBJ
+  if(wantOBJ && points.length >= 3){
+    const tris = getTIN();
+    if(tris.length){
+      const lines=[`# TOPO·SURVEY — ${date}`,`# ${points.length} sommets`,'','o Terrain',''];
+      const uf=pf(document.getElementById('export-unit').value)||1;
+      points.forEach(p=>lines.push(`v ${(p.x*uf).toFixed(4)} ${(p.z*uf).toFixed(4)} ${(-p.y*uf).toFixed(4)}`));
+      lines.push('');
+      tris.forEach(({a,b,c})=>lines.push(`f ${a+1} ${b+1} ${c+1}`));
+      zipFiles[`terrain_${dateSlug}.obj`] = strToU8(lines.join('\n'));
+    }
+  }
+
+  // DXF
+  if(wantDXF && points.length >= 3){
+    const tris = getTIN();
+    if(tris.length){
+      const lines=['0','SECTION','2','HEADER','9','$ACADVER','1','AC1009','0','ENDSEC','0','SECTION','2','ENTITIES'];
+      tris.forEach(({a,b,c})=>{
+        const pa=points[a],pb=points[b],pc=points[c];
+        lines.push('0','3DFACE','8','Terrain',
+          '10',pa.x.toFixed(4),'20',pa.y.toFixed(4),'30',pa.z.toFixed(4),
+          '11',pb.x.toFixed(4),'21',pb.y.toFixed(4),'31',pb.z.toFixed(4),
+          '12',pc.x.toFixed(4),'22',pc.y.toFixed(4),'32',pc.z.toFixed(4),
+          '13',pc.x.toFixed(4),'23',pc.y.toFixed(4),'33',pc.z.toFixed(4));
+      });
+      lines.push('0','ENDSEC','0','EOF');
+      zipFiles[`terrain_${dateSlug}.dxf`] = strToU8(lines.join('\n'));
+    }
+  }
+
+  // JSON
+  if(wantJSON){
+    const content = JSON.stringify({
+      refs, points, autoIdx,
+      unknownPoints, uAutoIdx,
+      perimOrder,
+      hi: document.getElementById('hi').value,
+      mireRef: document.getElementById('mire-ref').value,
+      spreadThreshold: pf(document.getElementById('spread-threshold').value)||200,
+      croquis: cropisData ? {data:cropisData,name:cropisName} : null,
+      savedAt: new Date().toISOString()
+    },null,2);
+    zipFiles[`session_${dateSlug}.json`] = strToU8(content);
+  }
+
+  // PNG
+  if(wantPNG){
+    try {
+      const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
+      const ab = await blob.arrayBuffer();
+      zipFiles[`plan_2d_${dateSlug}.png`] = new Uint8Array(ab);
+    } catch(e){ console.warn('PNG failed:', e.message); }
+  }
+
+  // Email body text (included as rapport.txt in ZIP)
+  const bodyLines = [
+    `RELEVÉ TOPOGRAPHIQUE — ${date}`,
+    '═'.repeat(40),
+    `${points.length} point(s) mesuré(s)`, '',
+    'ID  | Nom            | X       | Y       | Z       | Précision',
+    '─'.repeat(65),
+    ...points.map(p=>`${String(p.id).padEnd(4)}| ${p.name.padEnd(15)}| ${fmt(p.x).padEnd(8)}| ${fmt(p.y).padEnd(8)}| ${fmt(p.z).padEnd(8)}| ${p.precision!=null?p.precision+'%':'—'}`),
+  ];
+  if(perimOrder.length >= 3){
+    const perimPts = perimOrder.map(id=>points.find(p=>p.id===id)).filter(Boolean);
+    bodyLines.push('','─'.repeat(40),
+      `Surface projetée : ${formatArea(shoelaceArea(perimPts))}`,
+      `Surface réelle   : ${formatArea(realSurfaceArea(perimPts))}`,
+      `Périmètre        : ${perimLength(perimPts).toFixed(2)} m`);
+  }
+  bodyLines.push('','─'.repeat(40),`Généré par TOPO·SURVEY`);
+  zipFiles[`rapport_${dateSlug}.txt`] = strToU8(bodyLines.join('\n'));
+
+  // Helper: string → Uint8Array (UTF-8)
+  function strToU8(str){ return new TextEncoder().encode(str); }
+
+  // Build ZIP with fflate
+  const hasZip = typeof fflate !== 'undefined';
+  const zipBaseName = getExportName('fname-zip', `rapport_${dateSlug}`);
+  const zipName = zipBaseName.endsWith('.zip') ? zipBaseName : zipBaseName+'.zip';
+
+  if(hasZip){
+    const zipped = await new Promise((res,rej)=>{
+      fflate.zip(zipFiles, {level:6}, (err,data)=>err?rej(err):res(data));
+    });
+    const zipBlob = new Blob([zipped], {type:'application/zip'});
+    const zipFile = new File([zipBlob], zipName, {type:'application/zip'});
+
+    // iOS: share via native sheet
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[zipFile]})){
+      try {
+        await navigator.share({
+          title: `Relevé topo — ${date}`,
+          text: email ? `Rapport envoyé à ${email}` : 'Relevé topographique',
+          files: [zipFile]
+        });
+        btn.textContent = '✓ Partagé !';
+        setTimeout(()=>closeRapportModal(), 800);
+        return;
+      } catch(e){
+        if(e.name === 'AbortError'){ btn.textContent='📦 Créer & Partager le ZIP'; btn.disabled=false; return; }
+      }
+    }
+
+    // Desktop: download ZIP
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = zipName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+
+    // Open mailto if email provided
+    if(email){
+      const subject = encodeURIComponent(`Relevé topographique — ${date}`);
+      const body = encodeURIComponent(bodyLines.join('\n')+`\n\n(ZIP joint : ${zipName})`);
+      setTimeout(()=>{ window.location.href=`mailto:${email}?subject=${subject}&body=${body}`; }, 400);
+    }
+
+  } else {
+    // No fflate — share/download files individually
+    const shareFiles = Object.entries(zipFiles).map(([name,u8])=>
+      new File([u8], name, {type:'text/plain'})
+    );
+    if(navigator.share && navigator.canShare && navigator.canShare({files:shareFiles})){
+      await navigator.share({title:`Relevé topo — ${date}`, files:shareFiles});
+    } else {
+      shareFiles.forEach(f=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.click(); });
+    }
+  }
+
+  btn.textContent = '✓ Exporté !';
+  setTimeout(()=>closeRapportModal(), 600);
+}
+
+async function sendRapport(){
+  const wantPNG  = document.getElementById('rpt-png').checked;
+  const wantCSV  = document.getElementById('rpt-csv').checked;
+  const wantOBJ  = document.getElementById('rpt-obj').checked;
+  const wantDXF  = document.getElementById('rpt-dxf').checked;
+  const wantJSON = document.getElementById('rpt-json').checked;
+  const email    = document.getElementById('rpt-email').value.trim();
+
+  if(!wantPNG && !wantCSV && !wantOBJ && !wantDXF && !wantJSON){
+    alert('Sélectionnez au moins un fichier.'); return;
+  }
+
+  const date = new Date().toLocaleDateString('fr-FR');
+  const dateSlug = new Date().toISOString().slice(0,10);
+
+  // Build email body
+  const bodyLines = [
+    `Relevé topographique — ${date}`,
+    `${points.length} point(s) mesuré(s)`, '',
+    'ID | Nom | X | Y | Z | Précision',
+    ...points.map(p=>`${p.id} | ${p.name} | ${fmt(p.x)} | ${fmt(p.y)} | ${fmt(p.z)} | ${p.precision!=null?p.precision+'%':'—'}`),
+  ];
+  if(perimOrder.length >= 3){
+    const perimPts = perimOrder.map(id=>points.find(p=>p.id===id)).filter(Boolean);
+    bodyLines.push('', `Surface projetée : ${formatArea(shoelaceArea(perimPts))}`,
+      `Surface réelle : ${formatArea(realSurfaceArea(perimPts))}`,
+      `Périmètre : ${perimLength(perimPts).toFixed(2)} m`);
+  }
+  const body = bodyLines.join('\n');
+
+  // Assemble File objects
+  const shareFiles = [];
+
+  if(wantCSV){
+    const rows=[['ID','Nom','X','Y','Z','Paires','Précision_%','Spread_mm','Mire','Périmètre']];
+    points.forEach(p=>rows.push([p.id,p.name,fmt(p.x),fmt(p.y),fmt(p.z),p.nPairs,
+      p.precision!=null?p.precision:'',p.spread!=null?(p.spread*1000).toFixed(1):'',
+      fmt(p.mireP),perimOrder.includes(p.id)?'oui':'']));
+    shareFiles.push(new File([rows.map(r=>r.join(',')).join('\n')],
+      `topo_points_${dateSlug}.csv`, {type:'text/csv'}));
+  }
+
+  if(wantPNG){
+    const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
+    shareFiles.push(new File([blob], `plan_2d_${dateSlug}.png`, {type:'image/png'}));
+  }
+
+  if(wantOBJ && points.length >= 3){
+    const tris = getTIN();
+    if(tris.length){
+      const lines=[`# TOPO·SURVEY — ${date}`,`# ${points.length} sommets`,'','o Terrain',''];
+      const uf=pf(document.getElementById('export-unit').value)||1;
+      points.forEach(p=>lines.push(`v ${(p.x*uf).toFixed(4)} ${(p.z*uf).toFixed(4)} ${(-p.y*uf).toFixed(4)}`));
+      lines.push('');
+      tris.forEach(({a,b,c})=>lines.push(`f ${a+1} ${b+1} ${c+1}`));
+      shareFiles.push(new File([lines.join('\n')], `terrain_${dateSlug}.obj`, {type:'text/plain'}));
+    }
+  }
+
+  if(wantDXF && points.length >= 3){
+    const tris = getTIN();
+    if(tris.length){
+      const lines=['0','SECTION','2','HEADER','9','$ACADVER','1','AC1009','0','ENDSEC','0','SECTION','2','ENTITIES'];
+      tris.forEach(({a,b,c})=>{
+        const pa=points[a],pb=points[b],pc=points[c];
+        lines.push('0','3DFACE','8','Terrain',
+          '10',pa.x.toFixed(4),'20',pa.y.toFixed(4),'30',pa.z.toFixed(4),
+          '11',pb.x.toFixed(4),'21',pb.y.toFixed(4),'31',pb.z.toFixed(4),
+          '12',pc.x.toFixed(4),'22',pc.y.toFixed(4),'32',pc.z.toFixed(4),
+          '13',pc.x.toFixed(4),'23',pc.y.toFixed(4),'33',pc.z.toFixed(4));
+      });
+      lines.push('0','ENDSEC','0','EOF');
+      shareFiles.push(new File([lines.join('\n')], `terrain_${dateSlug}.dxf`, {type:'text/plain'}));
+    }
+  }
+
+  if(wantJSON){
+    const content=JSON.stringify({refs,points,unknownPoints,perimOrder,savedAt:new Date().toISOString()},null,2);
+    shareFiles.push(new File([content], `session_${dateSlug}.json`, {type:'application/json'}));
+  }
+
+  // ── iOS / mobile : Web Share API ──────────────────────────────────────────
+  if(navigator.share){
+    const shareData = {
+      title: `Relevé topo — ${date}`,
+      text: body,
+    };
+    // Add files only if supported
+    if(shareFiles.length && navigator.canShare && navigator.canShare({files: shareFiles})){
+      shareData.files = shareFiles;
+    }
+    try {
+      await navigator.share(shareData);
+      closeRapportModal();
+      return;
+    } catch(e){
+      if(e.name === 'AbortError'){ return; } // user cancelled — do nothing
+      // Other error — fall through to download fallback
+    }
+  }
+
+  // ── Desktop fallback : download + mailto ──────────────────────────────────
+  shareFiles.forEach(f => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(f);
+    a.download = f.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  });
+
+  const subject = encodeURIComponent(`Relevé topographique — ${date}`);
+  const mailBody = encodeURIComponent(body + '\n\n(Fichiers téléchargés séparément)');
+  setTimeout(()=>{ window.location.href = `mailto:${email}?subject=${subject}&body=${mailBody}`; }, 500);
+
+  closeRapportModal();
+}
+
+function clearAll(){
+  if(!confirm('Supprimer tous les points et effacer la sauvegarde ?'))return;
+  points=[];autoIdx=1;unknownPoints=[];uAutoIdx=1;
+  pendingRecalc=null; tinCache=null; tinPointsHash='';
+  perimOrder=[]; editingPointId=null;
+  view.zoom=1; view.panX=0; view.panY=0;
+  document.getElementById('zoom-level').textContent='100%';
+  document.getElementById('recalc-banner').classList.remove('vis');
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('si').className='save-indicator';
+  document.getElementById('sl').textContent='Aucune sauvegarde';
+  buildAll();
+}
+
+function buildAll(){
+  buildRefCards();
+  buildDistGrid();
+  buildUDistGrid();
+  buildUPanel();
+  updateValidity();
+  checkGeometry();
+  renderTable();
+  renderCanvas();
+  updateStats();
+  attachNormalizers();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Defer canvas redraw so layout has time to reflow after resize/rotation
+function onResize(){
+  requestAnimationFrame(()=>{ requestAnimationFrame(renderCanvas); });
+}
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', ()=>{ setTimeout(renderCanvas, 200); });
+document.getElementById('hi').addEventListener('input',saveAll);
+document.getElementById('mire-ref').addEventListener('input',saveAll);
+
+buildAll();
+initExportNames();
+const saved=loadSaved();
+if(saved){
+  if(saved.points&&saved.points.length>0) showRestoreBanner(saved);
+  else restoreSession(saved);
+}
+
+// ── PWA INSTALL PROMPT ────────────────────────────────────────────────────────
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('install-banner').classList.add('vis');
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const {outcome} = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  document.getElementById('install-banner').classList.remove('vis');
+  if(outcome === 'accepted') console.log('PWA installée');
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').classList.remove('vis');
+});
+
+// ── PWA SERVICE WORKER ────────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js')
+    .then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {});
+      });
+    })
+    .catch(()=>{}); // silently ignore in local file mode
+}
+</script>
+</body>
+</html>
