@@ -973,10 +973,11 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
       <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
         id="tm-dist-input" placeholder="0.000"
         oninput="tmUpdatePreview()"
-        onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();tmConfirmDist();}">
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="tm-btn tm-btn-secondary" style="flex:0 0 auto;padding:12px 16px" onclick="tmCancelDist()">✕ Annuler</button>
-      </div>
+        onblur="tmConfirmDist()"
+        onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'||event.key==='Done'){event.preventDefault();tmConfirmDist();}">
+      <button class="tm-btn tm-btn-danger" style="margin-top:10px;width:100%" onclick="tmDeleteDist()">
+        🗑 Effacer cette distance
+      </button>
     </div>
 
     <!-- Live preview -->
@@ -2707,16 +2708,38 @@ function tmCancelDist(){
   document.getElementById('tm-dist-panel').style.display = 'none';
 }
 
+function tmDeleteDist(){
+  if(!tmActiveRef) return;
+  if(tmActiveIsU){
+    delete tmUDistances[tmActiveRef];
+  } else {
+    delete tmDistances[tmActiveRef];
+  }
+  tmActiveRef = null;
+  tmActiveIsU = false;
+  document.getElementById('tm-dist-panel').style.display = 'none';
+  tmBuildRefGrid();
+  tmBuildUGrid();
+  tmUpdatePreview();
+  document.getElementById('tm-btn-next').disabled = !tmCanClose();
+}
+
 function tmConfirmDist(){
+  // Guard: if panel already hidden (onblur after programmatic close), skip
   if(!tmActiveRef) return;
   const inp = document.getElementById('tm-dist-input');
-  const raw = inp.value.replace(',','.');
+  const raw = String(inp.value).replace(',','.');
   const val = pf(raw);
-  if(isNaN(val)||val<=0){
-    inp.style.borderColor='var(--red)';
+
+  // If empty or invalid, just close without saving
+  if(isNaN(val) || val <= 0){
+    tmActiveRef = null;
+    tmActiveIsU = false;
+    document.getElementById('tm-dist-panel').style.display = 'none';
     return;
   }
-  inp.style.borderColor='';
+
+  inp.style.borderColor = '';
   const strVal = val.toString();
 
   if(tmActiveIsU){
