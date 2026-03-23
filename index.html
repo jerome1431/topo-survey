@@ -935,7 +935,8 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
       <div class="tm-hint">Hauteur de lecture sur la mire au point à mesurer</div>
     </div>
     <input class="tm-big-input" type="text" inputmode="decimal" id="tm-mire-p"
-      placeholder="1.450" oninput="tmUpdatePreview()">
+      placeholder="1.450" oninput="tmUpdatePreview()"
+      onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();tmNext();}">
     <div style="font-size:11px;color:var(--text-dim);text-align:center">
       HI: <span id="tm-hi-display">—</span> m &nbsp;·&nbsp; Mire réf: <span id="tm-mireref-display">—</span> m
     </div>
@@ -943,9 +944,15 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 
   <!-- Step 2: distances -->
   <div class="tm-body" id="tm-step2" style="display:none">
-    <div>
-      <div class="tm-label">Distances au télémètre — Références</div>
-      <div class="tm-hint">Appuyez sur un point pour y encoder la distance</div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div class="tm-label">Distances au télémètre — Références</div>
+        <div class="tm-hint">Appuyez sur un point pour y encoder la distance</div>
+      </div>
+      <button id="tm-croquis-btn" onclick="tmShowCroquis()"
+        style="display:none;flex-shrink:0;margin-left:10px;padding:8px 12px;border-radius:8px;border:1px solid var(--accent2);background:var(--accent2)18;color:var(--accent2);font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap">
+        🗺 Plan
+      </button>
     </div>
     <div class="tm-ref-grid" id="tm-ref-grid"></div>
 
@@ -960,7 +967,8 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
     <div class="tm-dist-panel" id="tm-dist-panel" style="display:none">
       <div class="tm-dist-title" id="tm-dist-label">Distance vers A</div>
       <input class="tm-big-input" type="text" inputmode="decimal" id="tm-dist-input"
-        placeholder="0.000" oninput="tmUpdatePreview()">
+        placeholder="0.000" oninput="tmUpdatePreview()"
+        onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();tmConfirmDist();}">
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="tm-btn tm-btn-secondary" style="flex:0 0 auto;padding:12px 16px" onclick="tmCancelDist()">✕</button>
         <button class="tm-btn tm-btn-primary" onclick="tmConfirmDist()">✓ Valider</button>
@@ -2526,7 +2534,11 @@ function openTerrainMode(){
 
   document.getElementById('terrain-overlay').classList.add('vis');
   tmGoTo(1);
-  setTimeout(()=>document.getElementById('tm-mire-p').focus(), 300);
+  // Auto-focus immediately — no delay needed, input is already visible
+  requestAnimationFrame(()=>{
+    const el = document.getElementById('tm-mire-p');
+    if(el){ el.focus(); el.select(); }
+  });
 }
 
 function closeTerrainMode(){
@@ -2556,6 +2568,9 @@ function tmGoTo(step){
     tmBuildUGrid();
     tmUpdatePreview();
     btnNext.disabled = !tmCanClose();
+    // Show croquis button if a croquis is loaded
+    const croquisBtn = document.getElementById('tm-croquis-btn');
+    if(croquisBtn) croquisBtn.style.display = cropisData ? 'block' : 'none';
   } else if(step===3){
     tmBuildSummary();
     btnNext.textContent = 'Confirmer ✓';
@@ -2618,6 +2633,11 @@ function tmBuildRefGrid(){
       ${hasDist?'<div class="tm-ref-check">✓</div>':''}
     </div>`;
   }).join('');
+}
+
+function tmShowCroquis(){
+  // Reuse the existing croquis overlay
+  showCroquis();
 }
 
 function tmBuildUGrid(){
