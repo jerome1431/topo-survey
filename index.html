@@ -371,6 +371,88 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 .modal-email:focus{border-color:var(--accent2);}
 .modal-actions{display:flex;gap:8px;margin-top:16px;}
 
+/* ── TERRAIN MODE ─────────────────────────────────────────────────────────── */
+.terrain-overlay{position:fixed;inset:0;z-index:3000;background:var(--bg);display:none;flex-direction:column;overflow:hidden;}
+.terrain-overlay.vis{display:flex;}
+
+/* Header */
+.tm-header{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tm-title{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--accent);flex:1;}
+.tm-close{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* Steps indicator */
+.tm-steps{display:flex;gap:0;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tm-step{flex:1;padding:8px 4px;text-align:center;font-size:9px;color:var(--text-dim);font-family:'DM Mono',monospace;letter-spacing:.06em;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;}
+.tm-step.active{color:var(--accent2);border-bottom-color:var(--accent2);}
+.tm-step.done{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* Body */
+.tm-body{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px;}
+
+/* Section labels */
+.tm-label{font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
+.tm-hint{font-size:11px;color:var(--text-dim);margin-top:-8px;}
+
+/* Big input */
+.tm-big-input{width:100%;background:var(--surface2);border:2px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:28px;padding:14px 16px;text-align:center;outline:none;transition:border-color .2s;}
+.tm-big-input:focus{border-color:var(--accent2);}
+
+/* Ref cards in terrain mode */
+.tm-ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.tm-ref-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;text-align:center;}
+.tm-ref-card:active{transform:scale(.95);}
+.tm-ref-card.selected{border-color:var(--accent2);background:var(--accent2)14;}
+.tm-ref-card.filled{border-color:var(--accent);background:var(--accent)10;}
+.tm-ref-card.disabled{opacity:.5;cursor:default;}
+.tm-ref-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;}
+.tm-ref-info{flex:1;min-width:0;}
+.tm-ref-name{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);}
+.tm-ref-coords{font-size:9px;color:var(--text-dim);margin-top:1px;}
+.tm-ref-dist{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent2);font-weight:600;}
+.tm-ref-dist.empty{color:var(--text-dim);}
+.tm-ref-check{font-size:14px;color:var(--accent);}
+
+/* Distance entry panel */
+.tm-dist-panel{background:var(--surface);border:2px solid var(--accent2);border-radius:12px;padding:16px;animation:slideDown .2s ease;}
+.tm-dist-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:var(--accent2);}
+
+/* Preview bar */
+.tm-preview{background:var(--surface2);border-radius:8px;padding:10px 14px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text-dim);min-height:36px;transition:all .3s;}
+.tm-preview.has-result{color:var(--text);}
+.tm-preview .tm-coords{font-size:13px;color:var(--accent);margin-bottom:3px;}
+.tm-preview .tm-spread{font-size:11px;}
+
+/* Bottom action bar */
+.tm-footer{padding:12px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;}
+.tm-btn{flex:1;padding:16px;border-radius:10px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.tm-btn:active{transform:scale(.97);}
+.tm-btn-primary{background:var(--accent2);color:#fff;}
+.tm-btn-primary:disabled{opacity:.4;cursor:default;}
+.tm-btn-secondary{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border);}
+.tm-btn-danger{background:#2a1515;color:var(--red);border:1px solid #3a2020;}
+
+/* Plan preview in terrain mode */
+.tm-plan{flex:1;position:relative;overflow:hidden;background:var(--surface2);border-radius:10px;margin:0 16px 16px;min-height:200px;}
+.tm-plan canvas{width:100%;height:100%;display:block;}
+.tm-plan-overlay{position:absolute;bottom:10px;right:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+.tm-new-point-badge{background:var(--accent2);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;padding:4px 10px;border-radius:20px;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+
+/* Step 3 — name & close */
+.tm-name-row{display:flex;flex-direction:column;gap:8px;}
+.tm-summary{background:var(--surface2);border-radius:8px;padding:12px 14px;font-size:11px;font-family:'DM Mono',monospace;line-height:1.7;}
+.tm-summary strong{color:var(--accent);font-size:13px;}
+
+/* Terrain FAB button (floating action button) */
+.terrain-fab{position:fixed;bottom:24px;right:24px;z-index:500;width:60px;height:60px;border-radius:50%;background:var(--accent2);border:none;color:#fff;font-size:26px;box-shadow:0 4px 20px rgba(0,0,0,.4);cursor:pointer;display:none;align-items:center;justify-content:center;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.terrain-fab.vis{display:flex;}
+.terrain-fab:active{transform:scale(.92);}
+
+/* Fullscreen canvas */
+.canvas-wrap.is-fullscreen{position:fixed;inset:0;z-index:1500;border-radius:0;border:none;display:flex;flex-direction:column;}
+.canvas-wrap.is-fullscreen canvas{flex:1;aspect-ratio:unset !important;height:0;}
+.canvas-wrap.is-fullscreen .stats-bar{flex-shrink:0;}
+
 /* Zoom controls */
 .zoom-controls{display:flex;align-items:center;gap:3px;flex-shrink:0;}
 .zoom-btn{width:26px;height:26px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .15s;font-family:'DM Mono',monospace;}
@@ -640,6 +722,7 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
           <span class="zoom-level" id="zoom-level">100%</span>
           <button class="zoom-btn" onclick="zoomCanvas(1)" title="Zoomer">+</button>
           <button class="zoom-btn" onclick="resetView()" title="Réinitialiser la vue" style="font-size:10px">⌂</button>
+          <button class="zoom-btn" id="fs-btn" onclick="toggleFullscreen()" title="Plein écran" style="font-size:11px">⛶</button>
         </div>
       </div>
     </div>
@@ -758,54 +841,177 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
       <div class="ph-dot" style="background:var(--text-dim)"></div>
       <h2>Export &amp; Session</h2>
     </div>
-    <div class="panel-body">
-      <div class="sec-label" style="margin-top:0">Données brutes</div>
-      <div class="fname-row">
-        <label>Nom</label>
-        <input type="text" class="fname-input" id="fname-csv" placeholder="points.csv">
-        <span style="font-size:9px;color:var(--text-dim)">.csv</span>
+    <div class="panel-body" style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- Nom de projet commun -->
+      <div>
+        <div class="sec-label" style="margin-top:0">Nom du projet</div>
+        <div class="fname-row" style="margin-bottom:0">
+          <input type="text" class="fname-input" id="fname-project"
+            placeholder="ex: chantier-nord-2025-03"
+            oninput="syncProjectName()"
+            style="font-size:13px">
+        </div>
+        <div style="font-size:9px;color:var(--text-dim);margin-top:3px">Utilisé comme préfixe pour tous les exports</div>
       </div>
-      <div class="brow" style="margin-top:0">
-        <button class="btn btn-ghost" style="flex:1" onclick="exportCSV()">⬇ CSV</button>
-        <button class="btn btn-ghost" style="flex:1" onclick="exportJSON()">⬇ JSON</button>
-        <label class="btn btn-ghost" style="flex:1;cursor:pointer" title="Importer un CSV ou JSON">⬆ Importer
+
+      <!-- Importer -->
+      <div>
+        <div class="sec-label">Importer une session</div>
+        <label class="btn btn-ghost" style="width:100%;cursor:pointer;text-align:center;box-sizing:border-box">
+          ⬆ Importer CSV ou JSON
           <input type="file" accept=".csv,.json" style="display:none" onchange="importFile(this)">
         </label>
       </div>
-      <div class="fname-row" style="margin-top:8px">
-        <label>Nom</label>
-        <input type="text" class="fname-input" id="fname-json" placeholder="session.json">
-        <span style="font-size:9px;color:var(--text-dim)">.json</span>
+
+      <!-- Exporter données -->
+      <div>
+        <div class="sec-label">Données</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <button class="btn btn-ghost" onclick="exportCSV()" title="Points X,Y,Z + précision">⬇ CSV</button>
+          <button class="btn btn-ghost" onclick="exportJSON()" title="Session complète — reimport possible">⬇ JSON</button>
+        </div>
       </div>
 
-      <div class="sec-label">Maillage 3D — Inventor / CAO</div>
-      <div class="fname-row">
-        <label>Nom</label>
-        <input type="text" class="fname-input" id="fname-mesh" placeholder="terrain">
-        <span style="font-size:9px;color:var(--text-dim)">.obj / .dxf</span>
+      <!-- Maillage 3D -->
+      <div>
+        <div class="sec-label">Maillage 3D</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+          <span style="font-size:10px;color:var(--text-dim)">Unité :</span>
+          <select id="export-unit" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:4px 7px;outline:none">
+            <option value="1000">mm — Inventor (défaut)</option>
+            <option value="100">cm</option>
+            <option value="1" selected>m</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <button class="btn btn-ghost" onclick="exportOBJ()" title="Wavefront OBJ — Inventor / Fusion 360">⬇ OBJ</button>
+          <button class="btn btn-ghost" onclick="exportDXF()" title="DXF 3DFACE — AutoCAD / Inventor">⬇ DXF</button>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-        <span style="font-size:10px;color:var(--text-dim)">Unité :</span>
-        <select id="export-unit" style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:3px 7px;outline:none">
-          <option value="1000">mm (Inventor défaut)</option>
-          <option value="100">cm</option>
-          <option value="1" selected>m</option>
-        </select>
+
+      <!-- Rapport ZIP -->
+      <div>
+        <div class="sec-label">Rapport complet</div>
+        <button class="btn btn-primary" style="width:100%" onclick="openRapportModal()">📤 Générer le rapport ZIP</button>
+        <div style="font-size:9px;color:var(--text-dim);margin-top:4px;text-align:center">PNG · CSV · OBJ · DXF · JSON dans un seul fichier</div>
       </div>
-      <div class="brow" style="margin-top:0">
-        <button class="btn btn-ghost" style="flex:1" onclick="exportOBJ()" title="Wavefront OBJ">⬇ OBJ</button>
-        <button class="btn btn-ghost" style="flex:1" onclick="exportDXF()" title="DXF 3DFACE">⬇ DXF</button>
+
+      <!-- Danger zone -->
+      <div style="border-top:1px solid var(--border);padding-top:10px">
+        <button class="btn btn-ghost" style="width:100%;color:var(--red);border-color:#3a2020" onclick="clearAll()">✕ Réinitialiser la session</button>
       </div>
-      <div class="brow">
-        <button class="btn btn-ghost" style="flex:1;color:var(--red);border-color:#3a2020" onclick="clearAll()">✕ Reset</button>
-        <button class="btn btn-primary" style="flex:1" onclick="openRapportModal()">📤 Rapport</button>
-      </div>
+
     </div>
   </div>
 
 </div><!-- end right -->
 </div><!-- end layout -->
 </div><!-- end app -->
+
+<!-- ── TERRAIN MODE ──────────────────────────────────────────────────────── -->
+<button class="terrain-fab" id="terrain-fab" onclick="openTerrainMode()" title="Mode terrain">📍</button>
+
+<div class="terrain-overlay" id="terrain-overlay">
+
+  <!-- Header -->
+  <div class="tm-header">
+    <div class="tm-title" id="tm-title">📍 Nouveau point</div>
+    <button class="tm-close" onclick="closeTerrainMode()">✕</button>
+  </div>
+
+  <!-- Steps -->
+  <div class="tm-steps">
+    <div class="tm-step" id="tm-s1">1 · Mire</div>
+    <div class="tm-step" id="tm-s2">2 · Distances</div>
+    <div class="tm-step" id="tm-s3">3 · Clôture</div>
+    <div class="tm-step" id="tm-s4">4 · Plan</div>
+  </div>
+
+  <!-- Step 1: mire en P -->
+  <div class="tm-body" id="tm-step1">
+    <div>
+      <div class="tm-label">Hauteur de mire en P</div>
+      <div class="tm-hint">Hauteur de lecture sur la mire au point à mesurer</div>
+    </div>
+    <input class="tm-big-input" type="text" inputmode="decimal" id="tm-mire-p"
+      placeholder="1.450" oninput="tmUpdatePreview()">
+    <div style="font-size:11px;color:var(--text-dim);text-align:center">
+      HI: <span id="tm-hi-display">—</span> m &nbsp;·&nbsp; Mire réf: <span id="tm-mireref-display">—</span> m
+    </div>
+  </div>
+
+  <!-- Step 2: distances -->
+  <div class="tm-body" id="tm-step2" style="display:none">
+    <div>
+      <div class="tm-label">Distances au télémètre — Références</div>
+      <div class="tm-hint">Appuyez sur un point pour y encoder la distance</div>
+    </div>
+    <div class="tm-ref-grid" id="tm-ref-grid"></div>
+
+    <!-- U observations section — only shown if collecting U exist -->
+    <div id="tm-u-section" style="display:none">
+      <div class="tm-label" style="margin-top:4px">Observations — Points inconnus</div>
+      <div class="tm-hint">Optionnel — contribue à la résolution des U</div>
+      <div class="tm-ref-grid" id="tm-u-grid" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Active distance entry (shared for refs and U) -->
+    <div class="tm-dist-panel" id="tm-dist-panel" style="display:none">
+      <div class="tm-dist-title" id="tm-dist-label">Distance vers A</div>
+      <input class="tm-big-input" type="text" inputmode="decimal" id="tm-dist-input"
+        placeholder="0.000" oninput="tmUpdatePreview()">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="tm-btn tm-btn-secondary" style="flex:0 0 auto;padding:12px 16px" onclick="tmCancelDist()">✕</button>
+        <button class="tm-btn tm-btn-primary" onclick="tmConfirmDist()">✓ Valider</button>
+      </div>
+    </div>
+
+    <!-- Live preview -->
+    <div class="tm-preview" id="tm-preview">Encodez au moins 2 distances pour voir la position calculée…</div>
+  </div>
+
+  <!-- Step 3: name & confirm -->
+  <div class="tm-body" id="tm-step3" style="display:none">
+    <div class="tm-summary" id="tm-summary"></div>
+    <div class="tm-name-row">
+      <div class="tm-label">Nom du point (optionnel)</div>
+      <input class="tm-big-input" type="text" id="tm-point-name" placeholder="ex: coin haie, piquet…"
+        style="font-size:18px">
+    </div>
+    <label style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);cursor:pointer">
+      <input type="checkbox" id="tm-perim" style="width:22px;height:22px;accent-color:var(--accent)">
+      <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px">Point de périmètre</span>
+    </label>
+  </div>
+
+  <!-- Step 4: plan -->
+  <div class="tm-body" id="tm-step4" style="display:none;padding:0">
+    <div style="padding:16px 16px 8px">
+      <div class="tm-label">Point enregistré ✓</div>
+      <div class="tm-summary" id="tm-final-summary"></div>
+      <div id="tm-mirror-row" style="display:none;margin-top:8px">
+        <button class="tm-btn tm-btn-secondary" style="padding:10px;font-size:12px;width:100%" onclick="tmFlipMirror()">
+          ↔ Basculer côté miroir
+        </button>
+        <div style="font-size:9px;color:var(--text-dim);text-align:center;margin-top:4px">Solution alternative disponible</div>
+      </div>
+    </div>
+    <div class="tm-plan">
+      <canvas id="tm-canvas"></canvas>
+      <div class="tm-plan-overlay">
+        <div class="tm-new-point-badge" id="tm-new-badge">Nouveau point</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="tm-footer" id="tm-footer">
+    <button class="tm-btn tm-btn-secondary" id="tm-btn-back" onclick="tmBack()" style="display:none">← Retour</button>
+    <button class="tm-btn tm-btn-primary" id="tm-btn-next" onclick="tmNext()">Suite →</button>
+  </div>
+
+</div>
 
 <!-- ── OFFSET MODAL ──────────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="offset-overlay" onclick="if(event.target===this)closeOffsetModal()">
@@ -1057,6 +1263,7 @@ function focusFirstDist(){
 
 // ── GEOMETRY QUALITY (DOP + COLINEARITY) ──────────────────────────────────────
 function checkGeometry(){
+  updateTerrainFAB();
   const ar = refs.filter(r => r.x !== '' && r.y !== '');
   const colinWarn = document.getElementById('colin-warn');
   const dopBar = document.getElementById('dop-bar');
@@ -1154,8 +1361,13 @@ function uDisplayLabel(u){
 }
 
 function deleteUnknownPoint(id){
+  const u = unknownPoints.find(u=>u.id===id);
+  if(!u) return;
+  const label = u.name ? `${u.id} (${u.name})` : u.id;
+  const usedBy = points.filter(p=>p.usedRefs && p.usedRefs.includes(id));
+  const warn = usedBy.length ? `\n\n⚠ ${usedBy.length} point(s) P ont été mesurés depuis ce point — leurs coordonnées ne seront plus recalculables.` : '';
+  if(!confirm(`Supprimer le point inconnu ${label} ?${warn}`)) return;
   unknownPoints = unknownPoints.filter(u => u.id !== id);
-  // Remove from active refs if it was active
   buildUPanel();
   buildUDistGrid();
   buildDistGrid();
@@ -1166,8 +1378,10 @@ function deleteUnknownPoint(id){
 function deleteUObs(uId, idx){
   const u = unknownPoints.find(u => u.id === uId);
   if(!u) return;
+  const obs = u.observations[idx];
+  const stationLabel = obs ? `depuis station (${obs.stationX?.toFixed(2)}, ${obs.stationY?.toFixed(2)}) — dist ${obs.dist?.toFixed(3)} m` : `observation #${idx+1}`;
+  if(!confirm(`Supprimer l'observation ${stationLabel} du point ${u.id} ?`)) return;
   u.observations.splice(idx, 1);
-  // Reset to collecting if we removed an obs
   if(u.status !== 'collecting') u.status = 'collecting';
   u.x = null; u.y = null; u.xAlt = null; u.yAlt = null; u.lockedSide = null;
   buildUPanel(); renderCanvas(); saveAll();
@@ -1554,6 +1768,7 @@ function saveAll(){
       points, autoIdx,
       unknownPoints, uAutoIdx,
       perimOrder,
+      projectName: document.getElementById('fname-project')?.value||'',
       croquis: cropisData ? {data:cropisData,name:cropisName} : null,
       savedAt: new Date().toISOString()
     }));
@@ -1586,6 +1801,10 @@ function restoreSession(data){
   }
   if(data.hi) document.getElementById('hi').value = data.hi;
   if(data.mireRef) document.getElementById('mire-ref').value = data.mireRef;
+  if(data.projectName !== undefined){
+    const pn=document.getElementById('fname-project');
+    if(pn) pn.value=data.projectName;
+  }
   if(data.spreadThreshold){
     const sl = document.getElementById('spread-threshold');
     const inp = document.getElementById('spread-threshold-input');
@@ -1667,9 +1886,14 @@ function deleteRef(id){
     if(c){ c.style.borderColor='var(--red)'; setTimeout(()=>{c.style.borderColor='';},700); }
     return;
   }
+  const r = refs.find(r=>r.id===id);
+  const label = r ? refDisplayLabel(r) : id;
+  if(!confirm(`Supprimer la référence ${label} ?\n\nLes points mesurés depuis cette référence ne seront pas recalculés.`)) return;
   refs = refs.filter(r=>r.id!==id);
   buildAll(); checkGeometry(); saveAll();
 }
+
+function ptLabel(p){ return p.name ? `P${p.id} (${p.name})` : `P${p.id}`; }
 
 function refDisplayLabel(r){
   return r.name ? `${r.id} (${r.name})` : r.id;
@@ -2171,9 +2395,9 @@ function renderTable(){
     const perimBadge = perimIdx>=0
       ? `<span style="color:#50c878;font-size:11px;cursor:pointer" onclick="removeFromPerim(${p.id})" title="Retirer du périmètre (ordre ${perimIdx+1})">⬡${perimIdx+1}</span>`
       : `<span style="color:var(--border);font-size:11px;cursor:pointer" onclick="addToPerim(${p.id})" title="Ajouter au périmètre">⬡</span>`;
-    const pLabel = p.name ? `${p.id} (${p.name})` : `${p.id}`;
+    const pLabel = ptLabel(p);
     return `<tr class="${perimIdx>=0?'perim-row':''}" ondblclick="openOffsetModal(${p.id})" title="Double-clic pour créer un offset">
-      <td>${p.id}</td>
+      <td>P${p.id}</td>
       <td style="cursor:default">${pLabel}</td>
       <td>${fmt(p.x)}</td><td>${fmt(p.y)}</td>
       <td style="color:${p.z>=0?'var(--accent)':'var(--red)'}">${fmt(p.z)}</td>
@@ -2226,7 +2450,7 @@ function editPoint(id){
 
   // Update button
   const btnC = document.getElementById('btn-confirm');
-  btnC.textContent = `✓ Mettre à jour ${p.id}`;
+  btnC.textContent = `✓ Mettre à jour P${p.id}`;
   btnC.style.background = 'var(--yellow)';
   btnC.style.color = '#1a1a00';
 
@@ -2245,6 +2469,10 @@ function renamePoint(id, newName){
 }
 
 function deletePoint(id){
+  const p = points.find(p=>p.id===id);
+  if(!p) return;
+  const label = ptLabel(p);
+  if(!confirm(`Supprimer le ${label} ?\n\nX:${fmt(p.x)}  Y:${fmt(p.y)}  Z:${fmt(p.z)}`)) return;
   points=points.filter(p=>p.id!==id);
   perimOrder=perimOrder.filter(i=>i!==id);
   renderTable();renderCanvas();updateStats();updateSurface();saveAll();
@@ -2260,6 +2488,528 @@ function updateStats(){
   const pr=points.filter(p=>p.precision!=null).map(p=>p.precision);
   document.getElementById('sp').textContent=pr.length?Math.round(pr.reduce((a,b)=>a+b,0)/pr.length)+'%':'—';
 }
+
+// ── TERRAIN MODE ──────────────────────────────────────────────────────────────
+let tmStep = 0;
+let tmDistances = {}; // refId → distance value
+let tmUDistances = {}; // uId → distance value (observations)
+let tmActiveRef = null; // refId currently being entered
+let tmActiveIsU = false; // is the active entry a U observation?
+let tmResult = null;
+let tmNewPointId = null;
+let tmFlipped = false;
+let tmAltResult = null;
+
+function updateTerrainFAB(){
+  const fab = document.getElementById('terrain-fab');
+  const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
+  fab.classList.toggle('vis', activeRefs.length >= 2);
+}
+
+function openTerrainMode(){
+  tmStep = 0;
+  tmDistances = {};
+  tmUDistances = {};
+  tmActiveRef = null;
+  tmActiveIsU = false;
+  tmResult = null;
+  tmNewPointId = null;
+  tmFlipped = false;
+  tmAltResult = null;
+
+  // Sync HI and mireRef from main form
+  document.getElementById('tm-hi-display').textContent = document.getElementById('hi').value || '—';
+  document.getElementById('tm-mireref-display').textContent = document.getElementById('mire-ref').value || '—';
+  document.getElementById('tm-mire-p').value = '';
+  document.getElementById('tm-point-name').value = '';
+  document.getElementById('tm-perim').checked = false;
+
+  document.getElementById('terrain-overlay').classList.add('vis');
+  tmGoTo(1);
+  setTimeout(()=>document.getElementById('tm-mire-p').focus(), 300);
+}
+
+function closeTerrainMode(){
+  document.getElementById('terrain-overlay').classList.remove('vis');
+  document.getElementById('tm-dist-panel').style.display = 'none';
+}
+
+function tmGoTo(step){
+  tmStep = step;
+  [1,2,3,4].forEach(i=>{
+    document.getElementById(`tm-step${i}`).style.display = i===step ? 'flex' : 'none';
+    const s = document.getElementById(`tm-s${i}`);
+    s.classList.toggle('active', i===step);
+    s.classList.toggle('done', i<step);
+  });
+
+  const btnBack = document.getElementById('tm-btn-back');
+  const btnNext = document.getElementById('tm-btn-next');
+  btnBack.style.display = step > 1 && step < 4 ? 'block' : 'none';
+
+  if(step===1){
+    btnNext.textContent = 'Suite →';
+    btnNext.disabled = false;
+  } else if(step===2){
+    btnNext.textContent = 'Clôturer ✓';
+    tmBuildRefGrid();
+    tmBuildUGrid();
+    tmUpdatePreview();
+    btnNext.disabled = !tmCanClose();
+  } else if(step===3){
+    tmBuildSummary();
+    btnNext.textContent = 'Confirmer ✓';
+    btnNext.disabled = false;
+  } else if(step===4){
+    btnNext.textContent = '📍 Point suivant';
+    btnNext.disabled = false;
+    tmDrawPlan();
+  }
+  document.getElementById('tm-title').textContent =
+    step===1?'📍 Hauteur de mire':step===2?'📍 Distances':step===3?'📍 Clôture du point':'✓ Point enregistré';
+}
+
+function tmBack(){ if(tmStep>1) tmGoTo(tmStep-1); }
+
+function tmNext(){
+  if(tmStep===1){
+    const mireP = pf(document.getElementById('tm-mire-p').value);
+    if(isNaN(mireP)){ document.getElementById('tm-mire-p').style.borderColor='var(--red)'; return; }
+    document.getElementById('tm-mire-p').style.borderColor='';
+    tmGoTo(2);
+  } else if(tmStep===2){
+    if(!tmCanClose()) return;
+    tmGoTo(3);
+  } else if(tmStep===3){
+    tmSavePoint();
+    tmGoTo(4);
+  } else if(tmStep===4){
+    // New point — reset step 2
+    tmDistances = {};
+    tmActiveRef = null;
+    tmResult = null;
+    document.getElementById('tm-mire-p').value = '';
+    document.getElementById('tm-point-name').value = '';
+    document.getElementById('tm-perim').checked = false;
+    closeTerrainMode();
+    openTerrainMode();
+  }
+}
+
+function tmBuildRefGrid(){
+  const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
+  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const allRefs = [
+    ...activeRefs.map(r=>({id:r.id,label:refDisplayLabel(r),color:r.color,
+      sub:`(${pf(r.x).toFixed(2)}, ${pf(r.y).toFixed(2)})`,isU:false})),
+    ...activeU.map(u=>({id:u.id,label:uDisplayLabel(u),color:'#9070ff',
+      sub:`(${u.x.toFixed(2)}, ${u.y.toFixed(2)})`,isU:true}))
+  ];
+
+  document.getElementById('tm-ref-grid').innerHTML = allRefs.map(r=>{
+    const dist = tmDistances[r.id];
+    const hasDist = dist !== undefined && dist !== '';
+    return `<div class="tm-ref-card ${hasDist?'filled':''}" id="tmrc-${r.id}"
+      onclick="tmSelectRef('${r.id}','${r.label}')">
+      <div class="tm-ref-dot" style="background:${r.color}"></div>
+      <div class="tm-ref-name">${r.label}</div>
+      <div class="tm-ref-coords">${r.sub}</div>
+      <div class="tm-ref-dist ${hasDist?'':'empty'}">${hasDist?dist+' m':'—'}</div>
+      ${hasDist?'<div class="tm-ref-check">✓</div>':''}
+    </div>`;
+  }).join('');
+}
+
+function tmBuildUGrid(){
+  const collectingU = unknownPoints.filter(u=>u.status==='collecting'||u.status==='preview');
+  const section = document.getElementById('tm-u-section');
+  if(!collectingU.length){ section.style.display='none'; return; }
+  section.style.display='block';
+
+  document.getElementById('tm-u-grid').innerHTML = collectingU.map(u=>{
+    const dist = tmUDistances[u.id];
+    const hasDist = dist !== undefined && dist !== '';
+    const label = uDisplayLabel(u);
+    const nObs = u.observations ? u.observations.length : 0;
+    return `<div class="tm-ref-card ${hasDist?'filled':''}" id="tmuc-${u.id}"
+      onclick="tmSelectU('${u.id}','${label}')">
+      <div class="tm-ref-dot" style="background:#9070ff"></div>
+      <div class="tm-ref-name">${label}</div>
+      <div class="tm-ref-coords">${nObs} obs.</div>
+      <div class="tm-ref-dist ${hasDist?'':'empty'}">${hasDist?dist+' m':'—'}</div>
+      ${hasDist?'<div class="tm-ref-check">✓</div>':''}
+    </div>`;
+  }).join('');
+}
+
+function tmSelectU(uId, label){
+  tmActiveRef = uId;
+  tmActiveIsU = true;
+  document.getElementById('tm-dist-label').textContent = `Observation vers ${label}`;
+  const panel = document.getElementById('tm-dist-panel');
+  panel.style.display = 'block';
+  const inp = document.getElementById('tm-dist-input');
+  inp.value = tmUDistances[uId] !== undefined ? tmUDistances[uId] : '';
+  setTimeout(()=>inp.focus(), 100);
+}
+
+function tmSelectRef(refId, label){
+  tmActiveRef = refId;
+  tmActiveIsU = false;
+  document.getElementById('tm-dist-label').textContent = `Distance vers ${label}`;
+  const panel = document.getElementById('tm-dist-panel');
+  panel.style.display = 'block';
+  const inp = document.getElementById('tm-dist-input');
+  inp.value = tmDistances[refId] !== undefined ? tmDistances[refId] : '';
+  setTimeout(()=>inp.focus(), 100);
+}
+
+function tmCancelDist(){
+  tmActiveRef = null;
+  tmActiveIsU = false;
+  document.getElementById('tm-dist-panel').style.display = 'none';
+}
+
+function tmConfirmDist(){
+  if(!tmActiveRef) return;
+  const val = pf(document.getElementById('tm-dist-input').value);
+  if(isNaN(val)||val<=0){
+    document.getElementById('tm-dist-input').style.borderColor='var(--red)';
+    return;
+  }
+  document.getElementById('tm-dist-input').style.borderColor='';
+  const strVal = document.getElementById('tm-dist-input').value;
+
+  if(tmActiveIsU){
+    tmUDistances[tmActiveRef] = strVal;
+  } else {
+    tmDistances[tmActiveRef] = strVal;
+  }
+
+  tmActiveRef = null;
+  tmActiveIsU = false;
+  document.getElementById('tm-dist-panel').style.display = 'none';
+  tmBuildRefGrid();
+  tmBuildUGrid();
+  tmUpdatePreview();
+  document.getElementById('tm-btn-next').disabled = !tmCanClose();
+}
+
+function tmCanClose(){
+  const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
+  if(filledKeys.length < 2) return false;
+  // Check at least one valid pair triangulates
+  const filledRefs = filledKeys.map(k=>{
+    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
+    if(!ref) return null;
+    return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
+  }).filter(Boolean);
+  const result = tmTrilaterate(filledRefs);
+  return !!(result && result.final && !isNaN(result.final.x) && !isNaN(result.final.y));
+}
+
+// Shared trilateration helper for terrain mode — mirrors applyCalc logic
+function tmTrilaterate(filledRefs, useFlip=false){
+  const pairs = [];
+  for(let i=0;i<filledRefs.length;i++)
+    for(let j=i+1;j<filledRefs.length;j++)
+      pairs.push([filledRefs[i],filledRefs[j]]);
+
+  const cands=[], pairLbls=[];
+  let altSolution = null;
+  pairs.forEach(([a,b])=>{
+    const res=trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
+    if(!res) return;
+    let chosen, other;
+    if(!res.ambiguous){
+      chosen = res.p1;
+    } else if(pairs.length===1){
+      chosen = useFlip ? res.p2 : pickSide(res.p1,res.p2,false);
+      other  = useFlip ? res.p1 : (chosen===res.p1 ? res.p2 : res.p1);
+      altSolution = other;
+    } else {
+      chosen = pickSide(res.p1,res.p2,false);
+    }
+    cands.push({x:chosen.x, y:chosen.y, w:1/(a.dist*b.dist)});
+    pairLbls.push(`${a.id}-${b.id}`);
+  });
+  if(!cands.length) return null;
+  const final = weightedAvg(cands);
+  const prec  = precScore(cands, final);
+  // ambiguous = only 1 pair and two distinct solutions exist
+  const ambiguous = pairs.length===1 && altSolution!==null;
+  return {final, prec, cands, pairLbls, altSolution, ambiguous};
+}
+
+function tmUpdatePreview(){
+  if(tmStep !== 2) return;
+  const mireP = pf(document.getElementById('tm-mire-p').value)||0;
+  const hi    = pf(document.getElementById('hi').value)||0;
+  const mRef  = pf(document.getElementById('mire-ref').value)||0;
+
+  // Build filled refs list with world coords
+  const filledRefs = Object.keys(tmDistances)
+    .filter(k=>tmDistances[k]!=='')
+    .map(k=>{
+      const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
+      if(!ref) return null;
+      return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
+    }).filter(Boolean);
+
+  const preview = document.getElementById('tm-preview');
+  if(filledRefs.length < 2){
+    preview.className='tm-preview';
+    preview.textContent='Encodez au moins 2 distances pour voir la position calculée…';
+    tmResult = null;
+    document.getElementById('tm-btn-next').disabled = !tmCanClose();
+    return;
+  }
+
+  const result = tmTrilaterate(filledRefs);
+  if(!result){
+    preview.className='tm-preview';
+    preview.textContent='⚠ Triangulation impossible — vérifiez les distances.';
+    tmResult = null;
+    document.getElementById('tm-btn-next').disabled = true;
+    return;
+  }
+
+  const {final, prec, pairLbls} = result;
+  const z = (hi - mireP) - (hi - mRef);
+  tmResult = {x:final.x, y:final.y, z, prec, pairLbls};
+
+  const threshold = pf(document.getElementById('spread-threshold-input').value)||200;
+  const spreadMm  = prec ? prec.spread*1000 : null;
+  const col = !prec ? 'var(--accent)' :
+    spreadMm <= threshold*0.5 ? 'var(--accent)' :
+    spreadMm <= threshold      ? 'var(--yellow)' : 'var(--red)';
+
+  preview.className='tm-preview has-result';
+  preview.innerHTML =
+    `<div class="tm-coords">X: ${fmt(final.x)} &nbsp; Y: ${fmt(final.y)} &nbsp; Z: ${fmt(z)}</div>
+     <div class="tm-spread" style="color:${col}">${
+       prec
+         ? `${pairLbls.length} paire(s) · ${prec.score}% · spread ${spreadMm.toFixed(1)} mm`
+         : `1 paire (${pairLbls[0]})`
+     }</div>`;
+  document.getElementById('tm-btn-next').disabled = false;
+}
+
+function tmBuildSummary(){
+  if(!tmResult) return;
+  const spreadMm = tmResult.prec ? (tmResult.prec.spread*1000).toFixed(1) : '—';
+  const score = tmResult.prec ? tmResult.prec.score+'%' : '—';
+  document.getElementById('tm-summary').innerHTML =
+    `<strong>X: ${fmt(tmResult.x)} &nbsp; Y: ${fmt(tmResult.y)} &nbsp; Z: ${fmt(tmResult.z)}</strong><br>
+    Précision: ${score} &nbsp;·&nbsp; Déviation: ${spreadMm} mm<br>
+    ${Object.keys(tmDistances).length} distance(s) encodée(s)`;
+}
+
+function tmSavePoint(){
+  if(!tmResult) return;
+  const mireP  = pf(document.getElementById('tm-mire-p').value)||0;
+  const name   = document.getElementById('tm-point-name').value.trim();
+  const isPerim= document.getElementById('tm-perim').checked;
+  const hi     = pf(document.getElementById('hi').value)||0;
+  const mRef   = pf(document.getElementById('mire-ref').value)||0;
+
+  const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
+  const filledRefs = filledKeys.map(k=>{
+    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
+    if(!ref) return null;
+    return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
+  }).filter(Boolean);
+
+  const result = tmTrilaterate(filledRefs, tmFlipped);
+  if(!result) return;
+  const {final, prec, pairLbls, altSolution, ambiguous} = result;
+  tmAltResult = altSolution;
+
+  // Show mirror button if only 1 pair and alternative exists
+  document.getElementById('tm-mirror-row').style.display = ambiguous ? 'block' : 'none';
+  const z = (hi - mireP) - (hi - mRef);
+
+  const dists={};
+  filledKeys.forEach(k=>{ dists[k]=pf(tmDistances[k]); });
+
+  const pt = {
+    id: autoIdx++, name,
+    x: final.x, y: final.y, z,
+    nPairs: pairLbls.length,
+    precision: prec ? prec.score : null,
+    spread: prec ? prec.spread : null,
+    pairLbls, dists, mireP,
+    rawObs:[], usedRefs:filledKeys, perim:isPerim
+  };
+  points.push(pt);
+  if(isPerim) perimOrder.push(pt.id);
+  tmNewPointId = pt.id;
+
+  // Record U observations
+  Object.keys(tmUDistances).filter(k=>tmUDistances[k]!=='').forEach(uId=>{
+    const u = unknownPoints.find(u=>u.id===uId);
+    if(!u) return;
+    const dist = pf(tmUDistances[uId]);
+    if(isNaN(dist)||dist<=0) return;
+    // Guard: if U already used as ref by existing points, block
+    const usedAsRef = points.filter(p=>p.id!==pt.id).some(p=>p.usedRefs&&p.usedRefs.includes(uId));
+    if(usedAsRef) return;
+    if(u.status!=='collecting') u.status='collecting';
+    u.observations.push({stationX:final.x, stationY:final.y, dist});
+    buildUPanel();
+  });
+
+  const label   = ptLabel(pt);
+  const spreadMm= prec ? (prec.spread*1000).toFixed(1) : '—';
+  document.getElementById('tm-final-summary').innerHTML =
+    `<strong>${label}</strong><br>
+     X: ${fmt(pt.x)} &nbsp; Y: ${fmt(pt.y)} &nbsp; Z: ${fmt(pt.z)}<br>
+     Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm`;
+
+  tinCache=null; tinPointsHash='';
+  renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
+  if(showCoupeXZ) renderCoupeXZ();
+  if(showCoupeYZ) renderCoupeYZ();
+}
+
+function tmFlipMirror(){
+  if(!tmNewPointId) return;
+  tmFlipped = !tmFlipped;
+  // Re-save with flipped side
+  const pt = points.find(p=>p.id===tmNewPointId);
+  if(!pt) return;
+
+  const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
+  const filledRefs = filledKeys.map(k=>{
+    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
+    if(!ref) return null;
+    return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
+  }).filter(Boolean);
+
+  const result = tmTrilaterate(filledRefs, tmFlipped);
+  if(!result) return;
+  const {final, prec, pairLbls} = result;
+  const hi   = pf(document.getElementById('hi').value)||0;
+  const mRef = pf(document.getElementById('mire-ref').value)||0;
+  const mireP= pf(document.getElementById('tm-mire-p').value)||0;
+  const z = (hi-mireP)-(hi-mRef);
+
+  pt.x=final.x; pt.y=final.y; pt.z=z;
+  pt.precision=prec?prec.score:null; pt.spread=prec?prec.spread:null;
+  pt.pairLbls=pairLbls;
+
+  const label = pt.name ? `${pt.id} (${pt.name})` : `Point ${pt.id}`;
+  const spreadMm = prec ? (prec.spread*1000).toFixed(1) : '—';
+  document.getElementById('tm-final-summary').innerHTML =
+    `<strong>${label}</strong><br>
+     X: ${fmt(pt.x)} &nbsp; Y: ${fmt(pt.y)} &nbsp; Z: ${fmt(pt.z)}<br>
+     Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm
+     <span style="color:var(--yellow);font-size:10px;margin-left:8px">${tmFlipped?'(côté miroir)':''}</span>`;
+
+  tinCache=null; tinPointsHash='';
+  renderTable(); renderCanvas(); updateStats(); saveAll();
+  tmDrawPlan();
+}
+
+function tmDrawPlan(){
+  const cvs = document.getElementById('tm-canvas');
+  const wrap = cvs.parentElement;
+  const dpr = window.devicePixelRatio||1;
+  const W = wrap.offsetWidth||300, H = wrap.offsetHeight||220;
+  cvs.width=W*dpr; cvs.height=H*dpr;
+  const c = cvs.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.fillStyle=themeColor('#121614','#eef2ee'); c.fillRect(0,0,W,H);
+
+  const ar=refs.filter(r=>r.x!==''&&r.y!=='');
+  const allPts=[...ar.map(r=>({x:pf(r.x),y:pf(r.y)})),...points.map(p=>({x:p.x,y:p.y}))];
+  if(allPts.length<2) return;
+
+  const xs=allPts.map(p=>p.x),ys=allPts.map(p=>p.y);
+  const pad=30;
+  let mnX=Math.min(...xs),mxX=Math.max(...xs),mnY=Math.min(...ys),mxY=Math.max(...ys);
+  const mg=Math.max((mxX-mnX)*.2,(mxY-mnY)*.2,1);
+  mnX-=mg;mxX+=mg;mnY-=mg;mxY+=mg;
+  const rX=mxX-mnX,rY=mxY-mnY,avW=W-2*pad,avH=H-2*pad;
+  const sc=Math.min(avW/rX,avH/rY),dH=rY*sc,oX=pad+(avW-rX*sc)/2,oY=pad+(avH-dH)/2;
+  function tC(wx,wy){return{cx:oX+(wx-mnX)*sc,cy:oY+dH-(wy-mnY)*sc};}
+
+  // Draw all points
+  const newPt = points.find(p=>p.id===tmNewPointId);
+  const zs=points.map(p=>p.z),zmn=Math.min(...zs,0),zmx=Math.max(...zs,0),zr=zmx-zmn||1;
+  points.forEach(p=>{
+    const{cx,cy}=tC(p.x,p.y);
+    const isNew = p.id===tmNewPointId;
+    const t2=(p.z-zmn)/zr;
+    const col=`rgb(${~~(168*(1-t2)+99*t2)},${~~(224*(1-t2)+200*t2)},${~~(99*(1-t2)+99*t2)})`;
+    if(isNew){
+      c.beginPath();c.arc(cx,cy,18,0,Math.PI*2);
+      c.fillStyle='rgba(99,180,224,0.2)';c.fill();
+      c.beginPath();c.arc(cx,cy,12,0,Math.PI*2);
+      c.fillStyle='rgba(99,180,224,0.15)';c.fill();
+    }
+    c.beginPath();c.arc(cx,cy,isNew?7:4,0,Math.PI*2);
+    c.fillStyle=isNew?'#63b4e0':col;c.fill();
+    const lbl=ptLabel(p);
+    c.fillStyle=isNew?'#63b4e0':themeColor('#c8d8ca','#2a3a2a');
+    c.font=`${isNew?'bold ':''}10px Syne,sans-serif`;c.textAlign='left';
+    c.fillText(lbl,cx+8,cy-3);
+  });
+
+  // Draw refs
+  ar.forEach(r=>{
+    const{cx,cy}=tC(pf(r.x),pf(r.y)),s=7;
+    c.beginPath();c.moveTo(cx,cy-s);c.lineTo(cx+s,cy);c.lineTo(cx,cy+s);c.lineTo(cx-s,cy);c.closePath();
+    c.fillStyle=r.color+'33';c.fill();
+    c.strokeStyle=r.color;c.lineWidth=1.5;c.stroke();
+    c.fillStyle=r.color;c.font='bold 9px Syne,sans-serif';c.textAlign='center';
+    c.fillText(refDisplayLabel(r),cx,cy-s-4);
+  });
+
+  // Lines from new point to used refs
+  if(newPt){
+    const np=tC(newPt.x,newPt.y);
+    Object.keys(tmDistances).filter(k=>tmDistances[k]!=='').forEach(k=>{
+      const ref=refs.find(r=>r.id===k)||unknownPoints.find(u=>u.id===k);
+      if(!ref) return;
+      const rp=tC(pf(ref.x),pf(ref.y));
+      c.beginPath();c.moveTo(np.cx,np.cy);c.lineTo(rp.cx,rp.cy);
+      c.strokeStyle='rgba(99,180,224,0.4)';c.lineWidth=1;c.setLineDash([3,3]);c.stroke();
+      c.setLineDash([]);
+    });
+    document.getElementById('tm-new-badge').textContent =
+      newPt.name ? `${newPt.id} (${newPt.name})` : `Point ${newPt.id}`;
+  }
+}
+
+// ── FULLSCREEN ────────────────────────────────────────────────────────────────
+function toggleFullscreen(){
+  const wrap = document.getElementById('canvas').closest('.canvas-wrap');
+  const btn  = document.getElementById('fs-btn');
+  const isFs = wrap.classList.toggle('is-fullscreen');
+  btn.textContent = isFs ? '✕' : '⛶';
+  btn.title = isFs ? 'Quitter le plein écran' : 'Plein écran';
+  // Try native fullscreen API first
+  if(isFs){
+    if(wrap.requestFullscreen) wrap.requestFullscreen().catch(()=>{});
+    else if(wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+  } else {
+    if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+  }
+  setTimeout(renderCanvas, 50);
+}
+
+// Sync CSS class when user exits native fullscreen (Escape key)
+document.addEventListener('fullscreenchange', ()=>{
+  if(!document.fullscreenElement){
+    const wrap = document.getElementById('canvas').closest('.canvas-wrap');
+    wrap.classList.remove('is-fullscreen');
+    document.getElementById('fs-btn').textContent = '⛶';
+    document.getElementById('fs-btn').title = 'Plein écran';
+    setTimeout(renderCanvas, 50);
+  }
+});
 
 // ── COUPES ────────────────────────────────────────────────────────────────────
 let showCoupeXZ = false;
@@ -2310,7 +3060,7 @@ function syncCoupeXZSlider(){
   const ys=points.map(p=>p.y),mn=Math.min(...ys),mx=Math.max(...ys);
   const val=mn+(pf(document.getElementById('coupe-xz-slider').value)/100)*(mx-mn);
   document.getElementById('coupe-xz-val').value=fmt(val);
-  renderCoupeXZ(); renderCanvas();
+  renderCanvas(); renderCoupeXZ();
 }
 
 function syncCoupeYZSlider(){
@@ -2318,7 +3068,7 @@ function syncCoupeYZSlider(){
   const xs=points.map(p=>p.x),mn=Math.min(...xs),mx=Math.max(...xs);
   const val=mn+(pf(document.getElementById('coupe-yz-slider').value)/100)*(mx-mn);
   document.getElementById('coupe-yz-val').value=fmt(val);
-  renderCoupeYZ(); renderCanvas();
+  renderCanvas(); renderCoupeYZ();
 }
 
 function drawCoupe(canvasId, pts, hAxis, vAxis, hLabel, vLabel, color, showPts=true){
@@ -2375,7 +3125,7 @@ function drawCoupe(canvasId, pts, hAxis, vAxis, hLabel, vLabel, color, showPts=t
     const{cx,cy}=toCp(p[hAxis],p[vAxis]);
     c.beginPath();c.arc(cx,cy,5,0,Math.PI*2);c.fillStyle=color+'55';c.fill();
     c.beginPath();c.arc(cx,cy,4,0,Math.PI*2);c.fillStyle=color;c.fill();
-    const lbl=p.name?`${p.id}(${p.name})`:`${p.id}`;
+    const lbl=ptLabel(p);
     c.fillStyle=themeColor('#c8d8ca','#2a3a2a');c.font='9px DM Mono,monospace';c.textAlign='left';
     c.fillText(lbl,cx+6,cy-3);
     c.fillStyle=themeColor('#5a7a5d','#7a9a7d');c.fillText('z='+fmt(p.z,2),cx+6,cy+8);
@@ -2391,7 +3141,6 @@ function renderCoupeXZ(){
   const yVal=pf(document.getElementById('coupe-xz-val').value)||0;
   const tol=pf(document.getElementById('coupe-xz-tol').value)||0.5;
   drawCoupe('canvas-xz',points.filter(p=>Math.abs(p.y-yVal)<=tol),'x','z','X (m)','Z (m)','#e09863',coupeShowPts.xz);
-  renderCanvas();
 }
 
 function renderCoupeYZ(){
@@ -2399,7 +3148,6 @@ function renderCoupeYZ(){
   const xVal=pf(document.getElementById('coupe-yz-val').value)||0;
   const tol=pf(document.getElementById('coupe-yz-tol').value)||0.5;
   drawCoupe('canvas-yz',points.filter(p=>Math.abs(p.x-xVal)<=tol),'y','z','Y (m)','Z (m)','#63b4e0',coupeShowPts.yz);
-  renderCanvas();
 }
 
 function syncSpreadThreshold(source){
@@ -2409,9 +3157,15 @@ function syncSpreadThreshold(source){
     input.value = slider.value;
   } else {
     const v = pf(input.value)||200;
-    // Slider stays within 100-1000, input can go beyond
     slider.value = Math.max(100, Math.min(1000, v));
   }
+  // Recalculate precision % for all points with new threshold
+  const threshold = (pf(input.value)||200) / 1000; // mm → m
+  points.forEach(p=>{
+    if(p.spread != null){
+      p.precision = Math.round(Math.max(0, Math.min(100, 100*(1 - p.spread/(threshold*2)))));
+    }
+  });
   renderTable();
 }
 const canvasVis = { grid:true, axes:true, refLabels:true, pointLabels:true, points:true, perim:true };
@@ -3165,7 +3919,7 @@ function renderCanvas(ghostPt){
       ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fillStyle=col+'55';ctx.fill();
       ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
       // Label: P1 (nom) format
-      const pLabel = p.name ? `${p.id} (${p.name})` : p.id;
+      const pLabel = ptLabel(p);
       ctx.fillStyle=themeColor('#c8d8ca','#2a3a2a');ctx.font='10px Syne,sans-serif';ctx.textAlign='left';
       if(canvasVis.pointLabels) ctx.fillText(pLabel,cx+8,cy-4);
       ctx.fillStyle=themeColor('#5a7a5d','#7a9a7d');ctx.font='9px DM Mono,monospace';
@@ -3373,23 +4127,37 @@ function exportJSON(){
     savedAt: new Date().toISOString()
   };
   const content = JSON.stringify(data,null,2);
-  const filename = getExportName('fname-json', `session_${dateSlug}`) + '.json';
+  const filename = getProjectSlug()+'_session.json';
   dlOrShare(filename, content, 'application/json');
 }
 
 // ── EXPORT FILENAME HELPERS ───────────────────────────────────────────────────
-function getExportName(fieldId, defaultName){
-  const el = document.getElementById(fieldId);
-  const val = el ? el.value.trim() : '';
-  return val || defaultName;
+function getProjectSlug(){
+  const proj = (document.getElementById('fname-project')?.value||'').trim();
+  const date = new Date().toISOString().slice(0,10);
+  return proj ? `${proj}_${date}` : date;
+}
+
+function getExportName(fieldId, defaultSuffix){
+  // fieldId kept for backward compat but ignored — we use project name now
+  return `${getProjectSlug()}_${defaultSuffix}`;
+}
+
+function syncProjectName(){
+  // Nothing needed — getProjectSlug() reads live on export
 }
 
 function initExportNames(){
-  const slug = new Date().toISOString().slice(0,10);
-  const set = (id, val) => { const el=document.getElementById(id); if(el && !el.value) el.value=val; };
-  set('fname-csv',  `points_${slug}`);
-  set('fname-json', `session_${slug}`);
-  set('fname-mesh', `terrain_${slug}`);
+  // Pre-fill project name if empty (only on first load)
+  const el = document.getElementById('fname-project');
+  if(el && !el.value){
+    // Leave empty — user sets their project name
+  }
+  // Keep hidden fields for rapport modal
+  ['fname-csv','fname-json','fname-mesh'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = el.value || '';
+  });
 }
 
 function exportCSV(){
@@ -3397,7 +4165,7 @@ function exportCSV(){
   const rows=[['ID','Nom','X','Y','Z','Nb_paires','Précision_%','Spread_mm','Mire']];
   points.forEach(p=>rows.push([p.id,p.name,fmt(p.x),fmt(p.y),fmt(p.z),p.nPairs,
     p.precision!=null?p.precision:'',p.spread!=null?(p.spread*1000).toFixed(1):'',fmt(p.mireP)]));
-  const name = getExportName('fname-csv', 'points_'+new Date().toISOString().slice(0,10));
+  const name = getProjectSlug()+'_points';
   dlOrShare(name+'.csv', rows.map(r=>r.join(',')).join('\n'), 'text/csv');
 }
 
@@ -3774,7 +4542,7 @@ function exportOBJ(){
   lines.push(``);
   tris.forEach(({a,b,c})=>{ lines.push(`f ${a+1} ${b+1} ${c+1}`); });
 
-  const meshName = getExportName('fname-mesh', `terrain_${dateSlug}`);
+  const meshName = getProjectSlug()+'_terrain';
   dlOrShare(`${meshName}_${unitLabel}.obj`, lines.join('\n'), 'text/plain');
 }
 
@@ -3807,7 +4575,7 @@ function exportDXF(){
   });
 
   lines.push('0','ENDSEC','0','EOF');
-  const meshNameD = getExportName('fname-mesh', `terrain_${dateSlug}`);
+  const meshNameD = getProjectSlug()+'_terrain';
   dlOrShare(`${meshNameD}_${unitLabel}.dxf`, lines.join('\n'), 'application/dxf');
 }
 
