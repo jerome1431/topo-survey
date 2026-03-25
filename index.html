@@ -122,9 +122,9 @@ body.quick-mode .layout{grid-template-columns:340px 1fr;}
   .side-selector{flex-wrap:wrap;}
   .side-selector span{width:100%;margin-bottom:4px;}
 
-  /* Table: hide less important cols */
-  thead th:nth-child(6),thead th:nth-child(8),
-  tbody td:nth-child(6),tbody td:nth-child(8){display:none;}
+  /* Table: hide less important cols — keep déviation, hide précision */
+  thead th:nth-child(6),thead th:nth-child(7),
+  tbody td:nth-child(6),tbody td:nth-child(7){display:none;}
 
   /* Result box coords */
   .rcoords{grid-template-columns:repeat(3,1fr);}
@@ -644,104 +644,22 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <div class="ph-dot" style="background:var(--accent2);box-shadow:0 0 8px var(--accent2)"></div>
-      <h2>Mesure d'un point</h2>
-    </div>
-    <div class="panel-body">
-      <div class="sec-label">Distances au télémètre (min. 2)</div>
-      <div class="dist-grid" id="dist-grid"></div>
-      <!-- U observations -->
-      <div id="u-dist-section" style="display:none;margin-top:8px">
-        <div class="sec-label" style="margin-top:0">Observations vers points inconnus (optionnel)</div>
-        <div class="dist-grid" id="u-dist-grid"></div>
-      </div>
-      <div class="vbar"><span class="vlabel" id="vlabel">— Entrez au moins 2 distances</span><div class="vdots" id="vdots"></div></div>
-      <div class="dop-bar" id="dop-bar" style="display:none">
-        <span class="dop-icon" id="dop-icon">◉</span>
-        <span class="dop-text" id="dop-text"></span>
-      </div>
-
-      <!-- Mire en P seule sur sa ligne, Nom pleine largeur en dessous -->
-      <div class="dist-grid" style="margin-top:8px;grid-template-columns:1fr">
-        <div class="dist-item" style="border-color:var(--yellow);--rc:var(--yellow)">
-          <label><span class="rdot" style="background:var(--yellow)"></span>MIRE EN P</label>
-          <input type="text" inputmode="decimal" id="mire-p" placeholder="—" oninput="updateValidity()" data-next="pname">
-          <span class="dist-unit">m</span>
-        </div>
-      </div>
-      <div class="ig" style="margin-top:6px">
-        <label style="font-size:10px;color:var(--text-dim);letter-spacing:.05em">Nom du point (optionnel)</label>
-        <input type="text" id="pname" placeholder="—" data-next="perim-check"
-          style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;padding:5px 8px;width:100%;outline:none">
-      </div>
-      <!-- Perimeter checkbox -->
-      <div id="perim-row" style="display:flex;align-items:center;gap:8px;margin-top:7px;padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;cursor:pointer" onclick="document.getElementById('perim-check').click()">
-        <input type="checkbox" id="perim-check" style="width:16px;height:16px;accent-color:#50c878;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation()">
-        <span style="font-size:11px;color:var(--text-dim)">Point de <strong style="color:#50c878">périmètre</strong></span>
-      </div>
-
-      <!-- Offset optionnel -->
-      <div style="margin-top:7px">
-        <div style="font-size:9px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Offset (cm) — optionnel</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
-          <div class="ig"><label>ΔX</label>
-            <input type="text" inputmode="decimal" id="off-x" value="0"
-              style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 6px;width:100%;text-align:center;outline:none">
-          </div>
-          <div class="ig"><label>ΔY</label>
-            <input type="text" inputmode="decimal" id="off-y" value="0"
-              style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 6px;width:100%;text-align:center;outline:none">
-          </div>
-          <div class="ig"><label>ΔZ</label>
-            <input type="text" inputmode="decimal" id="off-z" value="0"
-              style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 6px;width:100%;text-align:center;outline:none">
-          </div>
-        </div>
-      </div>
-
-      <!-- Type de point -->
-      <div style="display:flex;gap:6px;margin-top:7px">
-        <label id="std-type-p-lbl" onclick="stdSetType('P')"
-          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:6px;border:2px solid var(--accent2);background:var(--accent2)14;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--accent2)">
-          📍 Point P
-        </label>
-        <label id="std-type-u-lbl" onclick="stdSetType('U')"
-          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:6px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--text-dim)">
-          🔵 Référence U
-        </label>
-      </div>
-      <input type="hidden" id="std-point-type" value="P">
-      <div class="err" id="err"></div>
-
-      <!-- Side selector: shown only when exactly 2 refs and ambiguity exists -->
-      <div class="side-selector" id="side-sel">
-        <span>⚠ 2 cercles = 2 solutions — choisissez le bon côté :</span>
-        <button class="side-btn active" id="side-btn-auto" onclick="setSide('auto')">Auto</button>
-        <button class="side-btn" id="side-btn-flip" onclick="setSide('flip')">⇄ Miroir</button>
-      </div>
-      <div class="mirror-note" id="mirror-note"></div>
-
-      <div class="result-box" id="rbox">
-        <div class="rcoords">
-          <div class="ci"><label>X (m)</label><span id="rx">—</span></div>
-          <div class="ci"><label>Y (m)</label><span id="ry">—</span></div>
-          <div class="ci"><label>Z (m)</label><span id="rz">—</span></div>
-        </div>
-        <div class="prow" id="prow" style="display:none">
-          <span class="plabel">Précision</span>
-          <div class="pbarw"><div class="pbar" id="pbar"></div></div>
-          <span class="pval" id="pval"></span>
-        </div>
-        <div class="pdetail" id="pdet"></div>
-      </div>
-      <div class="brow">
-        <button class="btn btn-primary" id="btn-confirm" onclick="confirmAndAdd()" disabled style="flex:1;background:var(--accent2)">＋ Confirmer le point</button>
-      </div>
-    </div>
+  <!-- Hidden scaffolding for dist grids (used by buildAll/session restore) -->
+  <div style="display:none">
+    <div id="dist-grid"></div>
+    <div id="u-dist-section"><div id="u-dist-grid"></div></div>
+    <div id="vlabel"></div><div id="vdots"></div><div id="dop-bar"><span id="dop-icon"></span><span id="dop-text"></span></div>
+    <input id="mire-p"><input id="pname"><input type="checkbox" id="perim-check">
+    <div id="perim-row"></div>
+    <input id="off-x" value="0"><input id="off-y" value="0"><input id="off-z" value="0">
+    <input id="std-point-type" value="P">
+    <div id="std-type-p-lbl"></div><div id="std-type-u-lbl"></div>
+    <div id="err"></div><div id="side-sel"><button id="side-btn-auto"></button><button id="side-btn-flip"></button></div>
+    <div id="mirror-note"></div>
+    <div id="rbox"><span id="rx"></span><span id="ry"></span><span id="rz"></span>
+      <div id="prow"><div id="pbar"></div><span id="pval"></span></div><div id="pdet"></div></div>
+    <button id="btn-confirm" onclick="confirmAndAdd()"></button>
   </div>
-
 
 </div><!-- end left -->
 
@@ -875,12 +793,13 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
   </div>
 
   <div class="panel">
-    <div class="panel-header">
+    <div class="panel-header" onclick="togglePointsTable()" style="cursor:pointer;user-select:none" title="Afficher / masquer la liste">
       <div class="ph-dot" style="background:var(--text-dim)"></div>
       <h2>Points relevés</h2>
       <span class="cbadge" id="cbadge">0</span>
+      <span id="pts-chevron" style="margin-left:8px;font-size:14px;color:var(--text-dim);transition:transform .2s;display:inline-block">▾</span>
     </div>
-    <div class="twrap">
+    <div class="twrap" id="pts-table-wrap">
       <table>
         <thead><tr><th>#</th><th>Nom</th><th>X (m)</th><th>Y (m)</th><th>Z (m)</th><th>Paires</th><th>Précision</th><th>Déviation</th><th>⬡</th><th></th></tr></thead>
         <tbody id="tbody"><tr><td colspan="9"><div class="empty-state"><span class="ico">⊕</span>Aucun point relevé</div></td></tr></tbody>
@@ -1325,6 +1244,54 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ── EDIT POINT MODAL ──────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="edit-overlay" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal" style="max-width:420px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="edit-title" style="margin:0">📐 Modifier le point</h3>
+      <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:4px">✕</button>
+    </div>
+
+    <!-- Current coords (read-only) -->
+    <div id="edit-current" style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);line-height:1.8"></div>
+
+    <!-- Distances -->
+    <div class="sec-label" style="margin-top:0">Distances au télémètre</div>
+    <div id="edit-dist-grid" style="display:grid;gap:6px;margin-bottom:10px"></div>
+
+    <!-- Mire + Nom -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="ig">
+        <label>Mire en P (m)</label>
+        <input type="text" inputmode="decimal" id="edit-mire" placeholder="—"
+          style="background:var(--surface2);border:1px solid var(--yellow);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
+      </div>
+      <div class="ig">
+        <label>Nom (optionnel)</label>
+        <input type="text" id="edit-name" placeholder="—"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
+      </div>
+    </div>
+
+    <!-- Mirror selector (shown only for 1 pair) -->
+    <div id="edit-mirror-row" style="display:none;margin-bottom:10px">
+      <div class="side-selector">
+        <span>2 solutions — choisissez le côté :</span>
+        <button class="side-btn active" id="edit-side-auto" onclick="editSetSide('auto')">Auto</button>
+        <button class="side-btn" id="edit-side-flip" onclick="editSetSide('flip')">⇄ Miroir</button>
+      </div>
+    </div>
+
+    <!-- Result preview -->
+    <div id="edit-result" style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:12px;display:none"></div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeEditModal()">Annuler</button>
+      <button class="btn btn-primary" style="flex:1;background:var(--accent2)" id="edit-confirm-btn" onclick="confirmEdit()">✓ Mettre à jour</button>
+    </div>
   </div>
 </div>
 
@@ -2114,7 +2081,12 @@ function deleteRef(id){
   buildAll(); checkGeometry(); saveAll();
 }
 
-function ptLabel(p){ return p.name ? `P${p.id} (${p.name})` : `P${p.id}`; }
+function ptLabel(p, html=false){
+  if(p.name) return `P${p.id} (${p.name})`;
+  if(html && p.pairLbls && p.pairLbls.length)
+    return `P${p.id} <span style="font-size:10px;color:var(--text-dim)">(${p.pairLbls.join(', ')})</span>`;
+  return `P${p.id}`;
+}
 
 function refDisplayLabel(r){
   return r.name ? `${r.id} (${r.name})` : r.id;
@@ -2527,10 +2499,19 @@ function confirmAndAdd(){
     return;
   }
 
+  // Collect U distances for storage
+  const uDists = {};
+  unknownPoints.forEach(u => {
+    const inp = document.getElementById('du-'+u.id);
+    if(!inp) return;
+    const d = pf(inp.value);
+    if(!isNaN(d) && d > 0) uDists[u.id] = d;
+  });
+
   const pt={id:autoIdx++,name,x:fx,y:fy,z:fz,nPairs:cands.length,
     precision:prec?prec.score:null,spread:prec?prec.spread:null,pairLbls,dists,mireP,
     rawObs, usedRefs: getFilledRefs().map(r=>r.id),
-    perim: isPerim,
+    perim: isPerim, uDists,
     offsetDelta: hasOff?{dx:odx,dy:ody,dz:odz}:null
   };
 
@@ -2648,6 +2629,15 @@ function confirmAndAdd(){
   setTimeout(focusFirstDist, 50);
 }
 
+let ptsTableVisible = true;
+function togglePointsTable(){
+  ptsTableVisible = !ptsTableVisible;
+  const wrap = document.getElementById('pts-table-wrap');
+  const chev = document.getElementById('pts-chevron');
+  wrap.style.display = ptsTableVisible ? '' : 'none';
+  chev.style.transform = ptsTableVisible ? '' : 'rotate(-90deg)';
+}
+
 // ── TABLE ─────────────────────────────────────────────────────────────────────
 function fmt(n,d=3){return typeof n==='number'?n.toFixed(d):'—';}
 
@@ -2663,7 +2653,7 @@ function renderTable(){
     const perimBadge = perimIdx>=0
       ? `<span style="color:#50c878;font-size:11px;cursor:pointer" onclick="removeFromPerim(${p.id})" title="Retirer du périmètre (ordre ${perimIdx+1})">⬡${perimIdx+1}</span>`
       : `<span style="color:var(--border);font-size:11px;cursor:pointer" onclick="addToPerim(${p.id})" title="Ajouter au périmètre">⬡</span>`;
-    const pLabel = ptLabel(p);
+    const pLabel = ptLabel(p, true);
     return `<tr class="${perimIdx>=0?'perim-row':''}" ondblclick="openOffsetModal(${p.id})">
       <td>P${p.id}</td>
       <td style="cursor:default">${pLabel}</td>
@@ -2688,38 +2678,200 @@ function renderTable(){
   }).join('');
 }
 
+let editPointId = null;
+let editSideFlip = false;
+
 function editPoint(id){
   const p = points.find(p=>p.id===id);
   if(!p) return;
+  editPointId = id;
+  editSideFlip = false;
 
-  // Offset points go to the offset modal
+  document.getElementById('edit-title').textContent = `📐 Modifier ${ptLabel(p)}`;
+  document.getElementById('edit-current').innerHTML =
+    `X: ${fmt(p.x)} &nbsp; Y: ${fmt(p.y)} &nbsp; Z: ${fmt(p.z)}<br>` +
+    `Précision: ${p.precision!=null?p.precision+'%':'—'} &nbsp;·&nbsp; ` +
+    `Déviation: ${p.spread!=null?(p.spread*1000).toFixed(1)+' mm':'—'}`;
 
-  editingPointId = id;
+  // Build distance inputs
+  const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
+  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const grid = document.getElementById('edit-dist-grid');
+  grid.style.gridTemplateColumns = activeRefs.length + activeU.length <= 3 ? '1fr' : '1fr 1fr';
 
-  // Pre-fill ALL fields
-  document.getElementById('pname').value = p.name || '';
-  document.getElementById('mire-p').value = fmt(p.mireP);
-  document.getElementById('perim-check').checked = perimOrder.includes(id);
+  grid.innerHTML = [
+    ...activeRefs.map(r=>`
+      <div class="dist-item" style="border-color:${r.color}">
+        <label><span class="rdot" style="background:${r.color}"></span>${refDisplayLabel(r)}</label>
+        <input type="text" inputmode="decimal" id="edit-d-${r.id}" placeholder="—"
+          value="${p.dists&&p.dists[r.id]?fmt(p.dists[r.id],3):''}"
+          oninput="editCalcPreview()" style="background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;width:100%;outline:none;text-align:right">
+        <span class="dist-unit">m</span>
+      </div>`),
+    ...activeU.map(u=>`
+      <div class="dist-item" style="border-color:#9070ff">
+        <label><span class="rdot" style="background:#9070ff"></span>${uDisplayLabel(u)}</label>
+        <input type="text" inputmode="decimal" id="edit-d-${u.id}" placeholder="—"
+          value="${p.uDists&&p.uDists[u.id]?fmt(p.uDists[u.id],3):''}"
+          oninput="editCalcPreview()" style="background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;width:100%;outline:none;text-align:right">
+        <span class="dist-unit">m</span>
+      </div>`)
+  ].join('');
 
-  // Pre-fill distances from stored dists
-  refs.forEach(r=>{
-    const inp = document.getElementById('d-'+r.id);
-    if(inp) inp.value = (p.dists && p.dists[r.id]) ? fmt(p.dists[r.id], 3) : '';
+  document.getElementById('edit-mire').value = fmt(p.mireP);
+  document.getElementById('edit-name').value = p.name || '';
+  document.getElementById('edit-result').style.display = 'none';
+  document.getElementById('edit-mirror-row').style.display = 'none';
+  document.getElementById('edit-side-auto').classList.add('active');
+  document.getElementById('edit-side-flip').classList.remove('active');
+
+  document.getElementById('edit-overlay').classList.add('vis');
+  editCalcPreview();
+}
+
+function closeEditModal(){
+  document.getElementById('edit-overlay').classList.remove('vis');
+  editPointId = null;
+}
+
+function editSetSide(mode){
+  editSideFlip = (mode==='flip');
+  document.getElementById('edit-side-auto').classList.toggle('active', !editSideFlip);
+  document.getElementById('edit-side-flip').classList.toggle('active', editSideFlip);
+  editCalcPreview();
+}
+
+function editCalcPreview(){
+  if(!editPointId) return;
+  const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
+  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const allRefs = [...activeRefs, ...activeU];
+
+  const filledRefs = allRefs.map(r=>{
+    const inp = document.getElementById('edit-d-'+r.id);
+    if(!inp) return null;
+    const d = pf(inp.value);
+    if(isNaN(d)||d<=0) return null;
+    return {id:r.id, x:pf(r.x), y:pf(r.y), dist:d};
+  }).filter(Boolean);
+
+  const resultEl = document.getElementById('edit-result');
+  const mirrorRow = document.getElementById('edit-mirror-row');
+
+  if(filledRefs.length < 2){
+    resultEl.style.display = 'none';
+    mirrorRow.style.display = 'none';
+    return;
+  }
+
+  // Build pairs
+  const pairs = [];
+  for(let i=0;i<filledRefs.length;i++)
+    for(let j=i+1;j<filledRefs.length;j++)
+      pairs.push([filledRefs[i],filledRefs[j]]);
+
+  let anyAmbiguous = false;
+  const cands=[], pairLbls=[];
+  pairs.forEach(([a,b])=>{
+    const res = trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
+    if(!res) return;
+    if(res.ambiguous) anyAmbiguous = true;
+    let chosen;
+    if(!res.ambiguous) chosen = res.p1;
+    else if(pairs.length===1) chosen = pickSide(res.p1,res.p2,editSideFlip);
+    else chosen = pickSide(res.p1,res.p2,false);
+    cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
+    pairLbls.push(`${a.id}-${b.id}`);
   });
-  // Clear U distances
-  unknownPoints.forEach(u=>{
-    const inp = document.getElementById('du-'+u.id);
-    if(inp) inp.value = '';
+
+  mirrorRow.style.display = (pairs.length===1&&anyAmbiguous) ? 'block' : 'none';
+
+  if(!cands.length){ resultEl.style.display='none'; return; }
+
+  const final = weightedAvg(cands);
+  const prec = precScore(cands, final);
+  const hi = pf(document.getElementById('hi').value)||0;
+  const mRef = pf(document.getElementById('mire-ref').value)||0;
+  const mireP = pf(document.getElementById('edit-mire').value)||0;
+  const z = (hi-mireP)-(hi-mRef);
+
+  const threshold = pf(document.getElementById('spread-threshold').value)||200;
+  const spreadMm = prec ? prec.spread*1000 : null;
+  const col = !prec ? 'var(--accent)' :
+    spreadMm <= threshold*0.5 ? 'var(--accent)' :
+    spreadMm <= threshold ? 'var(--yellow)' : 'var(--red)';
+
+  resultEl.style.display = 'block';
+  resultEl.innerHTML =
+    `<span style="color:var(--accent)">X: ${fmt(final.x)} &nbsp; Y: ${fmt(final.y)} &nbsp; Z: ${fmt(z)}</span><br>` +
+    (prec ? `<span style="color:${col}">${pairLbls.length} paire(s) · ${prec.score}% · spread ${spreadMm.toFixed(1)} mm</span>`
+           : `<span style="color:var(--text-dim)">1 paire (${pairLbls[0]})</span>`);
+}
+
+function confirmEdit(){
+  if(!editPointId) return;
+  const p = points.find(p=>p.id===editPointId);
+  if(!p) return;
+
+  const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
+  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const allRefs = [...activeRefs, ...activeU];
+
+  const filledRefs = allRefs.map(r=>{
+    const inp = document.getElementById('edit-d-'+r.id);
+    if(!inp) return null;
+    const d = pf(inp.value);
+    if(isNaN(d)||d<=0) return null;
+    return {id:r.id, x:pf(r.x), y:pf(r.y), dist:d};
+  }).filter(Boolean);
+
+  if(filledRefs.length < 2){ alert('⚠ Encodez au moins 2 distances.'); return; }
+
+  const pairs = [];
+  for(let i=0;i<filledRefs.length;i++)
+    for(let j=i+1;j<filledRefs.length;j++)
+      pairs.push([filledRefs[i],filledRefs[j]]);
+
+  const cands=[], pairLbls=[];
+  pairs.forEach(([a,b])=>{
+    const res = trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
+    if(!res) return;
+    let chosen;
+    if(!res.ambiguous) chosen = res.p1;
+    else if(pairs.length===1) chosen = pickSide(res.p1,res.p2,editSideFlip);
+    else chosen = pickSide(res.p1,res.p2,false);
+    cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
+    pairLbls.push(`${a.id}-${b.id}`);
   });
 
-  // Update button
-  const btnC = document.getElementById('btn-confirm');
-  btnC.textContent = `✓ Mettre à jour P${p.id}`;
-  btnC.style.background = 'var(--yellow)';
-  btnC.style.color = '#1a1a00';
+  if(!cands.length){ alert('⚠ Triangulation impossible — vérifiez les distances.'); return; }
 
-  btnC.scrollIntoView({behavior:'smooth', block:'center'});
-  updateValidity();
+  const final = weightedAvg(cands);
+  const prec = precScore(cands, final);
+  const hi = pf(document.getElementById('hi').value)||0;
+  const mRef = pf(document.getElementById('mire-ref').value)||0;
+  const mireP = pf(document.getElementById('edit-mire').value)||0;
+  const z = (hi-mireP)-(hi-mRef);
+
+  // Build dists objects
+  const dists={}, uDists={};
+  activeRefs.forEach(r=>{ const inp=document.getElementById('edit-d-'+r.id); if(inp){const d=pf(inp.value);if(!isNaN(d)&&d>0)dists[r.id]=d;} });
+  activeU.forEach(u=>{ const inp=document.getElementById('edit-d-'+u.id); if(inp){const d=pf(inp.value);if(!isNaN(d)&&d>0)uDists[u.id]=d;} });
+
+  p.x=final.x; p.y=final.y; p.z=z;
+  p.mireP=mireP;
+  p.name=document.getElementById('edit-name').value.trim();
+  p.nPairs=pairLbls.length;
+  p.precision=prec?prec.score:null;
+  p.spread=prec?prec.spread:null;
+  p.pairLbls=pairLbls;
+  p.dists=dists;
+  p.uDists=uDists;
+  p.usedRefs=filledRefs.map(r=>r.id);
+
+  tinCache=null; tinPointsHash='';
+  renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
+  closeEditModal();
 }
 
 // Quick rename directly in the table — no recalculation needed
@@ -3205,6 +3357,8 @@ function tmSavePoint(){
 
   const dists={};
   filledKeys.forEach(k=>{ dists[k]=pf(tmDistances[k]); });
+  const uDists={};
+  Object.keys(tmUDistances).filter(k=>tmUDistances[k]!=='').forEach(k=>{ uDists[k]=pf(tmUDistances[k]); });
   const spreadMm = prec ? (prec.spread*1000).toFixed(1) : '—';
 
   if(pointType === 'U'){
@@ -3239,7 +3393,7 @@ function tmSavePoint(){
       x: fx, y: fy, z: fz,
       nPairs: pairLbls.length,
       precision: prec?prec.score:null, spread: prec?prec.spread:null,
-      pairLbls, dists, mireP,
+      pairLbls, dists, uDists, mireP,
       rawObs:[], usedRefs:filledKeys, perim:isPerim,
       offsetDelta: hasOffset ? {dx,dy,dz} : null
     };
@@ -3276,9 +3430,6 @@ function tmSavePoint(){
 function tmFlipMirror(){
   if(!tmNewPointId) return;
   tmFlipped = !tmFlipped;
-  // Re-save with flipped side
-  const pt = points.find(p=>p.id===tmNewPointId);
-  if(!pt) return;
 
   const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
   const filledRefs = filledKeys.map(k=>{
@@ -3288,27 +3439,53 @@ function tmFlipMirror(){
   }).filter(Boolean);
 
   const result = tmTrilaterate(filledRefs, tmFlipped);
-  if(!result) return;
+  if(!result){ tmFlipped = !tmFlipped; return; } // revert if failed
   const {final, prec, pairLbls} = result;
-  const hi   = pf(document.getElementById('hi').value)||0;
-  const mRef = pf(document.getElementById('mire-ref').value)||0;
-  const mireP= pf(document.getElementById('tm-mire-p').value)||0;
-  const z = (hi-mireP)-(hi-mRef);
 
-  pt.x=final.x; pt.y=final.y; pt.z=z;
-  pt.precision=prec?prec.score:null; pt.spread=prec?prec.spread:null;
-  pt.pairLbls=pairLbls;
+  // Re-apply offset
+  const dx = (pf(document.getElementById('tm-off-x').value)||0) / 100;
+  const dy = (pf(document.getElementById('tm-off-y').value)||0) / 100;
+  const dz = (pf(document.getElementById('tm-off-z').value)||0) / 100;
+  const fx = final.x + dx;
+  const fy = final.y + dy;
 
-  const label = pt.name ? `${pt.id} (${pt.name})` : `Point ${pt.id}`;
   const spreadMm = prec ? (prec.spread*1000).toFixed(1) : '—';
-  document.getElementById('tm-final-summary').innerHTML =
-    `<strong>${label}</strong><br>
-     X: ${fmt(pt.x)} &nbsp; Y: ${fmt(pt.y)} &nbsp; Z: ${fmt(pt.z)}<br>
-     Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm
-     <span style="color:var(--yellow);font-size:10px;margin-left:8px">${tmFlipped?'(côté miroir)':''}</span>`;
+  const mirrorNote = `<span style="color:var(--yellow);font-size:10px;margin-left:6px">${tmFlipped?'↔ côté miroir':''}</span>`;
+
+  // Update P point
+  const pt = points.find(p=>p.id===tmNewPointId);
+  if(pt){
+    const hi    = pf(document.getElementById('hi').value)||0;
+    const mRef  = pf(document.getElementById('mire-ref').value)||0;
+    const mireP = pf(document.getElementById('tm-mire-p').value)||0;
+    const fz = (hi-mireP)-(hi-mRef) + dz;
+    pt.x=fx; pt.y=fy; pt.z=fz;
+    pt.precision=prec?prec.score:null; pt.spread=prec?prec.spread:null;
+    pt.pairLbls=pairLbls;
+    const label = ptLabel(pt);
+    document.getElementById('tm-final-summary').innerHTML =
+      `<strong>${label}</strong><br>
+       X: ${fmt(pt.x)} &nbsp; Y: ${fmt(pt.y)} &nbsp; Z: ${fmt(pt.z)}<br>
+       Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm${mirrorNote}`;
+    document.getElementById('tm-new-badge').textContent = label;
+  }
+
+  // Update U point
+  const pu = unknownPoints.find(u=>u.id===tmNewPointId);
+  if(pu){
+    pu.x=fx; pu.y=fy;
+    pu.precision=prec?prec.score:null;
+    const label = pu.name ? `${pu.id} (${pu.name})` : pu.id;
+    document.getElementById('tm-final-summary').innerHTML =
+      `<strong>🔵 ${label}</strong> — Point U résolu<br>
+       X: ${fmt(pu.x)} &nbsp; Y: ${fmt(pu.y)}<br>
+       Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm${mirrorNote}`;
+    document.getElementById('tm-new-badge').textContent = label;
+    buildUPanel(); buildDistGrid(); buildUDistGrid();
+  }
 
   tinCache=null; tinPointsHash='';
-  renderTable(); renderCanvas(); updateStats(); saveAll();
+  renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
   tmDrawPlan();
 }
 
@@ -3688,7 +3865,7 @@ function hideCroquis(){
   document.getElementById('croquis-overlay').classList.remove('vis');
 }
 
-document.addEventListener('keydown', e => { if(e.key==='Escape'){ hideCroquis(); closeHelp(); } });
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ hideCroquis(); closeHelp(); closeEditModal(); } });
 
 // ── ZOOM / PAN ────────────────────────────────────────────────────────────────
 const view = { zoom: 1, panX: 0, panY: 0 };
