@@ -151,7 +151,6 @@ body.quick-mode .layout{grid-template-columns:340px 1fr;}
 .panel-body{padding:13px 15px;}
 .sec-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent2);margin-bottom:7px;margin-top:13px;}
 .sec-label:first-child{margin-top:0;}
-.divider{height:1px;background:var(--border);margin:11px 0;}
 .irow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
 .ig{display:flex;flex-direction:column;gap:3px;}
 .ig label{font-size:10px;color:var(--text-dim);letter-spacing:.05em;}
@@ -320,7 +319,6 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 .perim-btn{display:flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 9px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);cursor:pointer;transition:all .2s;white-space:nowrap;}
 .perim-btn:hover{border-color:#50c878;color:#50c878;}
 .perim-btn.on{background:#50c87822;border-color:#50c878;color:#50c878;}
-.perim-badge{display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #50c878;flex-shrink:0;vertical-align:middle;margin-right:3px;}
 .perim-badge.filled{background:#50c878;}
 .surface-bar{display:flex;gap:0;border-top:1px solid var(--border);}
 .surface-stat{flex:1;padding:10px 12px;border-right:1px solid var(--border);text-align:center;}
@@ -340,13 +338,17 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 .fname-input:focus{border-color:var(--accent2);}
 
 /* Offset modal */
-.offset-coords{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:10px 0;}
-.offset-field label{font-size:10px;color:var(--text-dim);display:block;margin-bottom:3px;}
-.offset-field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 8px;outline:none;}
-.offset-field input:focus{border-color:var(--accent2);}
-.offset-source{font-size:11px;color:var(--text-dim);background:var(--surface2);border-radius:4px;padding:8px 10px;margin-bottom:10px;}
-.offset-source strong{color:var(--text);}
-.offset-arrow{display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:18px;margin:4px 0;}
+
+/* ── HELP MODAL ─────────────────────────────────────────────────────────────── */
+.help-tab{padding:5px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.help-tab.active{background:var(--accent2);border-color:var(--accent2);color:#fff;}
+.help-tab:hover:not(.active){border-color:var(--text-dim);color:var(--text);}
+.help-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.help-step:last-child{border-bottom:none;}
+.help-step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--accent2)22;color:var(--accent2);font-family:'Syne',sans-serif;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.help-step-title{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--text);margin-bottom:4px;}
+.help-step-body{font-size:11px;color:var(--text-dim);line-height:1.6;}
+.help-step-body strong{color:var(--text);}
 
 /* Croquis overlay */
 .croquis-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;display:none;align-items:center;justify-content:center;cursor:zoom-out;flex-direction:column;gap:10px;}
@@ -409,7 +411,6 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 .tm-ref-card.filled{border-color:var(--accent);background:var(--accent)10;}
 .tm-ref-card.disabled{opacity:.5;cursor:default;}
 .tm-ref-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;}
-.tm-ref-info{flex:1;min-width:0;}
 .tm-ref-name{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text);}
 .tm-ref-coords{font-size:9px;color:var(--text-dim);margin-top:1px;}
 .tm-ref-dist{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent2);font-weight:600;}
@@ -417,7 +418,20 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 .tm-ref-check{font-size:14px;color:var(--accent);}
 
 /* Distance entry panel */
-.tm-dist-panel{background:var(--surface);border:2px solid var(--accent2);border-radius:12px;padding:16px;animation:slideDown .2s ease;}
+.tm-dist-panel{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:var(--surface);
+  border-top:2px solid var(--accent2);
+  border-radius:16px 16px 0 0;
+  padding:20px 20px 32px;
+  z-index:5000;
+  animation:slideUp .2s ease;
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  max-width:600px;
+  margin:0 auto;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .tm-dist-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:var(--accent2);}
 
 /* Preview bar */
@@ -525,6 +539,9 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
       </button>
       <button class="quick-btn" id="quick-btn" onclick="toggleQuickMode()" title="Mode saisie rapide">
         <span>⚡</span><span id="quick-label">Mode rapide</span>
+      </button>
+      <button class="theme-btn" onclick="openHelp()" title="Aide — Marche à suivre">
+        <span>❓</span><span>Aide</span>
       </button>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
         <span class="theme-icon">🌙</span><span id="theme-label">Mode clair</span>
@@ -664,6 +681,38 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
         <input type="checkbox" id="perim-check" style="width:16px;height:16px;accent-color:#50c878;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation()">
         <span style="font-size:11px;color:var(--text-dim)">Point de <strong style="color:#50c878">périmètre</strong></span>
       </div>
+
+      <!-- Offset optionnel -->
+      <div style="margin-top:7px">
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Offset (cm) — optionnel</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+          <div class="ig"><label>ΔX</label>
+            <input type="text" inputmode="decimal" id="off-x" value="0"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 6px;width:100%;text-align:center;outline:none">
+          </div>
+          <div class="ig"><label>ΔY</label>
+            <input type="text" inputmode="decimal" id="off-y" value="0"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 6px;width:100%;text-align:center;outline:none">
+          </div>
+          <div class="ig"><label>ΔZ</label>
+            <input type="text" inputmode="decimal" id="off-z" value="0"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 6px;width:100%;text-align:center;outline:none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Type de point -->
+      <div style="display:flex;gap:6px;margin-top:7px">
+        <label id="std-type-p-lbl" onclick="stdSetType('P')"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:6px;border:2px solid var(--accent2);background:var(--accent2)14;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--accent2)">
+          📍 Point P
+        </label>
+        <label id="std-type-u-lbl" onclick="stdSetType('U')"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:6px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--text-dim)">
+          🔵 Référence U
+        </label>
+      </div>
+      <input type="hidden" id="std-point-type" value="P">
       <div class="err" id="err"></div>
 
       <!-- Side selector: shown only when exactly 2 refs and ambiguity exists -->
@@ -864,7 +913,7 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
         <div class="sec-label">Importer une session</div>
         <label class="btn btn-ghost" style="width:100%;cursor:pointer;text-align:center;box-sizing:border-box">
           ⬆ Importer CSV ou JSON
-          <input type="file" accept=".csv,.json" style="display:none" onchange="importFile(this)">
+          <input type="file" accept=".csv,.json,application/json,text/csv,text/plain" style="display:none" onchange="importFile(this)">
         </label>
       </div>
 
@@ -926,23 +975,44 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 
   <!-- Steps -->
   <div class="tm-steps">
-    <div class="tm-step" id="tm-s1">1 · Mire</div>
+    <div class="tm-step" id="tm-s1">1 · Type</div>
     <div class="tm-step" id="tm-s2">2 · Distances</div>
     <div class="tm-step" id="tm-s3">3 · Clôture</div>
     <div class="tm-step" id="tm-s4">4 · Plan</div>
   </div>
 
-  <!-- Step 1: mire en P -->
+  <!-- Step 1: type + mire -->
   <div class="tm-body" id="tm-step1">
+    <!-- P / U selector -->
     <div>
-      <div class="tm-label">Hauteur de mire en P</div>
-      <div class="tm-hint">Hauteur de lecture sur la mire au point à mesurer</div>
+      <div class="tm-label">Type de point</div>
     </div>
-    <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
-      id="tm-mire-p" placeholder="1.450" oninput="tmUpdatePreview()"
-      onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();tmNext();}">
-    <div style="font-size:11px;color:var(--text-dim);text-align:center">
-      HI: <span id="tm-hi-display">—</span> m &nbsp;·&nbsp; Mire réf: <span id="tm-mireref-display">—</span> m
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label id="tm-type-p-lbl" onclick="tmSetType('P')"
+        style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 14px;border-radius:12px;border:2px solid var(--accent2);background:var(--accent2)14;cursor:pointer;transition:all .2s">
+        <span style="font-size:28px">📍</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--accent2)">Point P</span>
+        <span style="font-size:10px;color:var(--text-dim);text-align:center">Relevé terrain<br>X, Y, Z calculés</span>
+      </label>
+      <label id="tm-type-u-lbl" onclick="tmSetType('U')"
+        style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 14px;border-radius:12px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .2s">
+        <span style="font-size:28px">🔵</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#9070ff">Point U</span>
+        <span style="font-size:10px;color:var(--text-dim);text-align:center">Référence future<br>X, Y seulement</span>
+      </label>
+    </div>
+    <input type="hidden" id="tm-point-type" value="P">
+
+    <!-- Mire — only for Point P -->
+    <div id="tm-mire-section">
+      <div class="tm-label">Hauteur de mire en P</div>
+      <div class="tm-hint">Lecture sur la mire au point à mesurer</div>
+      <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
+        id="tm-mire-p" placeholder="1.450" oninput="tmUpdatePreview()"
+        onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();tmNext();}">
+      <div style="font-size:11px;color:var(--text-dim);text-align:center">
+        HI: <span id="tm-hi-display">—</span> m &nbsp;·&nbsp; Mire réf: <span id="tm-mireref-display">—</span> m
+      </div>
     </div>
   </div>
 
@@ -967,17 +1037,6 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
       <div class="tm-ref-grid" id="tm-u-grid" style="margin-top:8px"></div>
     </div>
 
-    <!-- Active distance entry (shared for refs and U) -->
-    <div class="tm-dist-panel" id="tm-dist-panel" style="display:none">
-      <div class="tm-dist-title" id="tm-dist-label">Distance vers A</div>
-      <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
-        id="tm-dist-input" placeholder="0.000" oninput="tmUpdatePreview()">
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="tm-btn tm-btn-primary" style="flex:1" onclick="tmConfirmDist()">✓</button>
-        <button class="tm-btn tm-btn-danger" style="flex:1" onclick="tmDeleteDist()">🗑</button>
-      </div>
-    </div>
-
     <!-- Live preview -->
     <div class="tm-preview" id="tm-preview">Encodez au moins 2 distances pour voir la position calculée…</div>
   </div>
@@ -985,15 +1044,44 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
   <!-- Step 3: name & confirm -->
   <div class="tm-body" id="tm-step3" style="display:none">
     <div class="tm-summary" id="tm-summary"></div>
+    <!-- Type reminder (read-only) -->
+    <div id="tm-type-reminder" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <span id="tm-type-icon" style="font-size:18px">📍</span>
+      <span id="tm-type-label" style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px"></span>
+    </div>
     <div class="tm-name-row">
       <div class="tm-label">Nom du point (optionnel)</div>
       <input class="tm-big-input" type="text" id="tm-point-name" placeholder="ex: coin haie, piquet…"
         style="font-size:18px">
     </div>
-    <label style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);cursor:pointer">
+
+    <label id="tm-perim-row" style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);cursor:pointer">
       <input type="checkbox" id="tm-perim" style="width:22px;height:22px;accent-color:var(--accent)">
       <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px">Point de périmètre</span>
     </label>
+
+    <!-- Offset optionnel -->
+    <div id="tm-offset-section">
+      <div class="tm-label">Offset (cm) — optionnel</div>
+      <div class="tm-hint">Décalage appliqué aux coordonnées mesurées</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:9px;color:var(--text-dim);text-align:center;letter-spacing:.05em">ΔX (cm)</label>
+          <input type="number" inputmode="decimal" step="0.1" id="tm-off-x" value="0"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:18px;padding:10px;text-align:center;outline:none;box-sizing:border-box">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:9px;color:var(--text-dim);text-align:center;letter-spacing:.05em">ΔY (cm)</label>
+          <input type="number" inputmode="decimal" step="0.1" id="tm-off-y" value="0"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:18px;padding:10px;text-align:center;outline:none;box-sizing:border-box">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:9px;color:var(--text-dim);text-align:center;letter-spacing:.05em">ΔZ (cm)</label>
+          <input type="number" inputmode="decimal" step="0.1" id="tm-off-z" value="0"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:18px;padding:10px;text-align:center;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Step 4: plan -->
@@ -1022,41 +1110,221 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
     <button class="tm-btn tm-btn-primary" id="tm-btn-next" onclick="tmNext()">Suite →</button>
   </div>
 
+</div><!-- end terrain-overlay -->
+
+<!-- ── DISTANCE PANEL (hors overlay pour que position:fixed fonctionne) ───── -->
+<div class="tm-dist-panel" id="tm-dist-panel" style="display:none">
+  <div class="tm-dist-title" id="tm-dist-label">Distance vers A</div>
+  <input class="tm-big-input" type="number" inputmode="decimal" step="0.001" min="0"
+    id="tm-dist-input" placeholder="0.000" oninput="tmUpdatePreview()">
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="tm-btn tm-btn-primary" style="flex:1" onclick="tmConfirmDist()">✓</button>
+    <button class="tm-btn tm-btn-danger" style="flex:1" onclick="tmDeleteDist()">🗑</button>
+  </div>
 </div>
+<div class="modal-overlay" id="help-overlay" onclick="if(event.target===this)closeHelp()">
+  <div class="modal" style="max-width:500px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h3 style="margin:0">❓ Marche à suivre</h3>
+      <button onclick="closeHelp()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:4px">✕</button>
+    </div>
+    <p class="modal-sub" style="margin-bottom:16px">Guide de prise de mesures topographiques par trilatération</p>
 
-<!-- ── OFFSET MODAL ──────────────────────────────────────────────────────── -->
-<div class="modal-overlay" id="offset-overlay" onclick="if(event.target===this)closeOffsetModal()">
-  <div class="modal">
-    <h3 id="off-title">📐 Offset d'un point</h3>
-    <p class="modal-sub" id="off-subtitle">Créer un nouveau point décalé depuis un point existant</p>
-
-    <div class="offset-source" id="offset-source-info"></div>
-
-    <div class="modal-section">Décalage à appliquer (cm)</div>
-    <div class="offset-coords">
-      <div class="offset-field"><label>ΔX (cm)</label><input type="text" inputmode="decimal" id="off-dx" value="0" placeholder="0"></div>
-      <div class="offset-field"><label>ΔY (cm)</label><input type="text" inputmode="decimal" id="off-dy" value="0" placeholder="0"></div>
-      <div class="offset-field"><label>ΔZ (cm)</label><input type="text" inputmode="decimal" id="off-dz" value="0" placeholder="0"></div>
+    <!-- Nav tabs -->
+    <div style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap" id="help-tabs">
+      <button class="help-tab active" onclick="showHelpTab(0)">🏗 Préparation</button>
+      <button class="help-tab" onclick="showHelpTab(1)">📍 Mesure</button>
+      <button class="help-tab" onclick="showHelpTab(2)">🔵 Points U</button>
+      <button class="help-tab" onclick="showHelpTab(3)">📤 Export</button>
+      <button class="help-tab" onclick="showHelpTab(4)">💡 Conseils</button>
     </div>
 
-    <div class="modal-section">Résultat</div>
-    <div class="offset-coords" style="margin-bottom:4px">
-      <div class="offset-field"><label>X final (m)</label><input type="text" id="off-rx" readonly style="opacity:.6"></div>
-      <div class="offset-field"><label>Y final (m)</label><input type="text" id="off-ry" readonly style="opacity:.6"></div>
-      <div class="offset-field"><label>Z final (m)</label><input type="text" id="off-rz" readonly style="opacity:.6"></div>
+    <!-- Tab 0: Préparation -->
+    <div class="help-content" id="help-tab-0">
+      <div class="help-step">
+        <div class="help-step-num">1</div>
+        <div>
+          <div class="help-step-title">Définir les points de référence (A, B, C…)</div>
+          <div class="help-step-body">Dans le panel <strong>Points de référence</strong>, ajoutez au minimum 2 points dont vous connaissez les coordonnées X et Y. Ces points sont fixes sur le terrain (piquets, coins de bâtiment…).<br><br>
+          Exemple : A = (0, 0) · B = (10, 0) · C = (5, 8)</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">2</div>
+        <div>
+          <div class="help-step-title">Régler le niveau laser</div>
+          <div class="help-step-body"><strong>HI</strong> = Hauteur de l'instrument (hauteur du laser au-dessus du sol).<br>
+          <strong>Mire référence</strong> = Lecture sur la mire placée à un point de cote connue (Z=0 par convention).<br><br>
+          La différence de cote Z est calculée automatiquement : Z = (HI − mire P) − (HI − mire réf)</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">3</div>
+        <div>
+          <div class="help-step-title">Charger le croquis (optionnel)</div>
+          <div class="help-step-body">Dans le panel Références, bouton <strong>📎 Croquis</strong> — chargez une image du plan de situation pour vous repérer facilement pendant le relevé. Accessible à tout moment via 🗺 Plan.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">4</div>
+        <div>
+          <div class="help-step-title">Exporter la session préparatoire</div>
+          <div class="help-step-body">Une fois les références encodées au bureau, exportez le JSON via <strong>Export &amp; Session → ⬇ JSON</strong>. Sur le terrain, importez ce fichier pour retrouver toutes vos références.</div>
+        </div>
+      </div>
     </div>
 
-    <div class="modal-section">Nom du point offsetté</div>
-    <input type="text" class="modal-email" id="off-name" placeholder="ex: P3-off, haie-corr…" style="margin-bottom:4px">
-    <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-dim);cursor:pointer;margin-top:6px">
-      <input type="checkbox" id="off-perim" style="accent-color:var(--accent);width:15px;height:15px">
-      Point de périmètre
-    </label>
-
-    <div class="modal-actions" style="margin-top:14px">
-      <button class="btn btn-primary" style="flex:1" id="off-confirm-btn" onclick="confirmOffset()">✓ Créer le point</button>
-      <button class="btn btn-ghost" style="flex:1" onclick="closeOffsetModal()">✕ Annuler</button>
+    <!-- Tab 1: Mesure -->
+    <div class="help-content" id="help-tab-1" style="display:none">
+      <div class="help-step">
+        <div class="help-step-num">1</div>
+        <div>
+          <div class="help-step-title">Lancer le mode terrain 📍</div>
+          <div class="help-step-body">Le bouton flottant <strong>📍</strong> (bas droite) apparaît dès que 2 références sont configurées. Il ouvre l'interface optimisée pour smartphone.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">2</div>
+        <div>
+          <div class="help-step-title">Étape 1 — Hauteur de mire en P</div>
+          <div class="help-step-body">Placez la mire sur le point à mesurer. Lisez la hauteur sur la mire et encodez-la. Appuyez sur <strong>↵ Entrée</strong> pour passer à l'étape suivante.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">3</div>
+        <div>
+          <div class="help-step-title">Étape 2 — Distances</div>
+          <div class="help-step-body">Visez chaque point de référence avec le télémètre laser. Appuyez sur la tuile du point, encodez la distance lue, validez avec <strong>✓</strong>. Faites-le pour au minimum 2 références.<br><br>
+          Plus de distances = meilleure précision. Le spread (déviation) s'affiche en temps réel.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">4</div>
+        <div>
+          <div class="help-step-title">Étape 3 — Clôture</div>
+          <div class="help-step-body">Donnez un nom au point (optionnel). Choisissez si c'est un <strong>Point P</strong> (relevé terrain) ou une <strong>Référence U</strong> (futur point de stationnnement). Appliquez un offset ΔX/ΔY/ΔZ en cm si le point est décalé (ex: sous une haie).</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">5</div>
+        <div>
+          <div class="help-step-title">Étape 4 — Plan</div>
+          <div class="help-step-body">Le plan 2D affiche le nouveau point mis en évidence. Si une seule paire de références a été utilisée, le bouton <strong>↔ Côté miroir</strong> permet de basculer entre les deux solutions géométriques. Cliquez <strong>📍 Point suivant</strong> pour enchaîner.</div>
+        </div>
+      </div>
     </div>
+
+    <!-- Tab 2: Points U -->
+    <div class="help-content" id="help-tab-2" style="display:none">
+      <div class="help-step">
+        <div class="help-step-num">🔵</div>
+        <div>
+          <div class="help-step-title">Qu'est-ce qu'un point U ?</div>
+          <div class="help-step-body">Un point dont la position est <strong>inconnue</strong> au départ mais qu'on cherche à déterminer par triangulation depuis plusieurs stations. Une fois résolu, il devient utilisable comme référence pour d'autres mesures.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">1</div>
+        <div>
+          <div class="help-step-title">Créer un point U</div>
+          <div class="help-step-body">Dans le panel <strong>Points inconnus</strong>, ajoutez un U. Il passe en mode "collecte d'observations".</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">2</div>
+        <div>
+          <div class="help-step-title">Collecter les observations</div>
+          <div class="help-step-body">Depuis plusieurs points P déjà mesurés, encodez la distance vers U. Chaque paire (station, distance) est une observation. Minimum 2 observations depuis des stations différentes pour résoudre U.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">3</div>
+        <div>
+          <div class="help-step-title">Résoudre et activer</div>
+          <div class="help-step-body">Cliquez <strong>Calculer</strong> sur la carte U → les intersections convergent. Confirmez la position, puis <strong>Activer comme référence</strong> pour l'utiliser dans les mesures suivantes.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">💡</div>
+        <div>
+          <div class="help-step-title">Créer un U directement par mesure</div>
+          <div class="help-step-body">À l'étape 3 du mode terrain, sélectionnez <strong>🔵 Référence U</strong> au lieu de Point P. Le point est créé immédiatement comme U résolu, sans passer par la collecte d'observations.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Export -->
+    <div class="help-content" id="help-tab-3" style="display:none">
+      <div class="help-step">
+        <div class="help-step-num">📋</div>
+        <div>
+          <div class="help-step-title">CSV — Données brutes</div>
+          <div class="help-step-body">Exporte tous les points avec X, Y, Z, précision et déviation. Lisible dans Excel / LibreOffice. Idéal pour un traitement ultérieur.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">💾</div>
+        <div>
+          <div class="help-step-title">JSON — Session complète</div>
+          <div class="help-step-body">Exporte <strong>tout</strong> : références, points P, points U, périmètre, HI, croquis, seuil d'alerte. Permet de reprendre le travail exactement là où vous l'avez laissé via <strong>⬆ Importer</strong>.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">⬡</div>
+        <div>
+          <div class="help-step-title">OBJ / DXF — Maillage 3D</div>
+          <div class="help-step-body">Exporte le maillage TIN (triangulation) en 3D. OBJ pour Autodesk Inventor / Fusion 360. DXF pour AutoCAD. Choisissez l'unité (mm par défaut pour Inventor).</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">📤</div>
+        <div>
+          <div class="help-step-title">Rapport ZIP</div>
+          <div class="help-step-body">Génère un ZIP contenant tous les fichiers cochés (PNG du plan, CSV, OBJ, DXF, JSON). Sur iOS, s'ouvre dans la feuille de partage native (Mail, AirDrop, Fichiers…).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Conseils -->
+    <div class="help-content" id="help-tab-4" style="display:none">
+      <div class="help-step">
+        <div class="help-step-num">📐</div>
+        <div>
+          <div class="help-step-title">Géométrie optimale</div>
+          <div class="help-step-body">Pour une bonne précision, les références doivent former un triangle autour du point mesuré. Évitez les références alignées (colinéarité → alerte dans l'app). Plus l'angle entre deux lignes de visée est proche de 90°, meilleure est la précision.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">🎯</div>
+        <div>
+          <div class="help-step-title">Déviation et précision</div>
+          <div class="help-step-body">Le <strong>spread</strong> = écart maximal entre les intersections de chaque paire. Un spread &lt; 50mm est excellent. Entre 50–200mm : acceptable. Au-delà : vérifiez vos mesures.<br><br>
+          Réglez le seuil d'alerte dans <strong>Niveau laser → Seuil spread</strong> selon votre tolérance de chantier.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">📱</div>
+        <div>
+          <div class="help-step-title">Utilisation sur smartphone</div>
+          <div class="help-step-body">Installez l'app via Safari → Partager → Sur l'écran d'accueil pour une utilisation hors navigateur. Activez <strong>☀ Écran actif</strong> pour éviter la mise en veille pendant le relevé.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">💾</div>
+        <div>
+          <div class="help-step-title">Sauvegarde automatique</div>
+          <div class="help-step-body">Chaque point confirmé est sauvegardé automatiquement dans le navigateur (localStorage). En cas de fermeture accidentelle, l'app propose de restaurer la session au redémarrage. Pour une sauvegarde durable, exportez en JSON régulièrement.</div>
+        </div>
+      </div>
+      <div class="help-step">
+        <div class="help-step-num">🔄</div>
+        <div>
+          <div class="help-step-title">Offset d'un point</div>
+          <div class="help-step-body">Si le point physique est inaccessible (sous une haie, dans l'eau…), mesurez un point décalé et appliquez un offset ΔX/ΔY/ΔZ en cm dans l'étape Clôture. La position finale intègre automatiquement le décalage.</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1497,24 +1765,6 @@ function computeUPosition(uId){
 }
 
 // Like computeU but forces a specific side — kept for flipUSide
-function computeUWithSide(u, side){
-  const validObs = u.observations.filter(o =>
-    typeof o.stationX === 'number' && typeof o.stationY === 'number' && o.dist > 0
-  );
-  if(validObs.length < 2) return null;
-  const pairResults = [];
-  for(let i=0;i<validObs.length;i++) for(let j=i+1;j<validObs.length;j++){
-    const o1=validObs[i], o2=validObs[j];
-    const res=trilaterate2(o1.stationX,o1.stationY,o2.stationX,o2.stationY,o1.dist,o2.dist);
-    if(res) pairResults.push({res, w:1/(o1.dist*o2.dist)});
-  }
-  if(!pairResults.length) return null;
-  const cands = pairResults.map(pr=>({x:pr.res[side].x, y:pr.res[side].y, w:pr.w}));
-  const final = weightedAvg(cands);
-  const prec = precScore(cands, final);
-  return {x:final.x, y:final.y, precision: prec?prec.score:null};
-}
-
 function confirmUPosition(uId){
   const u = unknownPoints.find(u => u.id === uId);
   if(!u) return;
@@ -1537,33 +1787,6 @@ function flipUSide(uId){
   setTimeout(()=>{ const b=document.getElementById('ubody-'+uId); if(b) b.classList.add('open'); }, 30);
   renderCanvas();
   saveAll();
-}
-
-function triggerCascadeRecalc(u, delta){
-  // Compute new positions for all dependents
-  const affected = [];
-  const topo = topologicalOrder(u.id);
-
-  topo.forEach(ptId => {
-    const pt = points.find(p => p.id === ptId);
-    if(!pt) return;
-    const newPos = recomputePoint(pt);
-    if(newPos) affected.push({ pt, newX: newPos.x, newY: newPos.y, newPrec: newPos.precision });
-  });
-
-  if(!affected.length) return;
-
-  pendingRecalc = { uId: u.id, delta, affected };
-
-  const maxDelta = affected.reduce((mx,a) => {
-    const d = Math.sqrt((a.pt.x-a.newX)**2+(a.pt.y-a.newY)**2);
-    return Math.max(mx, d);
-  }, 0);
-
-  const banner = document.getElementById('recalc-banner');
-  document.getElementById('recalc-msg').innerHTML =
-    `<strong>${u.id}</strong> affiné (Δ ${(delta*1000).toFixed(1)} mm) — <strong>${affected.length}</strong> point(s) recalculable(s) · Δmax ${(maxDelta*1000).toFixed(1)} mm`;
-  banner.classList.add('vis');
 }
 
 function topologicalOrder(uId){
@@ -1646,9 +1869,9 @@ function buildUPanel(){
 
     const obsList = u.observations.map((o,i) =>
       `<div class="u-obs-item">
-        <span>${o.stationId}</span>
+        <span>${o.stationId||'—'}</span>
         <span>d=${fmt(o.dist,3)} m</span>
-        <span style="color:var(--text-dim)">(${o.stationX.toFixed(2)}, ${o.stationY.toFixed(2)})</span>
+        <span style="color:var(--text-dim)">${o.stationX!=null ? `(${o.stationX.toFixed(2)}, ${o.stationY.toFixed(2)})` : '—'}</span>
         <button onclick="event.stopPropagation();deleteUObs('${u.id}',${i})"
           style="margin-left:auto;font-size:9px;padding:1px 5px;border-radius:3px;border:1px solid #3a2020;background:transparent;color:var(--red);cursor:pointer;font-family:'DM Mono',monospace">✕</button>
       </div>`
@@ -1734,19 +1957,6 @@ function buildUDistGrid(){
 }
 
 // Helper: get all active known refs (fixed + active U)
-function getAllActiveRefs(){
-  const fixed = refs.filter(r => r.x!=='' && r.y!=='');
-  const uRefs = unknownPoints
-    .filter(u => u.status==='active' && u.x!==null)
-    .map(u => ({id:u.id, x:String(u.x), y:String(u.y), color:u.color, isU:true}));
-  return [...fixed, ...uRefs];
-}
-// Palette of colors cycling for new refs
-const REF_COLORS = [
-  '#e0c563','#63b4e0','#a8e063','#e063b4','#e09863','#9863e0',
-  '#63e0b4','#e06363','#63a8e0','#c8e063','#e063a8','#63e0e0',
-];
-// Ref label sequence: A,B,C…Z,A2,B2…
 function nextRefId(){
   const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const used = refs.map(r=>r.id);
@@ -1921,6 +2131,19 @@ function renameRef(id, name){
   const dlbl = document.querySelector(`#di-${id} label`);
   if(dlbl) dlbl.innerHTML = `<span class="rdot" style="background:${r.color}"></span>vers ${refDisplayLabel(r)}`;
   saveAll();
+}
+
+function buildAll(){
+  buildRefCards();
+  buildDistGrid();
+  buildUDistGrid();
+  buildUPanel();
+  renderTable();
+  renderCanvas();
+  updateStats();
+  updateSurface();
+  attachNormalizers();
+  checkGeometry();
 }
 
 function buildRefCards(){
@@ -2271,11 +2494,44 @@ function confirmAndAdd(){
   }));
 
   const isPerim = document.getElementById('perim-check').checked;
+  const stdType = document.getElementById('std-point-type')?.value || 'P';
 
-  const pt={id:autoIdx++,name,x:final.x,y:final.y,z,nPairs:cands.length,
+  // Read offset (cm → m)
+  const odx = (pf(document.getElementById('off-x')?.value)||0)/100;
+  const ody = (pf(document.getElementById('off-y')?.value)||0)/100;
+  const odz = (pf(document.getElementById('off-z')?.value)||0)/100;
+  const hasOff = odx!==0||ody!==0||odz!==0;
+  const fx = final.x+odx, fy = final.y+ody, fz = z+odz;
+
+  if(stdType === 'U'){
+    // Save as resolved U point directly
+    const uId = `U${uAutoIdx++}`;
+    const newU = {
+      id:uId, name:name||uId, color:'#9070ff',
+      observations:[], x:fx, y:fy,
+      xAlt:null, yAlt:null,
+      status:'resolved', precision:prec?prec.score:null,
+      lockedSide:null, dependents:[]
+    };
+    unknownPoints.push(newU);
+    buildUPanel(); buildDistGrid(); buildUDistGrid();
+    // Reset type
+    stdSetType('P');
+    document.getElementById('off-x').value='0';
+    document.getElementById('off-y').value='0';
+    document.getElementById('off-z').value='0';
+    document.getElementById('perim-check').checked=false;
+    tinCache=null; tinPointsHash='';
+    updateValidity(); renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
+    setTimeout(focusFirstDist,50);
+    return;
+  }
+
+  const pt={id:autoIdx++,name,x:fx,y:fy,z:fz,nPairs:cands.length,
     precision:prec?prec.score:null,spread:prec?prec.spread:null,pairLbls,dists,mireP,
     rawObs, usedRefs: getFilledRefs().map(r=>r.id),
-    perim: isPerim
+    perim: isPerim,
+    offsetDelta: hasOff?{dx:odx,dy:ody,dz:odz}:null
   };
 
   // Record U observations from the U dist section
@@ -2381,11 +2637,12 @@ function confirmAndAdd(){
   }
 
   document.getElementById('perim-check').checked = false;
+  if(document.getElementById('off-x')){ document.getElementById('off-x').value='0'; }
+  if(document.getElementById('off-y')){ document.getElementById('off-y').value='0'; }
+  if(document.getElementById('off-z')){ document.getElementById('off-z').value='0'; }
+  stdSetType('P');
   tinCache=null; tinPointsHash='';
-  const savedPtId = pt.id;
   updateValidity(); renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
-  // Cascade: update any offset points that depend on this point
-  cascadeOffsets(savedPtId);
   if(showCoupeXZ) renderCoupeXZ();
   if(showCoupeYZ) renderCoupeYZ();
   setTimeout(focusFirstDist, 50);
@@ -2407,7 +2664,7 @@ function renderTable(){
       ? `<span style="color:#50c878;font-size:11px;cursor:pointer" onclick="removeFromPerim(${p.id})" title="Retirer du périmètre (ordre ${perimIdx+1})">⬡${perimIdx+1}</span>`
       : `<span style="color:var(--border);font-size:11px;cursor:pointer" onclick="addToPerim(${p.id})" title="Ajouter au périmètre">⬡</span>`;
     const pLabel = ptLabel(p);
-    return `<tr class="${perimIdx>=0?'perim-row':''}" ondblclick="openOffsetModal(${p.id})" title="Double-clic pour créer un offset">
+    return `<tr class="${perimIdx>=0?'perim-row':''}" ondblclick="openOffsetModal(${p.id})">
       <td>P${p.id}</td>
       <td style="cursor:default">${pLabel}</td>
       <td>${fmt(p.x)}</td><td>${fmt(p.y)}</td>
@@ -2436,10 +2693,6 @@ function editPoint(id){
   if(!p) return;
 
   // Offset points go to the offset modal
-  if(p.offsetFrom){
-    editOffsetModal(id);
-    return;
-  }
 
   editingPointId = id;
 
@@ -2470,15 +2723,6 @@ function editPoint(id){
 }
 
 // Quick rename directly in the table — no recalculation needed
-function renamePoint(id, newName){
-  const p = points.find(p=>p.id===id);
-  if(!p) return;
-  p.name = newName;
-  saveAll();
-  // Update canvas label live
-  renderCanvas();
-}
-
 function deletePoint(id){
   const p = points.find(p=>p.id===id);
   if(!p) return;
@@ -2513,6 +2757,7 @@ let tmAltResult = null;
 
 function updateTerrainFAB(){
   const fab = document.getElementById('terrain-fab');
+  if(!fab) return;
   const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
   fab.classList.toggle('vis', activeRefs.length >= 2);
 }
@@ -2527,6 +2772,10 @@ function openTerrainMode(){
   tmNewPointId = null;
   tmFlipped = false;
   tmAltResult = null;
+  // Reset point type to P
+  const typeEl = document.getElementById('tm-point-type');
+  if(typeEl) typeEl.value = 'P';
+  tmSetType('P');
 
   // Sync HI and mireRef from main form
   document.getElementById('tm-hi-display').textContent = document.getElementById('hi').value || '—';
@@ -2534,16 +2783,14 @@ function openTerrainMode(){
   document.getElementById('tm-mire-p').value = '';
   document.getElementById('tm-point-name').value = '';
   document.getElementById('tm-perim').checked = false;
+  document.getElementById('tm-off-x').value = '0';
+  document.getElementById('tm-off-y').value = '0';
+  document.getElementById('tm-off-z').value = '0';
 
   document.getElementById('terrain-overlay').classList.add('vis');
   tmGoTo(1);
-  // iOS: focus must be called synchronously within the user gesture handler
-  // The overlay and input are now visible — focus immediately
-  const _mireEl = document.getElementById('tm-mire-p');
-  if(_mireEl){
-    _mireEl.focus();
-    try{ _mireEl.select(); }catch(e){}
-  }
+  // For P: autofocus mire field (after type selection — user must tap P or U first)
+  // Don't auto-focus — let user choose type first
 }
 
 function closeTerrainMode(){
@@ -2586,33 +2833,49 @@ function tmGoTo(step){
     tmDrawPlan();
   }
   document.getElementById('tm-title').textContent =
-    step===1?'📍 Hauteur de mire':step===2?'📍 Distances':step===3?'📍 Clôture du point':'✓ Point enregistré';
+    step===1?'📍 Type de point':step===2?'📍 Distances':step===3?'📍 Clôture du point':'✓ Point enregistré';
 }
 
 function tmBack(){ if(tmStep>1) tmGoTo(tmStep-1); }
 
 function tmNext(){
   if(tmStep===1){
-    const mireP = pf(document.getElementById('tm-mire-p').value);
-    if(isNaN(mireP)){ document.getElementById('tm-mire-p').style.borderColor='var(--red)'; return; }
-    document.getElementById('tm-mire-p').style.borderColor='';
+    const type = document.getElementById('tm-point-type')?.value || 'P';
+    if(type === 'P'){
+      const mireP = pf(document.getElementById('tm-mire-p').value);
+      if(isNaN(mireP)){ document.getElementById('tm-mire-p').style.borderColor='var(--red)'; return; }
+      document.getElementById('tm-mire-p').style.borderColor='';
+    }
     tmGoTo(2);
   } else if(tmStep===2){
     if(!tmCanClose()) return;
     tmGoTo(3);
   } else if(tmStep===3){
-    tmSavePoint();
+    const saved = tmSavePoint();
+    if(saved === false) return;
     tmGoTo(4);
   } else if(tmStep===4){
-    // New point — reset step 2
+    // Reset state first
+    tmStep = 0; // prevent tmSetType from triggering focus prematurely
     tmDistances = {};
+    tmUDistances = {};
     tmActiveRef = null;
+    tmActiveIsU = false;
     tmResult = null;
+    tmNewPointId = null;
+    tmFlipped = false;
+    tmAltResult = null;
+    const typeEl = document.getElementById('tm-point-type');
+    if(typeEl) typeEl.value = 'P';
+    tmSetType('P');
     document.getElementById('tm-mire-p').value = '';
     document.getElementById('tm-point-name').value = '';
     document.getElementById('tm-perim').checked = false;
-    closeTerrainMode();
-    openTerrainMode();
+    document.getElementById('tm-off-x').value = '0';
+    document.getElementById('tm-off-y').value = '0';
+    document.getElementById('tm-off-z').value = '0';
+    document.getElementById('tm-dist-panel').style.display = 'none';
+    tmGoTo(1);
   }
 }
 
@@ -2652,6 +2915,40 @@ function tmShowCroquis(){
     overlay.style.zIndex = '';
     overlay.removeEventListener('click', restoreZ);
   }, {once: true});
+}
+
+function tmSetType(type){
+  const typeEl = document.getElementById('tm-point-type');
+  if(typeEl) typeEl.value = type;
+  const pLbl = document.getElementById('tm-type-p-lbl');
+  const uLbl = document.getElementById('tm-type-u-lbl');
+  const mireSection = document.getElementById('tm-mire-section');
+  const perimRow = document.getElementById('tm-perim-row');
+  const offSection = document.getElementById('tm-offset-section');
+  if(!pLbl||!uLbl) return;
+  if(type==='P'){
+    pLbl.style.borderColor='var(--accent2)'; pLbl.style.background='var(--accent2)14';
+    uLbl.style.borderColor='var(--border)';  uLbl.style.background='var(--surface2)';
+    if(mireSection) mireSection.style.display='block';
+    if(perimRow) perimRow.style.display='flex';
+    if(offSection) offSection.style.display='block';
+  } else {
+    uLbl.style.borderColor='#9070ff'; uLbl.style.background='#9070ff14';
+    pLbl.style.borderColor='var(--border)'; pLbl.style.background='var(--surface2)';
+    if(mireSection) mireSection.style.display='none'; // no Z for U
+    if(perimRow) perimRow.style.display='none';
+    if(offSection) offSection.style.display='none';
+  }
+  // Auto-focus mire field when P selected (synchronous = iOS-friendly)
+  if(type==='P' && tmStep===1){
+    const m = document.getElementById('tm-mire-p');
+    if(m){ m.focus(); try{ m.select(); }catch(e){} }
+  }
+  // Update type reminder in step 3
+  const icon = document.getElementById('tm-type-icon');
+  const lbl  = document.getElementById('tm-type-label');
+  if(icon) icon.textContent = type==='U' ? '🔵' : '📍';
+  if(lbl)  lbl.textContent  = type==='U' ? 'Point U — Référence future (X, Y seulement)' : 'Point P — Relevé terrain (X, Y, Z)';
 }
 
 function tmBuildUGrid(){
@@ -2793,13 +3090,13 @@ function tmTrilaterate(filledRefs, useFlip=false){
   return {final, prec, cands, pairLbls, altSolution, ambiguous};
 }
 
-function tmUpdatePreview(){
-  if(tmStep !== 2) return;
+function tmComputeResult(){
+  // Compute and store tmResult — callable from any step
   const mireP = pf(document.getElementById('tm-mire-p').value)||0;
   const hi    = pf(document.getElementById('hi').value)||0;
   const mRef  = pf(document.getElementById('mire-ref').value)||0;
+  const type  = document.getElementById('tm-point-type')?.value || 'P';
 
-  // Build filled refs list with world coords
   const filledRefs = Object.keys(tmDistances)
     .filter(k=>tmDistances[k]!=='')
     .map(k=>{
@@ -2808,37 +3105,44 @@ function tmUpdatePreview(){
       return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
     }).filter(Boolean);
 
-  const preview = document.getElementById('tm-preview');
-  if(filledRefs.length < 2){
-    preview.className='tm-preview';
-    preview.textContent='Encodez au moins 2 distances pour voir la position calculée…';
-    tmResult = null;
-    document.getElementById('tm-btn-next').disabled = !tmCanClose();
-    return;
-  }
+  if(filledRefs.length < 2){ tmResult = null; return; }
 
   const result = tmTrilaterate(filledRefs);
-  if(!result){
+  if(!result){ tmResult = null; return; }
+
+  const {final, prec, pairLbls} = result;
+  const z = type==='U' ? null : (hi - mireP) - (hi - mRef);
+  tmResult = {x:final.x, y:final.y, z, prec, pairLbls};
+}
+
+function tmUpdatePreview(){
+  if(tmStep !== 2) return;
+
+  tmComputeResult();
+
+  const preview = document.getElementById('tm-preview');
+  if(!tmResult){
     preview.className='tm-preview';
-    preview.textContent='⚠ Triangulation impossible — vérifiez les distances.';
-    tmResult = null;
+    const n = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='').length;
+    preview.textContent = n < 2
+      ? 'Encodez au moins 2 distances pour voir la position calculée…'
+      : '⚠ Triangulation impossible — vérifiez les distances.';
     document.getElementById('tm-btn-next').disabled = true;
     return;
   }
 
-  const {final, prec, pairLbls} = result;
-  const z = (hi - mireP) - (hi - mRef);
-  tmResult = {x:final.x, y:final.y, z, prec, pairLbls};
-
+  const {final, prec, pairLbls, z} = tmResult;
+  const type = document.getElementById('tm-point-type')?.value || 'P';
   const threshold = pf(document.getElementById('spread-threshold-input').value)||200;
   const spreadMm  = prec ? prec.spread*1000 : null;
   const col = !prec ? 'var(--accent)' :
     spreadMm <= threshold*0.5 ? 'var(--accent)' :
     spreadMm <= threshold      ? 'var(--yellow)' : 'var(--red)';
 
+  const zDisplay = type==='U' ? '' : ` &nbsp; Z: ${fmt(tmResult.z)}`;
   preview.className='tm-preview has-result';
   preview.innerHTML =
-    `<div class="tm-coords">X: ${fmt(final.x)} &nbsp; Y: ${fmt(final.y)} &nbsp; Z: ${fmt(z)}</div>
+    `<div class="tm-coords">X: ${fmt(tmResult.x)} &nbsp; Y: ${fmt(tmResult.y)}${zDisplay}</div>
      <div class="tm-spread" style="color:${col}">${
        prec
          ? `${pairLbls.length} paire(s) · ${prec.score}% · spread ${spreadMm.toFixed(1)} mm`
@@ -2848,22 +3152,32 @@ function tmUpdatePreview(){
 }
 
 function tmBuildSummary(){
-  if(!tmResult) return;
+  const type = document.getElementById('tm-point-type')?.value || 'P';
+  tmComputeResult(); // recalculate regardless of step
+  if(!tmResult){
+    document.getElementById('tm-summary').innerHTML =
+      '<span style="color:var(--red)">⚠ Position non calculée — vérifiez les distances à l\'étape 2</span>';
+    // Disable Confirmer button
+    document.getElementById('tm-btn-next').disabled = true;
+    return;
+  }
+  document.getElementById('tm-btn-next').disabled = false;
   const spreadMm = tmResult.prec ? (tmResult.prec.spread*1000).toFixed(1) : '—';
   const score = tmResult.prec ? tmResult.prec.score+'%' : '—';
+  const zLine = type==='U' ? '' : `Z: ${fmt(tmResult.z)} &nbsp; `;
   document.getElementById('tm-summary').innerHTML =
-    `<strong>X: ${fmt(tmResult.x)} &nbsp; Y: ${fmt(tmResult.y)} &nbsp; Z: ${fmt(tmResult.z)}</strong><br>
+    `<strong>X: ${fmt(tmResult.x)} &nbsp; Y: ${fmt(tmResult.y)} &nbsp; ${zLine}</strong><br>
     Précision: ${score} &nbsp;·&nbsp; Déviation: ${spreadMm} mm<br>
-    ${Object.keys(tmDistances).length} distance(s) encodée(s)`;
+    ${Object.keys(tmDistances).filter(k=>tmDistances[k]!=='').length} distance(s) encodée(s)`;
 }
 
 function tmSavePoint(){
-  if(!tmResult) return;
-  const mireP  = pf(document.getElementById('tm-mire-p').value)||0;
-  const name   = document.getElementById('tm-point-name').value.trim();
-  const isPerim= document.getElementById('tm-perim').checked;
-  const hi     = pf(document.getElementById('hi').value)||0;
-  const mRef   = pf(document.getElementById('mire-ref').value)||0;
+  const mireP     = pf(document.getElementById('tm-mire-p').value)||0;
+  const name      = document.getElementById('tm-point-name').value.trim();
+  const isPerim   = document.getElementById('tm-perim').checked;
+  const pointType = document.getElementById('tm-point-type')?.value || 'P';
+  const hi        = pf(document.getElementById('hi').value)||0;
+  const mRef      = pf(document.getElementById('mire-ref').value)||0;
 
   const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
   const filledRefs = filledKeys.map(k=>{
@@ -2873,57 +3187,92 @@ function tmSavePoint(){
   }).filter(Boolean);
 
   const result = tmTrilaterate(filledRefs, tmFlipped);
-  if(!result) return;
+  if(!result){ alert('⚠ Triangulation impossible — vérifiez les distances.'); return false; }
   const {final, prec, pairLbls, altSolution, ambiguous} = result;
   tmAltResult = altSolution;
-
-  // Show mirror button if only 1 pair and alternative exists
   document.getElementById('tm-mirror-row').style.display = ambiguous ? 'block' : 'none';
+
   const z = (hi - mireP) - (hi - mRef);
+
+  // Apply offset (cm → m)
+  const dx = (pf(document.getElementById('tm-off-x').value)||0) / 100;
+  const dy = (pf(document.getElementById('tm-off-y').value)||0) / 100;
+  const dz = (pf(document.getElementById('tm-off-z').value)||0) / 100;
+  const fx = final.x + dx;
+  const fy = final.y + dy;
+  const fz = z + dz;
+  const hasOffset = dx!==0 || dy!==0 || dz!==0;
 
   const dists={};
   filledKeys.forEach(k=>{ dists[k]=pf(tmDistances[k]); });
+  const spreadMm = prec ? (prec.spread*1000).toFixed(1) : '—';
 
-  const pt = {
-    id: autoIdx++, name,
-    x: final.x, y: final.y, z,
-    nPairs: pairLbls.length,
-    precision: prec ? prec.score : null,
-    spread: prec ? prec.spread : null,
-    pairLbls, dists, mireP,
-    rawObs:[], usedRefs:filledKeys, perim:isPerim
-  };
-  points.push(pt);
-  if(isPerim) perimOrder.push(pt.id);
-  tmNewPointId = pt.id;
-
-  // Record U observations
-  Object.keys(tmUDistances).filter(k=>tmUDistances[k]!=='').forEach(uId=>{
-    const u = unknownPoints.find(u=>u.id===uId);
-    if(!u) return;
-    const dist = pf(tmUDistances[uId]);
-    if(isNaN(dist)||dist<=0) return;
-    // Guard: if U already used as ref by existing points, block
-    const usedAsRef = points.filter(p=>p.id!==pt.id).some(p=>p.usedRefs&&p.usedRefs.includes(uId));
-    if(usedAsRef) return;
-    if(u.status!=='collecting') u.status='collecting';
-    u.observations.push({stationX:final.x, stationY:final.y, dist});
+  if(pointType === 'U'){
+    const uId = `U${uAutoIdx++}`;
+    const newU = {
+      id: uId,
+      name: name || uId,
+      color: '#9070ff',
+      observations: filledRefs.map(r=>({stationX:null, stationY:null, dist:r.dist, refId:r.id})),
+      x: fx, y: fy,
+      xAlt: altSolution?altSolution.x+dx:null,
+      yAlt: altSolution?altSolution.y+dy:null,
+      status: 'resolved',
+      precision: prec?prec.score:null,
+      lockedSide: null,
+      dependents: []
+    };
+    unknownPoints.push(newU);
+    tmNewPointId = uId;
+    const label = name ? `${uId} (${name})` : uId;
+    const offsetNote = hasOffset ? `<br><span style="color:var(--yellow);font-size:10px">Offset appliqué: ΔX${(dx*100).toFixed(1)} ΔY${(dy*100).toFixed(1)} ΔZ${(dz*100).toFixed(1)} cm</span>` : '';
+    document.getElementById('tm-final-summary').innerHTML =
+      `<strong>🔵 ${label}</strong> — Point U résolu<br>
+       X: ${fmt(fx)} &nbsp; Y: ${fmt(fy)} &nbsp; Z: ${fmt(fz)}<br>
+       Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm${offsetNote}<br>
+       <span style="color:#9070ff;font-size:10px">Disponible comme référence</span>`;
+    document.getElementById('tm-new-badge').textContent = label;
+    buildUPanel(); buildDistGrid(); buildUDistGrid();
+  } else {
+    const pt = {
+      id: autoIdx++, name,
+      x: fx, y: fy, z: fz,
+      nPairs: pairLbls.length,
+      precision: prec?prec.score:null, spread: prec?prec.spread:null,
+      pairLbls, dists, mireP,
+      rawObs:[], usedRefs:filledKeys, perim:isPerim,
+      offsetDelta: hasOffset ? {dx,dy,dz} : null
+    };
+    points.push(pt);
+    if(isPerim) perimOrder.push(pt.id);
+    tmNewPointId = pt.id;
+    const label = ptLabel(pt);
+    const offsetNote = hasOffset ? `<br><span style="color:var(--yellow);font-size:10px">Offset: ΔX${(dx*100).toFixed(1)} ΔY${(dy*100).toFixed(1)} ΔZ${(dz*100).toFixed(1)} cm</span>` : '';
+    document.getElementById('tm-final-summary').innerHTML =
+      `<strong>${label}</strong><br>
+       X: ${fmt(pt.x)} &nbsp; Y: ${fmt(pt.y)} &nbsp; Z: ${fmt(pt.z)}<br>
+       Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm${offsetNote}`;
+    document.getElementById('tm-new-badge').textContent = label;
+    // Record U observations
+    Object.keys(tmUDistances).filter(k=>tmUDistances[k]!=='').forEach(uId=>{
+      const u = unknownPoints.find(u=>u.id===uId);
+      if(!u) return;
+      const dist = pf(tmUDistances[uId]);
+      if(isNaN(dist)||dist<=0) return;
+      const usedAsRef = points.filter(p=>p.id!==pt.id).some(p=>p.usedRefs&&p.usedRefs.includes(uId));
+      if(usedAsRef) return;
+      if(u.status!=='collecting') u.status='collecting';
+      u.observations.push({stationX:final.x, stationY:final.y, dist});
+    });
     buildUPanel();
-  });
-
-  const label   = ptLabel(pt);
-  const spreadMm= prec ? (prec.spread*1000).toFixed(1) : '—';
-  document.getElementById('tm-final-summary').innerHTML =
-    `<strong>${label}</strong><br>
-     X: ${fmt(pt.x)} &nbsp; Y: ${fmt(pt.y)} &nbsp; Z: ${fmt(pt.z)}<br>
-     Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm`;
+  }
 
   tinCache=null; tinPointsHash='';
   renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
   if(showCoupeXZ) renderCoupeXZ();
   if(showCoupeYZ) renderCoupeYZ();
+  return true;
 }
-
 function tmFlipMirror(){
   if(!tmNewPointId) return;
   tmFlipped = !tmFlipped;
@@ -2974,7 +3323,13 @@ function tmDrawPlan(){
   c.fillStyle=themeColor('#121614','#eef2ee'); c.fillRect(0,0,W,H);
 
   const ar=refs.filter(r=>r.x!==''&&r.y!=='');
-  const allPts=[...ar.map(r=>({x:pf(r.x),y:pf(r.y)})),...points.map(p=>({x:p.x,y:p.y}))];
+  // Include U points in bounds calculation
+  const activeU = unknownPoints.filter(u=>u.x!==null&&u.y!==null);
+  const allPts=[
+    ...ar.map(r=>({x:pf(r.x),y:pf(r.y)})),
+    ...points.map(p=>({x:p.x,y:p.y})),
+    ...activeU.map(u=>({x:u.x,y:u.y}))
+  ];
   if(allPts.length<2) return;
 
   const xs=allPts.map(p=>p.x),ys=allPts.map(p=>p.y);
@@ -2986,13 +3341,22 @@ function tmDrawPlan(){
   const sc=Math.min(avW/rX,avH/rY),dH=rY*sc,oX=pad+(avW-rX*sc)/2,oY=pad+(avH-dH)/2;
   function tC(wx,wy){return{cx:oX+(wx-mnX)*sc,cy:oY+dH-(wy-mnY)*sc};}
 
-  // Draw all points
-  const newPt = points.find(p=>p.id===tmNewPointId);
-  const zs=points.map(p=>p.z),zmn=Math.min(...zs,0),zmx=Math.max(...zs,0),zr=zmx-zmn||1;
+  // Find new point — could be P or U
+  const newPtP = points.find(p=>p.id===tmNewPointId);
+  const newPtU = unknownPoints.find(u=>u.id===tmNewPointId);
+  const newPt = newPtP || newPtU;
+
+  // Draw P points (guard against missing Z)
+  const validZs = points.map(p=>p.z).filter(z=>typeof z==='number'&&!isNaN(z));
+  const zmn=validZs.length?Math.min(...validZs,0):0;
+  const zmx=validZs.length?Math.max(...validZs,0):1;
+  const zr=zmx-zmn||1;
+
   points.forEach(p=>{
     const{cx,cy}=tC(p.x,p.y);
     const isNew = p.id===tmNewPointId;
-    const t2=(p.z-zmn)/zr;
+    const z = typeof p.z==='number' ? p.z : 0;
+    const t2=(z-zmn)/zr;
     const col=`rgb(${~~(168*(1-t2)+99*t2)},${~~(224*(1-t2)+200*t2)},${~~(99*(1-t2)+99*t2)})`;
     if(isNew){
       c.beginPath();c.arc(cx,cy,18,0,Math.PI*2);
@@ -3002,8 +3366,24 @@ function tmDrawPlan(){
     }
     c.beginPath();c.arc(cx,cy,isNew?7:4,0,Math.PI*2);
     c.fillStyle=isNew?'#63b4e0':col;c.fill();
-    const lbl=ptLabel(p);
+    const lbl=p.name?`${p.id}(${p.name})`:`P${p.id}`;
     c.fillStyle=isNew?'#63b4e0':themeColor('#c8d8ca','#2a3a2a');
+    c.font=`${isNew?'bold ':''}10px Syne,sans-serif`;c.textAlign='left';
+    c.fillText(lbl,cx+8,cy-3);
+  });
+
+  // Draw U points
+  activeU.forEach(u=>{
+    const{cx,cy}=tC(u.x,u.y);
+    const isNew = u.id===tmNewPointId;
+    if(isNew){
+      c.beginPath();c.arc(cx,cy,18,0,Math.PI*2);
+      c.fillStyle='rgba(144,112,255,0.2)';c.fill();
+    }
+    c.beginPath();c.arc(cx,cy,isNew?7:4,0,Math.PI*2);
+    c.fillStyle=isNew?'#9070ff':'#9070ff88';c.fill();
+    const lbl=u.name?`${u.id}(${u.name})`:u.id;
+    c.fillStyle=isNew?'#9070ff':themeColor('#c8d8ca','#2a3a2a');
     c.font=`${isNew?'bold ':''}10px Syne,sans-serif`;c.textAlign='left';
     c.fillText(lbl,cx+8,cy-3);
   });
@@ -3029,8 +3409,8 @@ function tmDrawPlan(){
       c.strokeStyle='rgba(99,180,224,0.4)';c.lineWidth=1;c.setLineDash([3,3]);c.stroke();
       c.setLineDash([]);
     });
-    document.getElementById('tm-new-badge').textContent =
-      newPt.name ? `${newPt.id} (${newPt.name})` : `Point ${newPt.id}`;
+    const badge = newPt.name ? `${newPt.id} (${newPt.name})` : (newPtU ? newPt.id : `P${newPt.id}`);
+    document.getElementById('tm-new-badge').textContent = badge;
   }
 }
 
@@ -3221,6 +3601,22 @@ function syncSpreadThreshold(source){
   renderTable();
 }
 const canvasVis = { grid:true, axes:true, refLabels:true, pointLabels:true, points:true, perim:true };
+function stdSetType(type){
+  document.getElementById('std-point-type').value = type;
+  const pLbl = document.getElementById('std-type-p-lbl');
+  const uLbl = document.getElementById('std-type-u-lbl');
+  const perimRow = document.getElementById('perim-row');
+  if(type==='P'){
+    pLbl.style.cssText += ';border-color:var(--accent2);background:var(--accent2)14;color:var(--accent2)';
+    uLbl.style.cssText += ';border-color:var(--border);background:var(--surface2);color:var(--text-dim)';
+    perimRow.style.display='flex';
+  } else {
+    uLbl.style.cssText += ';border-color:#9070ff;background:#9070ff14;color:#9070ff';
+    pLbl.style.cssText += ';border-color:var(--border);background:var(--surface2);color:var(--text-dim)';
+    perimRow.style.display='none';
+  }
+}
+
 function toggleVis(key){
   canvasVis[key] = !canvasVis[key];
   const btn = document.getElementById('vis-'+key);
@@ -3232,120 +3628,17 @@ function toggleVis(key){
 let offsetSourceId = null;
 let offsetEditingId = null;
 
-function openOffsetModal(sourceId){
-  const src = points.find(p=>p.id===sourceId);
-  if(!src) return;
-  offsetSourceId = sourceId;
-  offsetEditingId = null;
-  const srcLabel = src.name ? `${src.id} (${src.name})` : src.id;
-  document.getElementById('off-title').textContent = '📐 Offset d\'un point';
-  document.getElementById('off-subtitle').textContent = 'Créer un nouveau point décalé depuis un point existant';
-  document.getElementById('offset-source-info').innerHTML =
-    `Source : <strong>${srcLabel}</strong> — X:${fmt(src.x)} Y:${fmt(src.y)} Z:${fmt(src.z)}`;
-  document.getElementById('off-dx').value = '0';
-  document.getElementById('off-dy').value = '0';
-  document.getElementById('off-dz').value = '0';
-  document.getElementById('off-name').value = `${src.id}-off`;
-  document.getElementById('off-perim').checked = false;
-  document.getElementById('off-confirm-btn').textContent = '✓ Créer le point';
-  _attachOffsetListeners();
-  updateOffsetResult();
-  document.getElementById('offset-overlay').classList.add('vis');
-  setTimeout(()=>document.getElementById('off-dx').focus(), 100);
-}
 
-function editOffsetModal(offsetPtId){
-  const pt = points.find(p=>p.id===offsetPtId);
-  if(!pt || !pt.offsetFrom) return;
-  const src = points.find(p=>p.id===pt.offsetFrom);
-  if(!src) return;
-  offsetSourceId = src.id;
-  offsetEditingId = offsetPtId;
-  const srcLabel = src.name ? `${src.id} (${src.name})` : src.id;
-  document.getElementById('off-title').textContent = '📐 Modifier l\'offset';
-  document.getElementById('off-subtitle').textContent = 'Modifier le décalage du point existant';
-  document.getElementById('offset-source-info').innerHTML =
-    `Source : <strong>${srcLabel}</strong> — X:${fmt(src.x)} Y:${fmt(src.y)} Z:${fmt(src.z)}`;
-  const d = pt.offsetDelta || {dx:0,dy:0,dz:0};
-  document.getElementById('off-dx').value = (d.dx*100).toFixed(1);
-  document.getElementById('off-dy').value = (d.dy*100).toFixed(1);
-  document.getElementById('off-dz').value = (d.dz*100).toFixed(1);
-  document.getElementById('off-name').value = pt.name || '';
-  document.getElementById('off-perim').checked = perimOrder.includes(offsetPtId);
-  document.getElementById('off-confirm-btn').textContent = '✓ Mettre à jour';
-  _attachOffsetListeners();
-  updateOffsetResult();
-  document.getElementById('offset-overlay').classList.add('vis');
-  setTimeout(()=>document.getElementById('off-dx').focus(), 100);
+// ── HELP ──────────────────────────────────────────────────────────────────────
+function openHelp(){
+  document.getElementById('help-overlay').classList.add('vis');
 }
-
-function _attachOffsetListeners(){
-  ['off-dx','off-dy','off-dz'].forEach(id=>{
-    const el = document.getElementById(id);
-    el.removeEventListener('input', updateOffsetResult);
-    el.addEventListener('input', updateOffsetResult);
-  });
+function closeHelp(){
+  document.getElementById('help-overlay').classList.remove('vis');
 }
-
-function updateOffsetResult(){
-  const src = points.find(p=>p.id===offsetSourceId);
-  if(!src) return;
-  const dx = (pf(document.getElementById('off-dx').value)||0)/100;
-  const dy = (pf(document.getElementById('off-dy').value)||0)/100;
-  const dz = (pf(document.getElementById('off-dz').value)||0)/100;
-  document.getElementById('off-rx').value = fmt(src.x+dx);
-  document.getElementById('off-ry').value = fmt(src.y+dy);
-  document.getElementById('off-rz').value = fmt(src.z+dz);
-}
-
-function closeOffsetModal(){
-  document.getElementById('offset-overlay').classList.remove('vis');
-  offsetSourceId = null; offsetEditingId = null;
-}
-
-function confirmOffset(){
-  const src = points.find(p=>p.id===offsetSourceId);
-  if(!src) return;
-  const dx = (pf(document.getElementById('off-dx').value)||0)/100;
-  const dy = (pf(document.getElementById('off-dy').value)||0)/100;
-  const dz = (pf(document.getElementById('off-dz').value)||0)/100;
-  const name = document.getElementById('off-name').value.trim() || `${src.id}-off`;
-  const isPerim = document.getElementById('off-perim').checked;
-  if(offsetEditingId !== null){
-    const pt = points.find(p=>p.id===offsetEditingId);
-    if(pt){
-      pt.name=name; pt.x=src.x+dx; pt.y=src.y+dy; pt.z=src.z+dz;
-      pt.offsetDelta={dx,dy,dz}; pt.perim=isPerim;
-      if(isPerim && !perimOrder.includes(pt.id)) perimOrder.push(pt.id);
-      if(!isPerim) perimOrder=perimOrder.filter(i=>i!==pt.id);
-    }
-  } else {
-    const newPt={
-      id:autoIdx++, name, x:src.x+dx, y:src.y+dy, z:src.z+dz,
-      nPairs:src.nPairs, precision:src.precision, spread:src.spread,
-      pairLbls:src.pairLbls, dists:{...src.dists}, mireP:src.mireP,
-      rawObs:src.rawObs?[...src.rawObs]:[], usedRefs:src.usedRefs?[...src.usedRefs]:[],
-      perim:isPerim, offsetFrom:src.id, offsetDelta:{dx,dy,dz}
-    };
-    points.push(newPt);
-    if(isPerim) perimOrder.push(newPt.id);
-  }
-  tinCache=null; tinPointsHash='';
-  closeOffsetModal();
-  renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
-}
-
-// Cascade update: when source point changes, update all its offset dependents
-function cascadeOffsets(srcId){
-  const src = points.find(p=>p.id===srcId);
-  if(!src) return;
-  let updated=0;
-  points.filter(p=>p.offsetFrom===srcId).forEach(pt=>{
-    const d=pt.offsetDelta||{dx:0,dy:0,dz:0};
-    pt.x=src.x+d.dx; pt.y=src.y+d.dy; pt.z=src.z+d.dz;
-    updated++;
-  });
-  if(updated>0){ tinCache=null; tinPointsHash=''; renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll(); }
+function showHelpTab(idx){
+  document.querySelectorAll('.help-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.help-content').forEach((c,i)=>c.style.display=i===idx?'block':'none');
 }
 
 let cropisData = null;
@@ -3395,7 +3688,7 @@ function hideCroquis(){
   document.getElementById('croquis-overlay').classList.remove('vis');
 }
 
-document.addEventListener('keydown', e => { if(e.key==='Escape') hideCroquis(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ hideCroquis(); closeHelp(); } });
 
 // ── ZOOM / PAN ────────────────────────────────────────────────────────────────
 const view = { zoom: 1, panX: 0, panY: 0 };
@@ -4125,19 +4418,7 @@ canvas.addEventListener('click', e => {
   });
   if(best) perimEditTap(best.id);
 });
-// Canvas double-click → open offset modal on nearest point
-canvas.addEventListener('dblclick', e => {
-  if(perimEditMode) return;
-  const rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
-  const toC=canvas._toC; if(!toC) return;
-  let best=null, bestD=Infinity;
-  points.forEach(p=>{
-    const{cx,cy}=toC(p.x,p.y);
-    const d=Math.sqrt((mx-cx)**2+(my-cy)**2);
-    if(d<20&&d<bestD){bestD=d;best=p;}
-  });
-  if(best) openOffsetModal(best.id);
-});
+
 
 canvas.addEventListener('mousemove',e=>{
   const rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
@@ -4168,17 +4449,7 @@ function exportJSON(){
   const hasData = points.length || refs.some(r=>r.x!==''||r.y!=='') || unknownPoints.length;
   if(!hasData){ alert('Aucune donnée à exporter.'); return; }
   const dateSlug = new Date().toISOString().slice(0,10);
-  const data = {
-    refs, points, autoIdx,
-    unknownPoints, uAutoIdx,
-    perimOrder,
-    hi: document.getElementById('hi').value,
-    mireRef: document.getElementById('mire-ref').value,
-    spreadThreshold: pf(document.getElementById('spread-threshold').value)||200,
-    croquis: cropisData ? {data:cropisData,name:cropisName} : null,
-    savedAt: new Date().toISOString()
-  };
-  const content = JSON.stringify(data,null,2);
+  const content = buildSessionJSON();
   const filename = getProjectSlug()+'_session.json';
   dlOrShare(filename, content, 'application/json');
 }
@@ -4211,6 +4482,67 @@ function initExportNames(){
     if(el) el.value = el.value || '';
   });
 }
+
+
+// ── SHARED CONTENT BUILDERS (used by exports + rapport) ─────────────────────
+const strToU8 = str => new TextEncoder().encode(str);
+
+function buildCSVContent(){
+  const rows=[['ID','Nom','X','Y','Z','Paires','Précision_%','Spread_mm','Mire','Périmètre']];
+  points.forEach(p=>rows.push([p.id,p.name,fmt(p.x),fmt(p.y),fmt(p.z),p.nPairs,
+    p.precision!=null?p.precision:'',p.spread!=null?(p.spread*1000).toFixed(1):'',
+    fmt(p.mireP),perimOrder.includes(p.id)?'oui':'']));
+  return rows.map(r=>r.join(',')).join('\n');
+}
+
+function buildOBJContent(factor){
+  if(points.length < 3) return null;
+  factor = factor || pf(document.getElementById('export-unit').value) || 1;
+  const tris = getTIN();
+  if(!tris.length) return null;
+  const unitLabel = factor===1000?'mm':factor===100?'cm':'m';
+  const date = new Date().toLocaleDateString('fr-FR');
+  const lines = [`# TOPO·SURVEY — Export OBJ`,`# Unité : ${unitLabel} (×${factor})`,
+    `# ${points.length} sommets, ${tris.length} triangles`,`# ${date}`,'','o Terrain',''];
+  points.forEach(p=>lines.push(`v ${(p.x*factor).toFixed(4)} ${(p.z*factor).toFixed(4)} ${(-p.y*factor).toFixed(4)}`));
+  lines.push('');
+  tris.forEach(({a,b,c})=>lines.push(`f ${a+1} ${b+1} ${c+1}`));
+  return lines.join('\n');
+}
+
+function buildDXFContent(factor){
+  if(points.length < 3) return null;
+  factor = factor || pf(document.getElementById('export-unit').value) || 1;
+  const tris = getTIN();
+  if(!tris.length) return null;
+  const lines = ['0','SECTION','2','HEADER','9','$ACADVER','1','AC1009',
+    '9','$INSUNITS','70',factor===1000?'4':factor===100?'5':'6','0','ENDSEC','0','SECTION','2','ENTITIES'];
+  tris.forEach(({a,b,c})=>{
+    const pa=points[a],pb=points[b],pc=points[c];
+    lines.push('0','3DFACE','8','Terrain',
+      '10',(pa.x*factor).toFixed(4),'20',(pa.y*factor).toFixed(4),'30',(pa.z*factor).toFixed(4),
+      '11',(pb.x*factor).toFixed(4),'21',(pb.y*factor).toFixed(4),'31',(pb.z*factor).toFixed(4),
+      '12',(pc.x*factor).toFixed(4),'22',(pc.y*factor).toFixed(4),'32',(pc.z*factor).toFixed(4),
+      '13',(pc.x*factor).toFixed(4),'23',(pc.y*factor).toFixed(4),'33',(pc.z*factor).toFixed(4));
+  });
+  lines.push('0','ENDSEC','0','EOF');
+  return lines.join('\n');
+}
+
+function buildSessionJSON(){
+  return JSON.stringify({
+    refs, points, autoIdx,
+    unknownPoints, uAutoIdx,
+    perimOrder,
+    hi: document.getElementById('hi').value,
+    mireRef: document.getElementById('mire-ref').value,
+    projectName: document.getElementById('fname-project')?.value||'',
+    spreadThreshold: pf(document.getElementById('spread-threshold').value)||200,
+    croquis: cropisData ? {data:cropisData,name:cropisName} : null,
+    savedAt: new Date().toISOString()
+  },null,2);
+}
+
 
 function exportCSV(){
   if(!points.length)return;
@@ -4265,14 +4597,23 @@ function importFile(input){
   if(!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const content = e.target.result;
-    if(file.name.endsWith('.json')){
-      importJSON(content);
-    } else {
-      importCSV(content);
+    try {
+      const content = e.target.result.trim();
+      // Detect by content: JSON starts with { or [, else try CSV
+      const isJSON = content.startsWith('{') || content.startsWith('[') ||
+                     file.name.toLowerCase().endsWith('.json') ||
+                     file.type === 'application/json';
+      if(isJSON){
+        importJSON(content);
+      } else {
+        importCSV(content);
+      }
+    } catch(err){
+      alert('Erreur lors de l\'import : ' + err.message);
     }
-    input.value = ''; // reset so same file can be re-imported
+    setTimeout(()=>{ input.value = ''; }, 100);
   };
+  reader.onerror = () => alert('Impossible de lire le fichier.');
   reader.readAsText(file);
 }
 
@@ -4569,67 +4910,22 @@ function drawTIN(toC, surveyPts, triangles){
 
 // ── EXPORT OBJ ────────────────────────────────────────────────────────────────
 function exportOBJ(){
-  if(points.length < 3){ alert('Il faut au moins 3 points pour générer un maillage.'); return; }
-  const tris = getTIN();
-  if(!tris.length){ alert('Triangulation impossible avec ces points.'); return; }
-
   const factor = pf(document.getElementById('export-unit').value) || 1;
   const unitLabel = factor===1000?'mm':factor===100?'cm':'m';
-  const dateSlug = new Date().toISOString().slice(0,10);
-
-  const lines = [
-    `# TOPO·SURVEY — Export OBJ`,
-    `# Unité : ${unitLabel} (facteur ×${factor})`,
-    `# ${points.length} sommets, ${tris.length} triangles`,
-    `# Généré le ${new Date().toLocaleDateString('fr-FR')}`,
-    ``,
-    `o Terrain`,
-    ``
-  ];
-
-  points.forEach(p=>{
-    const x=(p.x*factor).toFixed(4), y=(p.z*factor).toFixed(4), z=(-p.y*factor).toFixed(4);
-    lines.push(`v ${x} ${y} ${z}`);
-  });
-  lines.push(``);
-  tris.forEach(({a,b,c})=>{ lines.push(`f ${a+1} ${b+1} ${c+1}`); });
-
-  const meshName = getProjectSlug()+'_terrain';
-  dlOrShare(`${meshName}_${unitLabel}.obj`, lines.join('\n'), 'text/plain');
+  const content = buildOBJContent(factor);
+  if(!content){ alert('Il faut au moins 3 points pour générer un maillage.'); return; }
+  dlOrShare(`${getProjectSlug()}_terrain_${unitLabel}.obj`, content, 'text/plain');
 }
+
 
 function exportDXF(){
-  if(points.length < 3){ alert('Il faut au moins 3 points pour générer un maillage.'); return; }
-  const tris = getTIN();
-  if(!tris.length){ alert('Triangulation impossible avec ces points.'); return; }
-
   const factor = pf(document.getElementById('export-unit').value) || 1;
   const unitLabel = factor===1000?'mm':factor===100?'cm':'m';
-  const dateSlug = new Date().toISOString().slice(0,10);
-
-  const lines = [
-    '0','SECTION','2','HEADER',
-    '9','$ACADVER','1','AC1009',
-    '9','$INSUNITS','70', factor===1000?'4':factor===100?'5':'6', // 4=mm, 5=cm, 6=m
-    '0','ENDSEC',
-    '0','SECTION','2','ENTITIES',
-  ];
-
-  tris.forEach(({a,b,c})=>{
-    const pa=points[a], pb=points[b], pc=points[c];
-    lines.push(
-      '0','3DFACE','8','Terrain',
-      '10',(pa.x*factor).toFixed(4), '20',(pa.y*factor).toFixed(4), '30',(pa.z*factor).toFixed(4),
-      '11',(pb.x*factor).toFixed(4), '21',(pb.y*factor).toFixed(4), '31',(pb.z*factor).toFixed(4),
-      '12',(pc.x*factor).toFixed(4), '22',(pc.y*factor).toFixed(4), '32',(pc.z*factor).toFixed(4),
-      '13',(pc.x*factor).toFixed(4), '23',(pc.y*factor).toFixed(4), '33',(pc.z*factor).toFixed(4),
-    );
-  });
-
-  lines.push('0','ENDSEC','0','EOF');
-  const meshNameD = getProjectSlug()+'_terrain';
-  dlOrShare(`${meshNameD}_${unitLabel}.dxf`, lines.join('\n'), 'application/dxf');
+  const content = buildDXFContent(factor);
+  if(!content){ alert('Il faut au moins 3 points pour générer un maillage.'); return; }
+  dlOrShare(`${getProjectSlug()}_terrain_${unitLabel}.dxf`, content, 'application/dxf');
 }
+
 
 // ── RAPPORT ───────────────────────────────────────────────────────────────────
 function openRapportModal(){
@@ -4701,59 +4997,14 @@ async function sendRapport(){
   const zipFiles = {}; // { filename: Uint8Array }
 
   // CSV
-  if(wantCSV){
-    const rows=[['ID','Nom','X','Y','Z','Paires','Précision_%','Spread_mm','Mire','Périmètre']];
-    points.forEach(p=>rows.push([p.id,p.name,fmt(p.x),fmt(p.y),fmt(p.z),p.nPairs,
-      p.precision!=null?p.precision:'',p.spread!=null?(p.spread*1000).toFixed(1):'',
-      fmt(p.mireP),perimOrder.includes(p.id)?'oui':'']));
-    zipFiles[`topo_points_${dateSlug}.csv`] = strToU8(rows.map(r=>r.join(',')).join('\n'));
-  }
+  if(wantCSV) zipFiles[`topo_points_${dateSlug}.csv`] = strToU8(buildCSVContent());
 
   // OBJ
-  if(wantOBJ && points.length >= 3){
-    const tris = getTIN();
-    if(tris.length){
-      const lines=[`# TOPO·SURVEY — ${date}`,`# ${points.length} sommets`,'','o Terrain',''];
-      const uf=pf(document.getElementById('export-unit').value)||1;
-      points.forEach(p=>lines.push(`v ${(p.x*uf).toFixed(4)} ${(p.z*uf).toFixed(4)} ${(-p.y*uf).toFixed(4)}`));
-      lines.push('');
-      tris.forEach(({a,b,c})=>lines.push(`f ${a+1} ${b+1} ${c+1}`));
-      zipFiles[`terrain_${dateSlug}.obj`] = strToU8(lines.join('\n'));
-    }
-  }
+  if(wantOBJ){ const o=buildOBJContent(); if(o) zipFiles[`terrain_${dateSlug}.obj`]=strToU8(o); }
 
-  // DXF
-  if(wantDXF && points.length >= 3){
-    const tris = getTIN();
-    if(tris.length){
-      const lines=['0','SECTION','2','HEADER','9','$ACADVER','1','AC1009','0','ENDSEC','0','SECTION','2','ENTITIES'];
-      tris.forEach(({a,b,c})=>{
-        const pa=points[a],pb=points[b],pc=points[c];
-        lines.push('0','3DFACE','8','Terrain',
-          '10',pa.x.toFixed(4),'20',pa.y.toFixed(4),'30',pa.z.toFixed(4),
-          '11',pb.x.toFixed(4),'21',pb.y.toFixed(4),'31',pb.z.toFixed(4),
-          '12',pc.x.toFixed(4),'22',pc.y.toFixed(4),'32',pc.z.toFixed(4),
-          '13',pc.x.toFixed(4),'23',pc.y.toFixed(4),'33',pc.z.toFixed(4));
-      });
-      lines.push('0','ENDSEC','0','EOF');
-      zipFiles[`terrain_${dateSlug}.dxf`] = strToU8(lines.join('\n'));
-    }
-  }
+  if(wantDXF){ const d=buildDXFContent(); if(d) zipFiles[`terrain_${dateSlug}.dxf`]=strToU8(d); }
 
-  // JSON
-  if(wantJSON){
-    const content = JSON.stringify({
-      refs, points, autoIdx,
-      unknownPoints, uAutoIdx,
-      perimOrder,
-      hi: document.getElementById('hi').value,
-      mireRef: document.getElementById('mire-ref').value,
-      spreadThreshold: pf(document.getElementById('spread-threshold').value)||200,
-      croquis: cropisData ? {data:cropisData,name:cropisName} : null,
-      savedAt: new Date().toISOString()
-    },null,2);
-    zipFiles[`session_${dateSlug}.json`] = strToU8(content);
-  }
+  if(wantJSON) zipFiles[`session_${dateSlug}.json`]=strToU8(buildSessionJSON());
 
   // PNG
   if(wantPNG){
@@ -4783,11 +5034,7 @@ async function sendRapport(){
   bodyLines.push('','─'.repeat(40),`Généré par TOPO·SURVEY`);
   zipFiles[`rapport_${dateSlug}.txt`] = strToU8(bodyLines.join('\n'));
 
-  // Helper: string → Uint8Array (UTF-8)
-  function strToU8(str){ return new TextEncoder().encode(str); }
-
   // Build ZIP with fflate
-  const hasZip = typeof fflate !== 'undefined';
   const zipBaseName = getExportName('fname-zip', `rapport_${dateSlug}`);
   const zipName = zipBaseName.endsWith('.zip') ? zipBaseName : zipBaseName+'.zip';
 
@@ -4844,200 +5091,6 @@ async function sendRapport(){
   setTimeout(()=>closeRapportModal(), 600);
 }
 
-async function sendRapport(){
-  const wantPNG  = document.getElementById('rpt-png').checked;
-  const wantCSV  = document.getElementById('rpt-csv').checked;
-  const wantOBJ  = document.getElementById('rpt-obj').checked;
-  const wantDXF  = document.getElementById('rpt-dxf').checked;
-  const wantJSON = document.getElementById('rpt-json').checked;
-  const email    = document.getElementById('rpt-email').value.trim();
-
-  if(!wantPNG && !wantCSV && !wantOBJ && !wantDXF && !wantJSON){
-    alert('Sélectionnez au moins un fichier.'); return;
-  }
-
-  const date = new Date().toLocaleDateString('fr-FR');
-  const dateSlug = new Date().toISOString().slice(0,10);
-
-  // Build email body
-  const bodyLines = [
-    `Relevé topographique — ${date}`,
-    `${points.length} point(s) mesuré(s)`, '',
-    'ID | Nom | X | Y | Z | Précision',
-    ...points.map(p=>`${p.id} | ${p.name} | ${fmt(p.x)} | ${fmt(p.y)} | ${fmt(p.z)} | ${p.precision!=null?p.precision+'%':'—'}`),
-  ];
-  if(perimOrder.length >= 3){
-    const perimPts = perimOrder.map(id=>points.find(p=>p.id===id)).filter(Boolean);
-    bodyLines.push('', `Surface projetée : ${formatArea(shoelaceArea(perimPts))}`,
-      `Surface réelle : ${formatArea(realSurfaceArea(perimPts))}`,
-      `Périmètre : ${perimLength(perimPts).toFixed(2)} m`);
-  }
-  const body = bodyLines.join('\n');
-
-  // Assemble File objects
-  const shareFiles = [];
-
-  if(wantCSV){
-    const rows=[['ID','Nom','X','Y','Z','Paires','Précision_%','Spread_mm','Mire','Périmètre']];
-    points.forEach(p=>rows.push([p.id,p.name,fmt(p.x),fmt(p.y),fmt(p.z),p.nPairs,
-      p.precision!=null?p.precision:'',p.spread!=null?(p.spread*1000).toFixed(1):'',
-      fmt(p.mireP),perimOrder.includes(p.id)?'oui':'']));
-    shareFiles.push(new File([rows.map(r=>r.join(',')).join('\n')],
-      `topo_points_${dateSlug}.csv`, {type:'text/csv'}));
-  }
-
-  if(wantPNG){
-    const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
-    shareFiles.push(new File([blob], `plan_2d_${dateSlug}.png`, {type:'image/png'}));
-  }
-
-  if(wantOBJ && points.length >= 3){
-    const tris = getTIN();
-    if(tris.length){
-      const lines=[`# TOPO·SURVEY — ${date}`,`# ${points.length} sommets`,'','o Terrain',''];
-      const uf=pf(document.getElementById('export-unit').value)||1;
-      points.forEach(p=>lines.push(`v ${(p.x*uf).toFixed(4)} ${(p.z*uf).toFixed(4)} ${(-p.y*uf).toFixed(4)}`));
-      lines.push('');
-      tris.forEach(({a,b,c})=>lines.push(`f ${a+1} ${b+1} ${c+1}`));
-      shareFiles.push(new File([lines.join('\n')], `terrain_${dateSlug}.obj`, {type:'text/plain'}));
-    }
-  }
-
-  if(wantDXF && points.length >= 3){
-    const tris = getTIN();
-    if(tris.length){
-      const lines=['0','SECTION','2','HEADER','9','$ACADVER','1','AC1009','0','ENDSEC','0','SECTION','2','ENTITIES'];
-      tris.forEach(({a,b,c})=>{
-        const pa=points[a],pb=points[b],pc=points[c];
-        lines.push('0','3DFACE','8','Terrain',
-          '10',pa.x.toFixed(4),'20',pa.y.toFixed(4),'30',pa.z.toFixed(4),
-          '11',pb.x.toFixed(4),'21',pb.y.toFixed(4),'31',pb.z.toFixed(4),
-          '12',pc.x.toFixed(4),'22',pc.y.toFixed(4),'32',pc.z.toFixed(4),
-          '13',pc.x.toFixed(4),'23',pc.y.toFixed(4),'33',pc.z.toFixed(4));
-      });
-      lines.push('0','ENDSEC','0','EOF');
-      shareFiles.push(new File([lines.join('\n')], `terrain_${dateSlug}.dxf`, {type:'text/plain'}));
-    }
-  }
-
-  if(wantJSON){
-    const content=JSON.stringify({refs,points,unknownPoints,perimOrder,savedAt:new Date().toISOString()},null,2);
-    shareFiles.push(new File([content], `session_${dateSlug}.json`, {type:'application/json'}));
-  }
-
-  // ── iOS / mobile : Web Share API ──────────────────────────────────────────
-  if(navigator.share){
-    const shareData = {
-      title: `Relevé topo — ${date}`,
-      text: body,
-    };
-    // Add files only if supported
-    if(shareFiles.length && navigator.canShare && navigator.canShare({files: shareFiles})){
-      shareData.files = shareFiles;
-    }
-    try {
-      await navigator.share(shareData);
-      closeRapportModal();
-      return;
-    } catch(e){
-      if(e.name === 'AbortError'){ return; } // user cancelled — do nothing
-      // Other error — fall through to download fallback
-    }
-  }
-
-  // ── Desktop fallback : download + mailto ──────────────────────────────────
-  shareFiles.forEach(f => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(f);
-    a.download = f.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
-  });
-
-  const subject = encodeURIComponent(`Relevé topographique — ${date}`);
-  const mailBody = encodeURIComponent(body + '\n\n(Fichiers téléchargés séparément)');
-  setTimeout(()=>{ window.location.href = `mailto:${email}?subject=${subject}&body=${mailBody}`; }, 500);
-
-  closeRapportModal();
-}
-
-function clearAll(){
-  if(!confirm('Supprimer tous les points et effacer la sauvegarde ?'))return;
-  points=[];autoIdx=1;unknownPoints=[];uAutoIdx=1;
-  pendingRecalc=null; tinCache=null; tinPointsHash='';
-  perimOrder=[]; editingPointId=null;
-  view.zoom=1; view.panX=0; view.panY=0;
-  document.getElementById('zoom-level').textContent='100%';
-  document.getElementById('recalc-banner').classList.remove('vis');
-  localStorage.removeItem(STORAGE_KEY);
-  document.getElementById('si').className='save-indicator';
-  document.getElementById('sl').textContent='Aucune sauvegarde';
-  buildAll();
-}
-
-function buildAll(){
-  buildRefCards();
-  buildDistGrid();
-  buildUDistGrid();
-  buildUPanel();
-  updateValidity();
-  checkGeometry();
-  renderTable();
-  renderCanvas();
-  updateStats();
-  attachNormalizers();
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-// Defer canvas redraw so layout has time to reflow after resize/rotation
-function onResize(){
-  requestAnimationFrame(()=>{ requestAnimationFrame(renderCanvas); });
-}
-window.addEventListener('resize', onResize);
-window.addEventListener('orientationchange', ()=>{ setTimeout(renderCanvas, 200); });
-document.getElementById('hi').addEventListener('input',saveAll);
-document.getElementById('mire-ref').addEventListener('input',saveAll);
-
-buildAll();
-initExportNames();
-const saved=loadSaved();
-if(saved){
-  if(saved.points&&saved.points.length>0) showRestoreBanner(saved);
-  else restoreSession(saved);
-}
-
-// ── PWA INSTALL PROMPT ────────────────────────────────────────────────────────
-let deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  document.getElementById('install-banner').classList.add('vis');
-});
-document.getElementById('install-btn').addEventListener('click', async () => {
-  if(!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  const {outcome} = await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt = null;
-  document.getElementById('install-banner').classList.remove('vis');
-  if(outcome === 'accepted') console.log('PWA installée');
-});
-window.addEventListener('appinstalled', () => {
-  document.getElementById('install-banner').classList.remove('vis');
-});
-
-// ── PWA SERVICE WORKER ────────────────────────────────────────────────────────
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js')
-    .then(reg => {
-      reg.addEventListener('updatefound', () => {
-        const newSW = reg.installing;
-        newSW.addEventListener('statechange', () => {});
-      });
-    })
-    .catch(()=>{}); // silently ignore in local file mode
-}
 </script>
-</body>
+
 </html>
