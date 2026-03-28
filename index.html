@@ -350,6 +350,9 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 .help-step-body{font-size:11px;color:var(--text-dim);line-height:1.6;}
 .help-step-body strong{color:var(--text);}
 
+.edit-fullscreen{max-width:100vw!important;width:100vw!important;height:100vh;border-radius:0!important;margin:0!important;}
+.edit-fullscreen #edit-canvas{min-height:calc(100vh - 56px)!important;}
+
 /* Croquis overlay */
 .croquis-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;display:none;align-items:center;justify-content:center;cursor:zoom-out;flex-direction:column;gap:10px;}
 .croquis-overlay.vis{display:flex;}
@@ -679,6 +682,21 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
         <button class="contour-btn" id="contour-btn" onclick="toggleContours()" title="Courbes de niveau">
           <span>⛰</span><span id="contour-label">Courbes</span>
         </button>
+        <!-- IDW smoothing — shown when contours active -->
+        <div id="idw-controls" style="display:none;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:9px;color:var(--text-dim)">Lissage:</span>
+          <input type="range" id="idw-smooth" min="0" max="100" value="30" step="5"
+            style="width:60px;accent-color:var(--yellow);cursor:pointer"
+            oninput="document.getElementById('idw-smooth-val').textContent=this.value+'%';renderCanvas()"
+            title="Lissage IDW — augmenter pour réduire les îles isolées">
+          <span id="idw-smooth-val" style="font-size:9px;color:var(--yellow);min-width:26px">30%</span>
+          <span style="font-size:9px;color:var(--text-dim);margin-left:4px">Lignes:</span>
+          <input type="range" id="contour-density" min="3" max="30" value="7" step="1"
+            style="width:60px;accent-color:var(--yellow);cursor:pointer"
+            oninput="document.getElementById('contour-density-val').textContent=this.value;renderCanvas()"
+            title="Nombre de courbes de niveau">
+          <span id="contour-density-val" style="font-size:9px;color:var(--yellow);min-width:18px">7</span>
+        </div>
         <button class="perim-btn" id="perim-edit-btn" onclick="togglePerimEdit()" title="Éditer l'ordre du périmètre">
           <span>⬡</span><span id="perim-edit-label">Périmètre</span>
         </button>
@@ -1249,48 +1267,79 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
 
 <!-- ── EDIT POINT MODAL ──────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="edit-overlay" onclick="if(event.target===this)closeEditModal()">
-  <div class="modal" style="max-width:420px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h3 id="edit-title" style="margin:0">📐 Modifier le point</h3>
-      <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:4px">✕</button>
-    </div>
+  <div class="modal" id="edit-modal" style="max-width:860px;width:95vw;padding:0;overflow:hidden">
 
-    <!-- Current coords (read-only) -->
-    <div id="edit-current" style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);line-height:1.8"></div>
-
-    <!-- Distances -->
-    <div class="sec-label" style="margin-top:0">Distances au télémètre</div>
-    <div id="edit-dist-grid" style="display:grid;gap:6px;margin-bottom:10px"></div>
-
-    <!-- Mire + Nom -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-      <div class="ig">
-        <label>Mire en P (m)</label>
-        <input type="text" inputmode="decimal" id="edit-mire" placeholder="—"
-          style="background:var(--surface2);border:1px solid var(--yellow);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
-      </div>
-      <div class="ig">
-        <label>Nom (optionnel)</label>
-        <input type="text" id="edit-name" placeholder="—"
-          style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)">
+      <h3 id="edit-title" style="margin:0;font-size:14px">📐 Modifier le point</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="edit-fs-btn" onclick="toggleEditFullscreen()" title="Plein écran"
+          style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-size:13px;cursor:pointer;padding:3px 8px">⛶</button>
+        <button onclick="closeEditModal()" style="background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:4px">✕</button>
       </div>
     </div>
 
-    <!-- Mirror selector (shown only for 1 pair) -->
-    <div id="edit-mirror-row" style="display:none;margin-bottom:10px">
-      <div class="side-selector">
-        <span>2 solutions — choisissez le côté :</span>
-        <button class="side-btn active" id="edit-side-auto" onclick="editSetSide('auto')">Auto</button>
-        <button class="side-btn" id="edit-side-flip" onclick="editSetSide('flip')">⇄ Miroir</button>
+    <!-- Body: two columns -->
+    <div style="display:flex;flex-wrap:wrap;min-height:400px">
+
+      <!-- LEFT: form -->
+      <div style="flex:1;min-width:260px;padding:16px 18px;border-right:1px solid var(--border);overflow-y:auto;max-height:75vh">
+
+        <!-- Current coords -->
+        <div id="edit-current" style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);line-height:1.8"></div>
+
+        <!-- Distances -->
+        <div class="sec-label" style="margin-top:0">Distances au télémètre</div>
+        <div id="edit-dist-grid" style="display:grid;gap:5px;margin-bottom:10px"></div>
+
+        <!-- Mire + Nom -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="ig">
+            <label>Mire en P (m)</label>
+            <input type="text" inputmode="decimal" id="edit-mire" placeholder="—"
+              style="background:var(--surface2);border:1px solid var(--yellow);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
+          </div>
+          <div class="ig">
+            <label>Nom (optionnel)</label>
+            <input type="text" id="edit-name" placeholder="—"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
+          </div>
+        </div>
+
+        <!-- Mirror selector -->
+        <div id="edit-mirror-row" style="display:none;margin-bottom:10px">
+          <div class="side-selector">
+            <span>2 solutions — choisissez le côté :</span>
+            <button class="side-btn active" id="edit-side-auto" onclick="editSetSide('auto')">Auto</button>
+            <button class="side-btn" id="edit-side-flip" onclick="editSetSide('flip')">⇄ Miroir</button>
+          </div>
+        </div>
+
+        <!-- Result preview -->
+        <div id="edit-result" style="background:var(--surface2);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:11px;display:none"></div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" style="flex:1" onclick="closeEditModal()">Annuler</button>
+          <button class="btn btn-primary" style="flex:1;background:var(--accent2)" id="edit-confirm-btn" onclick="confirmEdit()">✓ Mettre à jour</button>
+        </div>
       </div>
-    </div>
 
-    <!-- Result preview -->
-    <div id="edit-result" style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:12px;display:none"></div>
+      <!-- RIGHT: canvas -->
+      <div style="flex:2;min-width:280px;position:relative;background:var(--surface2)">
+        <canvas id="edit-canvas" style="width:100%;height:100%;min-height:380px;display:block"></canvas>
+        <!-- Canvas zoom controls -->
+        <div style="position:absolute;bottom:8px;right:8px;display:flex;gap:4px">
+          <button onclick="editZoom(1.25)" style="width:26px;height:26px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px">+</button>
+          <button onclick="editZoom(0.8)" style="width:26px;height:26px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px">−</button>
+          <button onclick="editZoomReset()" style="width:26px;height:26px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:11px">⌂</button>
+        </div>
+        <!-- Legend -->
+        <div style="position:absolute;top:8px;left:8px;font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);line-height:1.8;background:var(--surface)99;border-radius:4px;padding:4px 7px">
+          ◉ Point édité &nbsp; ○ Autres points<br>◆ Référence &nbsp; ⊙ Cercle mesuré
+        </div>
+      </div>
 
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-ghost" style="flex:1" onclick="closeEditModal()">Annuler</button>
-      <button class="btn btn-primary" style="flex:1;background:var(--accent2)" id="edit-confirm-btn" onclick="confirmEdit()">✓ Mettre à jour</button>
     </div>
   </div>
 </div>
@@ -1644,6 +1693,11 @@ function resetUToCollecting(uId){
 function toggleUActive(id){
   const u = unknownPoints.find(u => u.id === id);
   if(!u || (u.status !== 'resolved' && u.status !== 'active')) return;
+  // Block activation if mirror ambiguity not resolved
+  if(u.status === 'resolved' && u.xAlt !== null){
+    alert('⚠ Confirmez d\'abord le côté (A ou B) avant d\'activer ce point comme référence.');
+    return;
+  }
   u.status = u.status === 'active' ? 'resolved' : 'active';
   buildUPanel(); buildDistGrid(); buildUDistGrid(); checkGeometry(); renderCanvas(); saveAll();
 }
@@ -2680,12 +2734,73 @@ function renderTable(){
 
 let editPointId = null;
 let editSideFlip = false;
+let editCanvasZoom = 1;
+let editCanvasPan = {x:0, y:0};
+let editCanvasDragging = false;
+let editCanvasDragStart = {x:0, y:0};
+
+function editZoom(factor){
+  editCanvasZoom *= factor;
+  editDrawCanvas();
+}
+function editZoomReset(){
+  editCanvasZoom = 1;
+  editCanvasPan = {x:0, y:0};
+  editDrawCanvas();
+}
+function toggleEditFullscreen(){
+  const modal = document.getElementById('edit-modal');
+  const btn = document.getElementById('edit-fs-btn');
+  const isFs = modal.classList.toggle('edit-fullscreen');
+  btn.textContent = isFs ? '✕' : '⛶';
+  setTimeout(editDrawCanvas, 50);
+}
+
+// Attach pan events to canvas
+function editAttachCanvasEvents(){
+  const cvs = document.getElementById('edit-canvas');
+  if(!cvs || cvs._editEventsAttached) return;
+  cvs._editEventsAttached = true;
+  const getPos = e => {
+    const r = cvs.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return {x: src.clientX - r.left, y: src.clientY - r.top};
+  };
+  cvs.addEventListener('mousedown', e=>{ editCanvasDragging=true; editCanvasDragStart=getPos(e); });
+  cvs.addEventListener('touchstart', e=>{ editCanvasDragging=true; editCanvasDragStart=getPos(e); },{passive:true});
+  cvs.addEventListener('mousemove', e=>{
+    if(!editCanvasDragging) return;
+    const p=getPos(e);
+    editCanvasPan.x+=p.x-editCanvasDragStart.x;
+    editCanvasPan.y+=p.y-editCanvasDragStart.y;
+    editCanvasDragStart=p;
+    editDrawCanvas();
+  });
+  cvs.addEventListener('touchmove', e=>{
+    if(!editCanvasDragging) return;
+    const p=getPos(e);
+    editCanvasPan.x+=p.x-editCanvasDragStart.x;
+    editCanvasPan.y+=p.y-editCanvasDragStart.y;
+    editCanvasDragStart=p;
+    editDrawCanvas();
+  },{passive:true});
+  const stopDrag = ()=>{ editCanvasDragging=false; };
+  cvs.addEventListener('mouseup', stopDrag);
+  cvs.addEventListener('touchend', stopDrag);
+  cvs.addEventListener('wheel', e=>{
+    e.preventDefault();
+    editCanvasZoom *= e.deltaY<0 ? 1.1 : 0.9;
+    editDrawCanvas();
+  },{passive:false});
+}
 
 function editPoint(id){
   const p = points.find(p=>p.id===id);
   if(!p) return;
   editPointId = id;
   editSideFlip = false;
+  editCanvasZoom = 1;
+  editCanvasPan = {x:0, y:0};
 
   document.getElementById('edit-title').textContent = `📐 Modifier ${ptLabel(p)}`;
   document.getElementById('edit-current').innerHTML =
@@ -2695,7 +2810,7 @@ function editPoint(id){
 
   // Build distance inputs
   const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
-  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const activeU = unknownPoints.filter(u=>u.status==='active'&&u.x!==null);
   const grid = document.getElementById('edit-dist-grid');
   grid.style.gridTemplateColumns = activeRefs.length + activeU.length <= 3 ? '1fr' : '1fr 1fr';
 
@@ -2708,14 +2823,26 @@ function editPoint(id){
           oninput="editCalcPreview()" style="background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;width:100%;outline:none;text-align:right">
         <span class="dist-unit">m</span>
       </div>`),
-    ...activeU.map(u=>`
-      <div class="dist-item" style="border-color:#9070ff">
-        <label><span class="rdot" style="background:#9070ff"></span>${uDisplayLabel(u)}</label>
+    ...activeU.map(u=>{
+      // Try uDists, then dists, then rawObs
+      const distVal = (p.uDists&&p.uDists[u.id]) ? fmt(p.uDists[u.id],3)
+                    : (p.dists&&p.dists[u.id])   ? fmt(p.dists[u.id],3)
+                    : '';
+      const hasAlt = u.xAlt !== null && u.yAlt !== null;
+      return `
+      <div class="dist-item" style="border-color:#9070ff;padding-bottom:6px">
+        <label style="display:flex;align-items:center;justify-content:space-between;width:100%">
+          <span><span class="rdot" style="background:#9070ff"></span>${uDisplayLabel(u)}</span>
+          ${hasAlt ? `<button onclick="event.preventDefault();flipUFromEdit('${u.id}')"
+            style="font-size:9px;padding:2px 6px;border-radius:3px;border:1px solid #9070ff;background:#9070ff18;color:#9070ff;cursor:pointer;font-family:'DM Mono',monospace;margin-left:6px"
+            title="Basculer côté miroir de ce U">↔ Miroir U</button>` : ''}
+        </label>
         <input type="text" inputmode="decimal" id="edit-d-${u.id}" placeholder="—"
-          value="${p.uDists&&p.uDists[u.id]?fmt(p.uDists[u.id],3):''}"
+          value="${distVal}"
           oninput="editCalcPreview()" style="background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;width:100%;outline:none;text-align:right">
         <span class="dist-unit">m</span>
-      </div>`)
+      </div>`;
+    })
   ].join('');
 
   document.getElementById('edit-mire').value = fmt(p.mireP);
@@ -2727,11 +2854,28 @@ function editPoint(id){
 
   document.getElementById('edit-overlay').classList.add('vis');
   editCalcPreview();
+  // Draw canvas after a short delay to ensure layout is complete
+  setTimeout(editDrawCanvas, 50);
 }
 
 function closeEditModal(){
   document.getElementById('edit-overlay').classList.remove('vis');
   editPointId = null;
+}
+
+function flipUFromEdit(uId){
+  const u = unknownPoints.find(u=>u.id===uId);
+  if(!u || u.xAlt===null) return;
+  // Swap main and alt
+  const tmpX=u.x, tmpY=u.y;
+  u.x=u.xAlt; u.y=u.yAlt;
+  u.xAlt=tmpX; u.yAlt=tmpY;
+  // Rebuild the edit modal dist grid to reflect new U position
+  buildUPanel(); renderCanvas(); saveAll();
+  // Reopen edit modal with new state
+  const pid = editPointId;
+  closeEditModal();
+  setTimeout(()=>editPoint(pid), 50);
 }
 
 function editSetSide(mode){
@@ -2741,10 +2885,199 @@ function editSetSide(mode){
   editCalcPreview();
 }
 
+function editDrawCanvas(){
+  const cvs = document.getElementById('edit-canvas');
+  if(!cvs) return;
+  editAttachCanvasEvents();
+  const dpr = window.devicePixelRatio||1;
+  const W = cvs.offsetWidth||400, H = cvs.offsetHeight||380;
+  cvs.width = W*dpr; cvs.height = H*dpr;
+  const ctx = cvs.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle = themeColor('#0e1210','#eef2ee');
+  ctx.fillRect(0,0,W,H);
+
+  const pad = 32;
+  const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
+  const activeU = unknownPoints.filter(u=>u.status==='active'&&u.x!==null);
+  const p = points.find(p=>p.id===editPointId);
+
+  const allBounds = [
+    ...activeRefs.map(r=>({x:pf(r.x),y:pf(r.y)})),
+    ...activeU.map(u=>({x:u.x,y:u.y})),
+    ...points.map(p=>({x:p.x,y:p.y}))
+  ];
+  if(allBounds.length < 1) return;
+
+  const xs=allBounds.map(b=>b.x), ys=allBounds.map(b=>b.y);
+  let mnX=Math.min(...xs),mxX=Math.max(...xs),mnY=Math.min(...ys),mxY=Math.max(...ys);
+  const mg=Math.max((mxX-mnX)*.25,(mxY-mnY)*.25,1);
+  mnX-=mg; mxX+=mg; mnY-=mg; mxY+=mg;
+  const rX=mxX-mnX, rY=mxY-mnY;
+  const avW=W-2*pad, avH=H-2*pad;
+  const scBase=Math.min(avW/rX,avH/rY);
+  const sc = scBase * editCanvasZoom;
+  const dH=rY*sc;
+  const oX=pad+(avW-rX*sc)/2 + editCanvasPan.x;
+  const oY=pad+(avH-dH)/2 + editCanvasPan.y;
+  function tC(wx,wy){return{cx:oX+(wx-mnX)*sc, cy:oY+dH-(wy-mnY)*sc};}
+
+  // Collect filled distances
+  const allRefObjs = [...activeRefs, ...activeU];
+  const filledDists = allRefObjs.map(r=>{
+    const inp = document.getElementById('edit-d-'+r.id);
+    if(!inp) return null;
+    const d = pf(inp.value);
+    if(isNaN(d)||d<=0) return null;
+    return {ref:r, dist:d};
+  }).filter(Boolean);
+
+  // Draw intersection points for each pair (shows where circles cross)
+  const allRefObjs2 = [...activeRefs, ...activeU];
+  const filledDists2 = allRefObjs2.map(r=>{
+    const inp = document.getElementById('edit-d-'+r.id);
+    if(!inp) return null;
+    const d = pf(inp.value);
+    if(isNaN(d)||d<=0) return null;
+    return {ref:r, dist:d};
+  }).filter(Boolean);
+
+  if(filledDists2.length >= 2){
+    for(let i=0;i<filledDists2.length;i++){
+      for(let j=i+1;j<filledDists2.length;j++){
+        const a=filledDists2[i], b=filledDists2[j];
+        const res=trilaterate2(pf(a.ref.x),pf(a.ref.y),pf(b.ref.x),pf(b.ref.y),a.dist,b.dist);
+        if(!res) continue;
+        // Draw chosen solution (filled)
+        const chosen = pickSide(res.p1,res.p2,editSideFlip);
+        const cp=tC(chosen.x,chosen.y);
+        ctx.beginPath();ctx.arc(cp.cx,cp.cy,4,0,Math.PI*2);
+        ctx.fillStyle='rgba(255,220,80,0.9)';ctx.fill();
+        // Draw alt solution (hollow) if ambiguous
+        if(res.ambiguous){
+          const other = chosen===res.p1?res.p2:res.p1;
+          const op=tC(other.x,other.y);
+          ctx.beginPath();ctx.arc(op.cx,op.cy,4,0,Math.PI*2);
+          ctx.strokeStyle='rgba(255,120,80,0.7)';ctx.lineWidth=1.5;ctx.stroke();
+        }
+      }
+    }
+  }
+  points.forEach(pt=>{
+    if(pt.id===editPointId) return;
+    const{cx,cy}=tC(pt.x,pt.y);
+    ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2);
+    ctx.fillStyle=themeColor('rgba(168,224,99,0.18)','rgba(40,80,40,0.3)');
+    ctx.fill();
+    ctx.fillStyle=themeColor('rgba(168,224,99,0.4)','rgba(40,80,40,0.6)');
+    ctx.font='8px DM Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText(ptLabel(pt),cx+4,cy-3);
+  });
+
+  // Circles for each filled distance
+  filledDists.forEach(({ref,dist})=>{
+    const{cx,cy}=tC(pf(ref.x),pf(ref.y));
+    const r_px = dist*sc;
+    const col = ref.color||'#9070ff';
+    ctx.beginPath(); ctx.arc(cx,cy,r_px,0,Math.PI*2);
+    ctx.strokeStyle=col+'88'; ctx.lineWidth=1.5;
+    ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+    // Filled arc highlight at intersection zone
+    ctx.beginPath(); ctx.arc(cx,cy,r_px,0,Math.PI*2);
+    ctx.fillStyle=col+'0a'; ctx.fill();
+  });
+
+  // Draw refs
+  activeRefs.forEach(r=>{
+    const{cx,cy}=tC(pf(r.x),pf(r.y)), s=7;
+    ctx.beginPath();ctx.moveTo(cx,cy-s);ctx.lineTo(cx+s,cy);ctx.lineTo(cx,cy+s);ctx.lineTo(cx-s,cy);ctx.closePath();
+    ctx.fillStyle=r.color+'44';ctx.fill();
+    ctx.strokeStyle=r.color;ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle=r.color;ctx.font='bold 9px Syne,sans-serif';ctx.textAlign='center';
+    ctx.fillText(refDisplayLabel(r),cx,cy-s-4);
+  });
+
+  // Draw U refs
+  activeU.forEach(u=>{
+    const{cx,cy}=tC(u.x,u.y);
+    ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);
+    ctx.fillStyle='#9070ff33';ctx.fill();
+    ctx.strokeStyle='#9070ff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#9070ff';ctx.font='bold 9px Syne,sans-serif';ctx.textAlign='center';
+    ctx.fillText(uDisplayLabel(u),cx,cy-9);
+  });
+
+  // Lines from edited point to used refs
+  if(p){
+    const np=tC(p.x,p.y);
+    filledDists.forEach(({ref})=>{
+      const rp=tC(pf(ref.x),pf(ref.y));
+      ctx.beginPath();ctx.moveTo(np.cx,np.cy);ctx.lineTo(rp.cx,rp.cy);
+      ctx.strokeStyle=(ref.color||'#9070ff')+'55';
+      ctx.lineWidth=1;ctx.setLineDash([2,5]);ctx.stroke();ctx.setLineDash([]);
+    });
+    // Edited point
+    const{cx,cy}=tC(p.x,p.y);
+    ctx.beginPath();ctx.arc(cx,cy,16,0,Math.PI*2);
+    ctx.fillStyle='rgba(99,180,224,0.12)';ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);
+    ctx.fillStyle='#63b4e0';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#63b4e0';ctx.font='bold 10px Syne,sans-serif';ctx.textAlign='left';
+    ctx.fillText(ptLabel(p),cx+11,cy+4);
+  }
+}
+
+function bestSideCombo(pairs){
+  // Find which pairs are ambiguous
+  const results = pairs.map(([a,b])=>trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist));
+  const ambigIdx = results.map((r,i)=>r&&r.ambiguous?i:-1).filter(i=>i>=0);
+
+  if(!ambigIdx.length){
+    // No ambiguity — just pick p1 for all
+    const cands=[], lbls=[];
+    results.forEach((res,i)=>{
+      if(!res) return;
+      const [a,b]=pairs[i];
+      cands.push({x:res.p1.x,y:res.p1.y,w:1/(a.dist*b.dist)});
+      lbls.push(`${a.id}-${b.id}`);
+    });
+    return {cands, lbls, flipped:false};
+  }
+
+  // Try all 2^n combinations for ambiguous pairs (cap at 2^6=64)
+  const n = Math.min(ambigIdx.length, 6);
+  let bestSpread=Infinity, bestCands=null, bestLbls=null;
+
+  for(let mask=0; mask<(1<<n); mask++){
+    const cands=[], lbls=[];
+    let valid = true;
+    results.forEach((res,i)=>{
+      if(!res){ valid=false; return; }
+      const [a,b]=pairs[i];
+      let chosen;
+      if(!res.ambiguous){
+        chosen=res.p1;
+      } else {
+        const ai=ambigIdx.indexOf(i);
+        chosen = (ai>=0 && (mask>>ai)&1) ? res.p2 : res.p1;
+      }
+      cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
+      lbls.push(`${a.id}-${b.id}`);
+    });
+    if(!valid||!cands.length) continue;
+    const final=weightedAvg(cands);
+    const prec=precScore(cands,final);
+    const spread=prec?prec.spread:Infinity;
+    if(spread<bestSpread){ bestSpread=spread; bestCands=[...cands]; bestLbls=[...lbls]; }
+  }
+  return {cands:bestCands||[], lbls:bestLbls||[], flipped:false};
+}
+
 function editCalcPreview(){
   if(!editPointId) return;
   const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
-  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const activeU = unknownPoints.filter(u=>u.status==='active'&&u.x!==null);
   const allRefs = [...activeRefs, ...activeU];
 
   const filledRefs = allRefs.map(r=>{
@@ -2752,7 +3085,7 @@ function editCalcPreview(){
     if(!inp) return null;
     const d = pf(inp.value);
     if(isNaN(d)||d<=0) return null;
-    return {id:r.id, x:pf(r.x), y:pf(r.y), dist:d};
+    return {id:r.id, x:pf(r.x), y:pf(r.y), dist:d, color:r.color};
   }).filter(Boolean);
 
   const resultEl = document.getElementById('edit-result');
@@ -2761,6 +3094,7 @@ function editCalcPreview(){
   if(filledRefs.length < 2){
     resultEl.style.display = 'none';
     mirrorRow.style.display = 'none';
+    editDrawCanvas();
     return;
   }
 
@@ -2771,20 +3105,33 @@ function editCalcPreview(){
       pairs.push([filledRefs[i],filledRefs[j]]);
 
   let anyAmbiguous = false;
-  const cands=[], pairLbls=[];
-  pairs.forEach(([a,b])=>{
-    const res = trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
-    if(!res) return;
-    if(res.ambiguous) anyAmbiguous = true;
-    let chosen;
-    if(!res.ambiguous) chosen = res.p1;
-    else if(pairs.length===1) chosen = pickSide(res.p1,res.p2,editSideFlip);
-    else chosen = pickSide(res.p1,res.p2,false);
-    cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
-    pairLbls.push(`${a.id}-${b.id}`);
-  });
+  let cands, pairLbls;
 
-  mirrorRow.style.display = (pairs.length===1&&anyAmbiguous) ? 'block' : 'none';
+  if(editSideFlip){
+    // Manual flip: user forces all pairs to flipped side
+    cands=[]; pairLbls=[];
+    pairs.forEach(([a,b])=>{
+      const res=trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
+      if(!res) return;
+      if(res.ambiguous) anyAmbiguous=true;
+      const chosen = res.ambiguous ? res.p2 : res.p1;
+      cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
+      pairLbls.push(`${a.id}-${b.id}`);
+    });
+  } else {
+    // Auto: find best combination
+    pairs.forEach(([a,b])=>{
+      const res=trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
+      if(res&&res.ambiguous) anyAmbiguous=true;
+    });
+    const best=bestSideCombo(pairs);
+    cands=best.cands; pairLbls=best.lbls;
+  }
+
+  mirrorRow.style.display = anyAmbiguous ? 'block' : 'none';
+  // Update button label
+  document.getElementById('edit-side-auto').textContent = 'Auto (meilleur spread)';
+  document.getElementById('edit-side-flip').textContent = '⇄ Tout inverser';
 
   if(!cands.length){ resultEl.style.display='none'; return; }
 
@@ -2806,6 +3153,8 @@ function editCalcPreview(){
     `<span style="color:var(--accent)">X: ${fmt(final.x)} &nbsp; Y: ${fmt(final.y)} &nbsp; Z: ${fmt(z)}</span><br>` +
     (prec ? `<span style="color:${col}">${pairLbls.length} paire(s) · ${prec.score}% · spread ${spreadMm.toFixed(1)} mm</span>`
            : `<span style="color:var(--text-dim)">1 paire (${pairLbls[0]})</span>`);
+
+  editDrawCanvas();
 }
 
 function confirmEdit(){
@@ -2814,7 +3163,7 @@ function confirmEdit(){
   if(!p) return;
 
   const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
-  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const activeU = unknownPoints.filter(u=>u.status==='active'&&u.x!==null);
   const allRefs = [...activeRefs, ...activeU];
 
   const filledRefs = allRefs.map(r=>{
@@ -2832,17 +3181,20 @@ function confirmEdit(){
     for(let j=i+1;j<filledRefs.length;j++)
       pairs.push([filledRefs[i],filledRefs[j]]);
 
-  const cands=[], pairLbls=[];
-  pairs.forEach(([a,b])=>{
-    const res = trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
-    if(!res) return;
-    let chosen;
-    if(!res.ambiguous) chosen = res.p1;
-    else if(pairs.length===1) chosen = pickSide(res.p1,res.p2,editSideFlip);
-    else chosen = pickSide(res.p1,res.p2,false);
-    cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
-    pairLbls.push(`${a.id}-${b.id}`);
-  });
+  let cands, pairLbls;
+  if(editSideFlip){
+    cands=[]; pairLbls=[];
+    pairs.forEach(([a,b])=>{
+      const res=trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
+      if(!res) return;
+      const chosen = res.ambiguous ? res.p2 : res.p1;
+      cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
+      pairLbls.push(`${a.id}-${b.id}`);
+    });
+  } else {
+    const best=bestSideCombo(pairs);
+    cands=best.cands; pairLbls=best.lbls;
+  }
 
   if(!cands.length){ alert('⚠ Triangulation impossible — vérifiez les distances.'); return; }
 
@@ -3033,7 +3385,7 @@ function tmNext(){
 
 function tmBuildRefGrid(){
   const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
-  const activeU = unknownPoints.filter(u=>(u.status==='resolved'||u.status==='active')&&u.x!==null);
+  const activeU = unknownPoints.filter(u=>u.status==='active'&&u.x!==null);
   const allRefs = [
     ...activeRefs.map(r=>({id:r.id,label:refDisplayLabel(r),color:r.color,
       sub:`(${pf(r.x).toFixed(2)}, ${pf(r.y).toFixed(2)})`,isU:false})),
@@ -3252,7 +3604,7 @@ function tmComputeResult(){
   const filledRefs = Object.keys(tmDistances)
     .filter(k=>tmDistances[k]!=='')
     .map(k=>{
-      const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
+      const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k&&u.status==='active'&&u.x!==null);
       if(!ref) return null;
       return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
     }).filter(Boolean);
@@ -3333,7 +3685,7 @@ function tmSavePoint(){
 
   const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
   const filledRefs = filledKeys.map(k=>{
-    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
+    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k&&u.status==='active'&&u.x!==null);
     if(!ref) return null;
     return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
   }).filter(Boolean);
@@ -3433,7 +3785,7 @@ function tmFlipMirror(){
 
   const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
   const filledRefs = filledKeys.map(k=>{
-    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k);
+    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k&&u.status==='active'&&u.x!==null);
     if(!ref) return null;
     return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
   }).filter(Boolean);
@@ -4006,16 +4358,31 @@ function toggleContours(){
   const btn = document.getElementById('contour-btn');
   btn.classList.toggle('on', showContours);
   document.getElementById('contour-label').textContent = showContours ? 'Courbes ✓' : 'Courbes';
+  const ctrl = document.getElementById('idw-controls');
+  if(ctrl) ctrl.style.display = showContours ? 'flex' : 'none';
   renderCanvas();
 }
 
-// IDW interpolation: estimate Z at (qx,qy) from known points
-function idwZ(qx, qy, pts, power=2){
+// IDW interpolation with smoothing — higher smoothing reduces isolated point islands
+// smoothing: 0–100, added to distance to limit influence of very close points
+function idwZ(qx, qy, pts, power=2, smoothing=0){
+  // Convert smoothing (0-100%) to a distance offset relative to avg point spacing
+  const avgSpacing = pts.length > 1 ? (() => {
+    let sum=0, n=0;
+    for(let i=0;i<Math.min(pts.length,8);i++)
+      for(let j=i+1;j<Math.min(pts.length,8);j++){
+        sum+=Math.sqrt((pts[i].x-pts[j].x)**2+(pts[i].y-pts[j].y)**2); n++;
+      }
+    return n>0 ? sum/n : 1;
+  })() : 1;
+  const eps = (smoothing/100) * avgSpacing * 0.5; // smoothing offset
+
   let num=0, den=0;
   for(const p of pts){
     const d2=(qx-p.x)**2+(qy-p.y)**2;
-    if(d2 < 1e-10) return p.z; // exactly on a point
-    const w = 1 / Math.pow(d2, power/2);
+    if(d2 < 1e-10 && eps===0) return p.z;
+    const d = Math.sqrt(d2) + eps; // add smoothing offset
+    const w = 1 / Math.pow(d, power);
     num += w * p.z;
     den += w;
   }
@@ -4087,9 +4454,10 @@ function drawContours(toC, mnX, mnY, rX, rY, surveyPts){
   const zMin=Math.min(...zs), zMax=Math.max(...zs), zRange=zMax-zMin;
   if(zRange < 0.005) return; // not enough relief
 
-  // Choose contour interval: aim for 5-10 lines
-  const rawInterval = zRange / 7;
-  const intervals = [0.01,0.02,0.05,0.10,0.20,0.25,0.50,1.00,2.00,5.00];
+  // Choose contour interval from slider (default targets ~7 lines)
+  const targetLines = pf(document.getElementById('contour-density')?.value) || 7;
+  const rawInterval = zRange / targetLines;
+  const intervals = [0.005,0.01,0.02,0.05,0.10,0.20,0.25,0.50,1.00,2.00,5.00];
   const interval = intervals.find(v => v >= rawInterval) || rawInterval;
 
   // Build interpolation grid (world coordinates)
@@ -4098,13 +4466,14 @@ function drawContours(toC, mnX, mnY, rX, rY, surveyPts){
   const cellW = rX / (nx-1), cellH = rY / (ny-1);
 
   // Fill grid with IDW-interpolated Z values
+  const smoothing = pf(document.getElementById('idw-smooth')?.value) || 30;
   const grid = [];
   for(let iy=0; iy<ny; iy++){
     grid[iy] = [];
     for(let ix=0; ix<nx; ix++){
       const wx = mnX + ix * cellW;
       const wy = mnY + iy * cellH;
-      grid[iy][ix] = idwZ(wx, wy, surveyPts);
+      grid[iy][ix] = idwZ(wx, wy, surveyPts, 2, smoothing);
     }
   }
 
