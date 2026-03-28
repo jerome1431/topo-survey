@@ -1330,12 +1330,37 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
         </div>
       </div><!-- end left form -->
 
+      <!-- RIGHT: canvas placeholder (desktop only) -->
+      <div id="edit-canvas-desktop" style="flex:2;min-width:300px;position:relative;background:var(--surface2);min-height:420px">
+        <!-- canvas gets moved here on desktop -->
+        <div style="position:absolute;bottom:8px;right:8px;display:flex;gap:4px;z-index:1">
+          <button onclick="editZoom(1.25)" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px">+</button>
+          <button onclick="editZoom(0.8)"  style="width:28px;height:28px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px">−</button>
+          <button onclick="editZoomReset()" style="width:28px;height:28px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:11px">⌂</button>
+        </div>
+        <div style="position:absolute;top:8px;left:8px;font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);line-height:1.8;background:var(--surface)bb;border-radius:4px;padding:4px 7px;z-index:1">
+          ◉ Point édité &nbsp; ○ Autres points<br>◆ Référence &nbsp; ⊙ Cercle mesuré
+        </div>
+      </div>
+
     </div><!-- end body -->
   </div>
 </div>
 
-<!-- ── EDIT MAP PANEL (hors modale pour position:fixed correct) ──────────── -->
-<!-- ── EDIT MAP PANEL (hors modale pour position:fixed correct) ──────────── -->
+<!-- ── EDIT MAP PANEL (overlay mobile — hors modale pour position:fixed) ─── -->
+<div id="edit-canvas-col" style="display:none;position:fixed;inset:0;z-index:6000;background:var(--surface2)">
+  <canvas id="edit-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+  <!-- Controls mobile -->
+  <div style="position:absolute;bottom:20px;right:16px;display:flex;gap:8px">
+    <button onclick="editZoom(1.25)" style="width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:22px">+</button>
+    <button onclick="editZoom(0.8)"  style="width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:22px">−</button>
+    <button onclick="editZoomReset()" style="width:44px;height:44px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px">⌂</button>
+  </div>
+  <button onclick="toggleEditMap()" style="position:absolute;top:14px;right:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);cursor:pointer;z-index:1">✕ Fermer la carte</button>
+  <div style="position:absolute;top:14px;left:14px;font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);line-height:1.8;background:var(--surface)cc;border-radius:4px;padding:5px 8px">
+    ◉ Point édité &nbsp; ○ Autres points<br>◆ Référence &nbsp; ⊙ Cercle mesuré
+  </div>
+</div>
 <div id="edit-canvas-col" style="display:none;position:fixed;inset:0;z-index:6000;background:var(--surface2)">
   <canvas id="edit-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
   <!-- Controls -->
@@ -2757,9 +2782,43 @@ function editZoomReset(){
   editCanvasPan = {x:0, y:0};
   editDrawCanvas();
 }
+function editPlaceCanvas(){
+  const cvs = document.getElementById('edit-canvas');
+  if(!cvs) return;
+  const isDesktop = window.innerWidth > 700;
+  if(isDesktop){
+    // Move canvas into desktop placeholder
+    const desk = document.getElementById('edit-canvas-desktop');
+    if(desk && cvs.parentElement !== desk){
+      cvs.style.position = 'absolute';
+      cvs.style.inset = '0';
+      cvs.style.width = '100%';
+      cvs.style.height = '100%';
+      desk.insertBefore(cvs, desk.firstChild);
+    }
+    // Hide mobile overlay
+    document.getElementById('edit-canvas-col').style.display = 'none';
+  } else {
+    // Canvas stays in mobile overlay (already there by default)
+    const mob = document.getElementById('edit-canvas-col');
+    if(mob && cvs.parentElement !== mob){
+      cvs.style.position = 'absolute';
+      cvs.style.inset = '0';
+      cvs.style.width = '100%';
+      cvs.style.height = '100%';
+      mob.insertBefore(cvs, mob.firstChild);
+    }
+  }
+}
+
 function toggleEditMap(){
   const col = document.getElementById('edit-canvas-col');
   const btn = document.getElementById('edit-map-btn');
+  const isDesktop = window.innerWidth > 700;
+  if(isDesktop){
+    // Desktop: toggle not needed — canvas always visible in right column
+    return;
+  }
   const isVisible = col.style.display !== 'none' && col.style.display !== '';
   if(isVisible){
     col.style.display = 'none';
@@ -2767,11 +2826,11 @@ function toggleEditMap(){
     btn.style.borderColor = 'var(--border)';
     btn.style.color = 'var(--text-dim)';
   } else {
+    editPlaceCanvas();
     col.style.display = 'block';
     btn.textContent = '✕ Carte';
     btn.style.borderColor = 'var(--accent2)';
     btn.style.color = 'var(--accent2)';
-    // Small delay so panel is painted before we read dimensions
     requestAnimationFrame(()=>requestAnimationFrame(editDrawCanvas));
   }
 }
@@ -2881,9 +2940,13 @@ function editPoint(id){
   document.getElementById('edit-side-flip').classList.remove('active');
 
   document.getElementById('edit-overlay').classList.add('vis');
+  // Place canvas in correct container based on screen size
+  editPlaceCanvas();
+  // Hide 🗺 button on desktop — canvas is always visible
+  const mapBtn = document.getElementById('edit-map-btn');
+  if(mapBtn) mapBtn.style.display = window.innerWidth > 700 ? 'none' : '';
   editCalcPreview();
-  // Draw canvas after a short delay to ensure layout is complete
-  setTimeout(editDrawCanvas, 50);
+  requestAnimationFrame(()=>requestAnimationFrame(editDrawCanvas));
 }
 
 function closeEditModal(){
@@ -2921,10 +2984,9 @@ function editDrawCanvas(){
   if(!cvs) return;
   editAttachCanvasEvents();
   const dpr = window.devicePixelRatio||1;
-  // Use panel dimensions — on mobile the canvas is position:absolute so offsetWidth may be 0
-  const panel = document.getElementById('edit-canvas-col');
-  const W = (panel && panel.offsetWidth > 0) ? panel.offsetWidth : window.innerWidth;
-  const H = (panel && panel.offsetHeight > 0) ? panel.offsetHeight : window.innerHeight;
+  const parent = cvs.parentElement;
+  const W = (parent && parent.offsetWidth > 10) ? parent.offsetWidth : window.innerWidth;
+  const H = (parent && parent.offsetHeight > 10) ? parent.offsetHeight : window.innerHeight;
   cvs.width = W*dpr; cvs.height = H*dpr;
   const ctx = cvs.getContext('2d');
   ctx.setTransform(dpr,0,0,dpr,0,0);
