@@ -1042,6 +1042,10 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
         </button>
         <div style="font-size:9px;color:var(--text-dim);text-align:center;margin-top:4px">Solution alternative disponible</div>
       </div>
+      <!-- Always show mirror option — useful even with auto -->
+      <button id="tm-force-mirror-btn" style="display:none;margin-top:6px;width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer" onclick="tmForceMirror()">
+        ↔ Forcer côté opposé
+      </button>
     </div>
     <div class="tm-plan">
       <canvas id="tm-canvas"></canvas>
@@ -1306,27 +1310,26 @@ input:focus{border-color:var(--accent2) !important;box-shadow:0 0 0 2px var(--ac
         <div class="sec-label" style="margin-top:0">Distances au télémètre</div>
         <div id="edit-dist-grid" style="display:grid;gap:5px;margin-bottom:10px"></div>
 
-        <!-- Mire + Nom -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div class="ig">
-            <label>Mire en P (m)</label>
-            <input type="text" inputmode="decimal" id="edit-mire" placeholder="—"
-              style="background:var(--surface2);border:1px solid var(--yellow);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
+        <!-- Mirror selector — always present, shown/hidden by JS -->
+        <div id="edit-mirror-row" style="display:none;margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Côté de la solution :</div>
+          <div style="display:flex;gap:8px">
+            <button class="side-btn active" id="edit-side-auto" onclick="editSetSide('auto')" style="flex:1">Auto (min. spread)</button>
+            <button class="side-btn" id="edit-side-flip" onclick="editSetSide('flip')" style="flex:1">⇄ Forcer miroir</button>
           </div>
+        </div>
+
+        <input type="hidden" id="edit-mire" value="0">
+        <!-- Nom seul — Z jamais recalculé -->
+        <div style="margin-bottom:10px">
           <div class="ig">
             <label>Nom (optionnel)</label>
             <input type="text" id="edit-name" placeholder="—"
               style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:5px 8px;width:100%;outline:none">
           </div>
         </div>
-
-        <!-- Mirror selector -->
-        <div id="edit-mirror-row" style="display:none;margin-bottom:10px">
-          <div class="side-selector">
-            <span>2 solutions — choisissez le côté :</span>
-            <button class="side-btn active" id="edit-side-auto" onclick="editSetSide('auto')">Auto</button>
-            <button class="side-btn" id="edit-side-flip" onclick="editSetSide('flip')">⇄ Miroir</button>
-          </div>
+        <div style="font-size:9px;color:var(--text-dim);margin-bottom:10px;padding:6px 8px;background:var(--surface2);border-radius:4px;border-left:2px solid var(--yellow)">
+          ℹ Le Z n'est jamais recalculé — il correspond à la mesure physique d'origine (HI / mire)
         </div>
 
         <!-- Result preview -->
@@ -2607,6 +2610,8 @@ function confirmAndAdd(){
 
   const pt={id:autoIdx++,name,x:fx,y:fy,z:fz,nPairs:cands.length,
     precision:prec?prec.score:null,spread:prec?prec.spread:null,pairLbls,dists,mireP,
+    hi:pf(document.getElementById('hi').value)||0,
+    mireRef:pf(document.getElementById('mire-ref').value)||0,
     rawObs, usedRefs: getFilledRefs().map(r=>r.id),
     perim: isPerim, uDists,
     offsetDelta: hasOff?{dx:odx,dy:ody,dz:odz}:null
@@ -2783,16 +2788,17 @@ let editCanvasDragging = false;
 let editCanvasDragStart = {x:0, y:0};
 
 function editZoom(factor){
-  const cvs = document.getElementById('edit-canvas');
   const oldZoom = editCanvasZoom;
   editCanvasZoom = Math.max(0.1, Math.min(20, oldZoom * factor));
   const ratio = editCanvasZoom / oldZoom;
-  // Zoom toward canvas center
-  const W = cvs ? cvs.offsetWidth : 400;
-  const H = cvs ? cvs.offsetHeight : 400;
-  const cx = W/2, cy = H/2;
-  editCanvasPan.x = cx - ratio * (cx - editCanvasPan.x);
-  editCanvasPan.y = cy - ratio * (cy - editCanvasPan.y);
+  // Use getBoundingClientRect for correct position:absolute canvas dimensions
+  const cvs = document.getElementById('edit-canvas');
+  const r = cvs ? cvs.getBoundingClientRect() : null;
+  const W = r && r.width > 10 ? r.width : window.innerWidth;
+  const H = r && r.height > 10 ? r.height : window.innerHeight;
+  // Zoom toward center of visible canvas
+  editCanvasPan.x = W/2 - ratio * (W/2 - editCanvasPan.x);
+  editCanvasPan.y = H/2 - ratio * (H/2 - editCanvasPan.y);
   editDrawCanvas();
 }
 function editZoomReset(){
@@ -2805,21 +2811,20 @@ function editPlaceCanvas(){
   if(!cvs) return;
   const isDesktop = window.innerWidth > 700;
   if(isDesktop){
-    // Move canvas into desktop placeholder
     const desk = document.getElementById('edit-canvas-desktop');
     if(desk && cvs.parentElement !== desk){
+      cvs._editEventsAttached = false; // re-attach after move
       cvs.style.position = 'absolute';
       cvs.style.inset = '0';
       cvs.style.width = '100%';
       cvs.style.height = '100%';
       desk.insertBefore(cvs, desk.firstChild);
     }
-    // Hide mobile overlay
     document.getElementById('edit-canvas-col').style.display = 'none';
   } else {
-    // Canvas stays in mobile overlay (already there by default)
     const mob = document.getElementById('edit-canvas-col');
     if(mob && cvs.parentElement !== mob){
+      cvs._editEventsAttached = false;
       cvs.style.position = 'absolute';
       cvs.style.inset = '0';
       cvs.style.width = '100%';
@@ -2866,67 +2871,31 @@ function editAttachCanvasEvents(){
   const cvs = document.getElementById('edit-canvas');
   if(!cvs || cvs._editEventsAttached) return;
   cvs._editEventsAttached = true;
+
   const getPos = e => {
     const r = cvs.getBoundingClientRect();
     const src = e.touches ? e.touches[0] : e;
     return {x: src.clientX - r.left, y: src.clientY - r.top};
   };
-  let _editPinch = {active:false, startDist:1, startZoom:1, startPanX:0, startPanY:0, midX:0, midY:0};
-  cvs.addEventListener('touchstart', e=>{
-    if(e.touches.length === 1){
-      _editPinch.active = false;
-      editCanvasDragging = true;
-      editCanvasDragStart = getPos(e);
-    } else if(e.touches.length === 2){
-      editCanvasDragging = false;
-      const r = cvs.getBoundingClientRect();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      _editPinch.active = true;
-      _editPinch.startDist = Math.sqrt(dx*dx+dy*dy);
-      _editPinch.startZoom = editCanvasZoom;
-      _editPinch.startPanX = editCanvasPan.x;
-      _editPinch.startPanY = editCanvasPan.y;
-      _editPinch.midX = (e.touches[0].clientX + e.touches[1].clientX)/2 - r.left;
-      _editPinch.midY = (e.touches[0].clientY + e.touches[1].clientY)/2 - r.top;
-    }
-  },{passive:true});
-  cvs.addEventListener('touchmove', e=>{
-    if(_editPinch.active && e.touches.length === 2){
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.sqrt(dx*dx+dy*dy);
-      const ratio = dist / _editPinch.startDist;
-      const newZoom = Math.max(0.1, Math.min(20, _editPinch.startZoom * ratio));
-      const zRatio = newZoom / _editPinch.startZoom;
-      editCanvasZoom = newZoom;
-      editCanvasPan.x = _editPinch.midX - zRatio * (_editPinch.midX - _editPinch.startPanX);
-      editCanvasPan.y = _editPinch.midY - zRatio * (_editPinch.midY - _editPinch.startPanY);
-      editDrawCanvas();
-    }
-  },{passive:true});
-  cvs.addEventListener('touchend', e=>{
-    if(e.touches.length < 2) _editPinch.active = false;
+
+  // ── Mouse drag ──────────────────────────────────────────────────────────────
+  cvs.addEventListener('mousedown', e=>{
+    editCanvasDragging = true;
+    editCanvasDragStart = getPos(e);
+    e.preventDefault();
   });
   cvs.addEventListener('mousemove', e=>{
     if(!editCanvasDragging) return;
-    const p=getPos(e);
-    editCanvasPan.x+=p.x-editCanvasDragStart.x;
-    editCanvasPan.y+=p.y-editCanvasDragStart.y;
-    editCanvasDragStart=p;
+    const p = getPos(e);
+    editCanvasPan.x += p.x - editCanvasDragStart.x;
+    editCanvasPan.y += p.y - editCanvasDragStart.y;
+    editCanvasDragStart = p;
     editDrawCanvas();
   });
-  cvs.addEventListener('touchmove', e=>{
-    if(!editCanvasDragging) return;
-    const p=getPos(e);
-    editCanvasPan.x+=p.x-editCanvasDragStart.x;
-    editCanvasPan.y+=p.y-editCanvasDragStart.y;
-    editCanvasDragStart=p;
-    editDrawCanvas();
-  },{passive:true});
-  const stopDrag = ()=>{ editCanvasDragging=false; };
-  cvs.addEventListener('mouseup', stopDrag);
-  cvs.addEventListener('touchend', stopDrag);
+  cvs.addEventListener('mouseup',   ()=>{ editCanvasDragging=false; });
+  cvs.addEventListener('mouseleave',()=>{ editCanvasDragging=false; });
+
+  // ── Mouse wheel zoom — centered on cursor ───────────────────────────────────
   cvs.addEventListener('wheel', e=>{
     e.preventDefault();
     const pos = getPos(e);
@@ -2934,11 +2903,55 @@ function editAttachCanvasEvents(){
     const oldZoom = editCanvasZoom;
     editCanvasZoom = Math.max(0.1, Math.min(20, oldZoom * factor));
     const ratio = editCanvasZoom / oldZoom;
-    // Zoom centered on cursor position
     editCanvasPan.x = pos.x - ratio * (pos.x - editCanvasPan.x);
     editCanvasPan.y = pos.y - ratio * (pos.y - editCanvasPan.y);
     editDrawCanvas();
   },{passive:false});
+
+  // ── Touch ────────────────────────────────────────────────────────────────────
+  let _p = {active:false, startDist:1, startZoom:1, startPanX:0, startPanY:0, midX:0, midY:0};
+  cvs.addEventListener('touchstart', e=>{
+    if(e.touches.length === 1){
+      _p.active = false;
+      editCanvasDragging = true;
+      editCanvasDragStart = getPos(e);
+    } else if(e.touches.length === 2){
+      editCanvasDragging = false;
+      const r = cvs.getBoundingClientRect();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      _p.active = true;
+      _p.startDist = Math.sqrt(dx*dx+dy*dy)||1;
+      _p.startZoom = editCanvasZoom;
+      _p.startPanX = editCanvasPan.x;
+      _p.startPanY = editCanvasPan.y;
+      _p.midX = (e.touches[0].clientX+e.touches[1].clientX)/2 - r.left;
+      _p.midY = (e.touches[0].clientY+e.touches[1].clientY)/2 - r.top;
+    }
+  },{passive:true});
+  cvs.addEventListener('touchmove', e=>{
+    if(_p.active && e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dist=Math.sqrt(dx*dx+dy*dy)||1;
+      const newZoom=Math.max(0.1,Math.min(20,_p.startZoom*(dist/_p.startDist)));
+      const zR=newZoom/_p.startZoom;
+      editCanvasZoom=newZoom;
+      editCanvasPan.x=_p.midX-zR*(_p.midX-_p.startPanX);
+      editCanvasPan.y=_p.midY-zR*(_p.midY-_p.startPanY);
+      editDrawCanvas();
+    } else if(editCanvasDragging && e.touches.length===1){
+      const p=getPos(e);
+      editCanvasPan.x+=p.x-editCanvasDragStart.x;
+      editCanvasPan.y+=p.y-editCanvasDragStart.y;
+      editCanvasDragStart=p;
+      editDrawCanvas();
+    }
+  },{passive:true});
+  cvs.addEventListener('touchend', e=>{
+    if(e.touches.length<2) _p.active=false;
+    if(e.touches.length===0) editCanvasDragging=false;
+  });
 }
 
 function editPoint(id){
@@ -2955,14 +2968,23 @@ function editPoint(id){
     `Précision: ${p.precision!=null?p.precision+'%':'—'} &nbsp;·&nbsp; ` +
     `Déviation: ${p.spread!=null?(p.spread*1000).toFixed(1)+' mm':'—'}`;
 
-  // Build distance inputs
+  // Build distance inputs — only refs that have a stored distance
   const activeRefs = refs.filter(r=>r.x!==''&&r.y!=='');
   const activeU = unknownPoints.filter(u=>u.status==='active'&&u.x!==null);
+
+  // Filter to refs that actually have a recorded distance for this point
+  const refsWithDist = activeRefs.filter(r=> p.dists && p.dists[r.id]);
+  const uWithDist = activeU.filter(u=> (p.uDists&&p.uDists[u.id]) || (p.dists&&p.dists[u.id]));
+
+  // Also include all refs if no distances stored at all (backward compat)
+  const showRefs = (refsWithDist.length + uWithDist.length >= 2) ? refsWithDist : activeRefs;
+  const showU = (refsWithDist.length + uWithDist.length >= 2) ? uWithDist : activeU;
+
   const grid = document.getElementById('edit-dist-grid');
-  grid.style.gridTemplateColumns = activeRefs.length + activeU.length <= 3 ? '1fr' : '1fr 1fr';
+  grid.style.gridTemplateColumns = showRefs.length + showU.length <= 3 ? '1fr' : '1fr 1fr';
 
   grid.innerHTML = [
-    ...activeRefs.map(r=>`
+    ...showRefs.map(r=>`
       <div class="dist-item" style="border-color:${r.color}">
         <label><span class="rdot" style="background:${r.color}"></span>${refDisplayLabel(r)}</label>
         <input type="text" inputmode="decimal" id="edit-d-${r.id}" placeholder="—"
@@ -2970,8 +2992,7 @@ function editPoint(id){
           oninput="editCalcPreview()" style="background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;width:100%;outline:none;text-align:right">
         <span class="dist-unit">m</span>
       </div>`),
-    ...activeU.map(u=>{
-      // Try uDists, then dists, then rawObs
+    ...showU.map(u=>{
       const distVal = (p.uDists&&p.uDists[u.id]) ? fmt(p.uDists[u.id],3)
                     : (p.dists&&p.dists[u.id])   ? fmt(p.dists[u.id],3)
                     : '';
@@ -2992,10 +3013,8 @@ function editPoint(id){
     })
   ].join('');
 
-  document.getElementById('edit-mire').value = fmt(p.mireP);
   document.getElementById('edit-name').value = p.name || '';
   document.getElementById('edit-result').style.display = 'none';
-  document.getElementById('edit-mirror-row').style.display = 'none';
   document.getElementById('edit-side-auto').classList.add('active');
   document.getElementById('edit-side-flip').classList.remove('active');
 
@@ -3036,7 +3055,8 @@ function editSetSide(mode){
   editSideFlip = (mode==='flip');
   document.getElementById('edit-side-auto').classList.toggle('active', !editSideFlip);
   document.getElementById('edit-side-flip').classList.toggle('active', editSideFlip);
-  editCalcPreview();
+  editCalcPreview(); // recompute X,Y and result text
+  // editDrawCanvas is called inside editCalcPreview already
 }
 
 function editDrawCanvas(){
@@ -3185,24 +3205,11 @@ function editDrawCanvas(){
 }
 
 function bestSideCombo(pairs){
-  // Find which pairs are ambiguous
+  if(!pairs.length) return {cands:[], lbls:[]};
   const results = pairs.map(([a,b])=>trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist));
-  const ambigIdx = results.map((r,i)=>r&&r.ambiguous?i:-1).filter(i=>i>=0);
 
-  if(!ambigIdx.length){
-    // No ambiguity — just pick p1 for all
-    const cands=[], lbls=[];
-    results.forEach((res,i)=>{
-      if(!res) return;
-      const [a,b]=pairs[i];
-      cands.push({x:res.p1.x,y:res.p1.y,w:1/(a.dist*b.dist)});
-      lbls.push(`${a.id}-${b.id}`);
-    });
-    return {cands, lbls, flipped:false};
-  }
-
-  // Try all 2^n combinations for ambiguous pairs (cap at 2^6=64)
-  const n = Math.min(ambigIdx.length, 6);
+  // Always try all 2^n combinations (both sides per pair), cap at 2^6
+  const n = Math.min(pairs.length, 6);
   let bestSpread=Infinity, bestCands=null, bestLbls=null;
 
   for(let mask=0; mask<(1<<n); mask++){
@@ -3211,23 +3218,30 @@ function bestSideCombo(pairs){
     results.forEach((res,i)=>{
       if(!res){ valid=false; return; }
       const [a,b]=pairs[i];
-      let chosen;
-      if(!res.ambiguous){
-        chosen=res.p1;
-      } else {
-        const ai=ambigIdx.indexOf(i);
-        chosen = (ai>=0 && (mask>>ai)&1) ? res.p2 : res.p1;
-      }
-      cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
+      // For non-ambiguous pairs, mask=0 picks p1, mask=1 picks p1 too (no alt)
+      // For ambiguous pairs, mask bit picks p1 or p2
+      const useAlt = !!((mask>>i)&1);
+      const chosen = (useAlt && res.p2) ? res.p2 : res.p1;
+      cands.push({x:chosen.x, y:chosen.y, w:1/(a.dist*b.dist)});
       lbls.push(`${a.id}-${b.id}`);
     });
     if(!valid||!cands.length) continue;
     const final=weightedAvg(cands);
     const prec=precScore(cands,final);
-    const spread=prec?prec.spread:Infinity;
+    // For single pair: spread is null; use distance to existing points centroid as heuristic
+    let spread;
+    if(prec){
+      spread = prec.spread;
+    } else if(points.length > 0){
+      const cx=points.reduce((s,p)=>s+p.x,0)/points.length;
+      const cy=points.reduce((s,p)=>s+p.y,0)/points.length;
+      spread = Math.sqrt((final.x-cx)**2+(final.y-cy)**2);
+    } else {
+      spread = 0;
+    }
     if(spread<bestSpread){ bestSpread=spread; bestCands=[...cands]; bestLbls=[...lbls]; }
   }
-  return {cands:bestCands||[], lbls:bestLbls||[], flipped:false};
+  return {cands:bestCands||[], lbls:bestLbls||[]};
 }
 
 function editCalcPreview(){
@@ -3284,19 +3298,14 @@ function editCalcPreview(){
     cands=best.cands; pairLbls=best.lbls;
   }
 
-  mirrorRow.style.display = anyAmbiguous ? 'block' : 'none';
-  // Update button label
-  document.getElementById('edit-side-auto').textContent = 'Auto (meilleur spread)';
-  document.getElementById('edit-side-flip').textContent = '⇄ Tout inverser';
+  // Always show mirror button when there's at least 1 valid pair — user decides
+  mirrorRow.style.display = pairs.length >= 1 ? 'block' : 'none';
 
   if(!cands.length){ resultEl.style.display='none'; return; }
 
   const final = weightedAvg(cands);
   const prec = precScore(cands, final);
-  const hi = pf(document.getElementById('hi').value)||0;
-  const mRef = pf(document.getElementById('mire-ref').value)||0;
-  const mireP = pf(document.getElementById('edit-mire').value)||0;
-  const z = (hi-mireP)-(hi-mRef);
+  const p2 = points.find(p=>p.id===editPointId);
 
   const threshold = pf(document.getElementById('spread-threshold').value)||200;
   const spreadMm = prec ? prec.spread*1000 : null;
@@ -3304,9 +3313,13 @@ function editCalcPreview(){
     spreadMm <= threshold*0.5 ? 'var(--accent)' :
     spreadMm <= threshold ? 'var(--yellow)' : 'var(--red)';
 
+  // Z is NEVER recalculated — keep original value
+  const origZ = p2 ? p2.z : null;
+
   resultEl.style.display = 'block';
   resultEl.innerHTML =
-    `<span style="color:var(--accent)">X: ${fmt(final.x)} &nbsp; Y: ${fmt(final.y)} &nbsp; Z: ${fmt(z)}</span><br>` +
+    `<span style="color:var(--accent)">X: ${fmt(final.x)} &nbsp; Y: ${fmt(final.y)}</span>` +
+    (origZ!=null ? ` &nbsp; <span style="color:var(--text-dim)">Z: ${fmt(origZ)} (inchangé)</span>` : '') + '<br>' +
     (prec ? `<span style="color:${col}">${pairLbls.length} paire(s) · ${prec.score}% · spread ${spreadMm.toFixed(1)} mm</span>`
            : `<span style="color:var(--text-dim)">1 paire (${pairLbls[0]})</span>`);
 
@@ -3356,18 +3369,15 @@ function confirmEdit(){
 
   const final = weightedAvg(cands);
   const prec = precScore(cands, final);
-  const hi = pf(document.getElementById('hi').value)||0;
-  const mRef = pf(document.getElementById('mire-ref').value)||0;
-  const mireP = pf(document.getElementById('edit-mire').value)||0;
-  const z = (hi-mireP)-(hi-mRef);
 
   // Build dists objects
   const dists={}, uDists={};
   activeRefs.forEach(r=>{ const inp=document.getElementById('edit-d-'+r.id); if(inp){const d=pf(inp.value);if(!isNaN(d)&&d>0)dists[r.id]=d;} });
   activeU.forEach(u=>{ const inp=document.getElementById('edit-d-'+u.id); if(inp){const d=pf(inp.value);if(!isNaN(d)&&d>0)uDists[u.id]=d;} });
 
-  p.x=final.x; p.y=final.y; p.z=z;
-  p.mireP=mireP;
+  // Z is NEVER recalculated during edit — it was physically measured with a specific HI/mireRef
+  p.x=final.x; p.y=final.y;
+  // p.z stays unchanged
   p.name=document.getElementById('edit-name').value.trim();
   p.nPairs=pairLbls.length;
   p.precision=prec?prec.score:null;
@@ -3724,29 +3734,42 @@ function tmTrilaterate(filledRefs, useFlip=false){
     for(let j=i+1;j<filledRefs.length;j++)
       pairs.push([filledRefs[i],filledRefs[j]]);
 
-  const cands=[], pairLbls=[];
-  let altSolution = null;
-  pairs.forEach(([a,b])=>{
-    const res=trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
-    if(!res) return;
-    let chosen, other;
-    if(!res.ambiguous){
-      chosen = res.p1;
-    } else if(pairs.length===1){
-      chosen = useFlip ? res.p2 : pickSide(res.p1,res.p2,false);
-      other  = useFlip ? res.p1 : (chosen===res.p1 ? res.p2 : res.p1);
-      altSolution = other;
-    } else {
-      chosen = pickSide(res.p1,res.p2,false);
-    }
-    cands.push({x:chosen.x, y:chosen.y, w:1/(a.dist*b.dist)});
-    pairLbls.push(`${a.id}-${b.id}`);
-  });
+  if(!pairs.length) return null;
+
+  let cands, pairLbls, altSolution=null;
+
+  if(useFlip){
+    // Force all pairs to p2 side
+    cands=[]; pairLbls=[];
+    pairs.forEach(([a,b])=>{
+      const res=trilaterate2(a.x,a.y,b.x,b.y,a.dist,b.dist);
+      if(!res) return;
+      const chosen = res.ambiguous ? res.p2 : res.p1;
+      cands.push({x:chosen.x,y:chosen.y,w:1/(a.dist*b.dist)});
+      pairLbls.push(`${a.id}-${b.id}`);
+    });
+  } else {
+    // Use bestSideCombo — tests all 2^n combinations, picks minimum spread
+    const best = bestSideCombo(pairs);
+    cands = best.cands; pairLbls = best.lbls;
+  }
+
   if(!cands.length) return null;
   const final = weightedAvg(cands);
   const prec  = precScore(cands, final);
-  // ambiguous = only 1 pair and two distinct solutions exist
-  const ambiguous = pairs.length===1 && altSolution!==null;
+
+  // For ambiguous single-pair: compute alt solution
+  let ambiguous = false;
+  if(pairs.length === 1){
+    const res = trilaterate2(pairs[0][0].x,pairs[0][0].y,pairs[0][1].x,pairs[0][1].y,pairs[0][0].dist,pairs[0][1].dist);
+    if(res && res.ambiguous){
+      ambiguous = true;
+      const chosen = cands[0];
+      const other = (Math.abs(chosen.x-res.p1.x)<0.001&&Math.abs(chosen.y-res.p1.y)<0.001) ? res.p2 : res.p1;
+      altSolution = other;
+    }
+  }
+
   return {final, prec, cands, pairLbls, altSolution, ambiguous};
 }
 
@@ -3851,6 +3874,9 @@ function tmSavePoint(){
   const {final, prec, pairLbls, altSolution, ambiguous} = result;
   tmAltResult = altSolution;
   document.getElementById('tm-mirror-row').style.display = ambiguous ? 'block' : 'none';
+  // Always show force-mirror for multi-pair cases — user may want to override bestSideCombo
+  const fmBtn = document.getElementById('tm-force-mirror-btn');
+  if(fmBtn) fmBtn.style.display = pairLbls.length >= 1 ? 'block' : 'none';
 
   const z = (hi - mireP) - (hi - mRef);
 
@@ -3902,6 +3928,8 @@ function tmSavePoint(){
       nPairs: pairLbls.length,
       precision: prec?prec.score:null, spread: prec?prec.spread:null,
       pairLbls, dists, uDists, mireP,
+      hi: pf(document.getElementById('hi').value)||0,
+      mireRef: pf(document.getElementById('mire-ref').value)||0,
       rawObs:[], usedRefs:filledKeys, perim:isPerim,
       offsetDelta: hasOffset ? {dx,dy,dz} : null
     };
@@ -3935,6 +3963,55 @@ function tmSavePoint(){
   if(showCoupeYZ) renderCoupeYZ();
   return true;
 }
+function tmForceMirror(){
+  if(!tmNewPointId) return;
+  tmFlipped = !tmFlipped;
+  // Re-run save with flipped flag
+  const filledKeys = Object.keys(tmDistances).filter(k=>tmDistances[k]!=='');
+  const filledRefs = filledKeys.map(k=>{
+    const ref = refs.find(r=>r.id===k) || unknownPoints.find(u=>u.id===k&&u.status==='active'&&u.x!==null);
+    if(!ref) return null;
+    return {id:k, x:pf(ref.x), y:pf(ref.y), dist:pf(tmDistances[k])};
+  }).filter(Boolean);
+
+  const result = tmTrilaterate(filledRefs, tmFlipped);
+  if(!result){ tmFlipped=!tmFlipped; return; }
+  const {final, prec, pairLbls} = result;
+
+  const dx=(pf(document.getElementById('tm-off-x').value)||0)/100;
+  const dy=(pf(document.getElementById('tm-off-y').value)||0)/100;
+  const dz=(pf(document.getElementById('tm-off-z').value)||0)/100;
+  const fx=final.x+dx, fy=final.y+dy;
+
+  const pt = points.find(p=>p.id===tmNewPointId);
+  const pu = unknownPoints.find(u=>u.id===tmNewPointId);
+
+  if(pt){
+    pt.x=fx; pt.y=fy;
+    pt.precision=prec?prec.score:null; pt.spread=prec?prec.spread:null;
+    pt.pairLbls=pairLbls;
+    const spreadMm=prec?(prec.spread*1000).toFixed(1):'—';
+    const mirrorNote=`<span style="color:var(--yellow);font-size:10px"> ↔ côté ${tmFlipped?'forcé':'auto'}</span>`;
+    document.getElementById('tm-final-summary').innerHTML =
+      `<strong>${ptLabel(pt)}</strong><br>
+       X: ${fmt(pt.x)} &nbsp; Y: ${fmt(pt.y)} &nbsp; Z: ${fmt(pt.z)}<br>
+       Précision: ${prec?prec.score+'%':'—'} &nbsp;·&nbsp; Déviation: ${spreadMm} mm${mirrorNote}`;
+  }
+  if(pu){
+    pu.x=fx; pu.y=fy;
+    pu.precision=prec?prec.score:null;
+    const lbl=pu.name?`${pu.id}(${pu.name})`:pu.id;
+    document.getElementById('tm-final-summary').innerHTML =
+      `<strong>🔵 ${lbl}</strong><br>X: ${fmt(pu.x)} &nbsp; Y: ${fmt(pu.y)}<br>
+       <span style="color:var(--yellow);font-size:10px">↔ côté ${tmFlipped?'forcé':'auto'}</span>`;
+    buildUPanel();
+  }
+
+  tinCache=null; tinPointsHash='';
+  renderTable(); renderCanvas(); updateStats(); updateSurface(); saveAll();
+  tmDrawPlan();
+}
+
 function tmFlipMirror(){
   if(!tmNewPointId) return;
   tmFlipped = !tmFlipped;
@@ -4008,7 +4085,6 @@ function tmDrawPlan(){
   c.fillStyle=themeColor('#121614','#eef2ee'); c.fillRect(0,0,W,H);
 
   const ar=refs.filter(r=>r.x!==''&&r.y!=='');
-  // Include U points in bounds calculation
   const activeU = unknownPoints.filter(u=>u.x!==null&&u.y!==null);
   const allPts=[
     ...ar.map(r=>({x:pf(r.x),y:pf(r.y)})),
@@ -4026,51 +4102,38 @@ function tmDrawPlan(){
   const sc=Math.min(avW/rX,avH/rY),dH=rY*sc,oX=pad+(avW-rX*sc)/2,oY=pad+(avH-dH)/2;
   function tC(wx,wy){return{cx:oX+(wx-mnX)*sc,cy:oY+dH-(wy-mnY)*sc};}
 
-  // Find new point — could be P or U
   const newPtP = points.find(p=>p.id===tmNewPointId);
   const newPtU = unknownPoints.find(u=>u.id===tmNewPointId);
   const newPt = newPtP || newPtU;
 
-  // Draw P points (guard against missing Z)
   const validZs = points.map(p=>p.z).filter(z=>typeof z==='number'&&!isNaN(z));
   const zmn=validZs.length?Math.min(...validZs,0):0;
   const zmx=validZs.length?Math.max(...validZs,0):1;
   const zr=zmx-zmn||1;
 
+  // Draw other P points — faded (15% opacity)
   points.forEach(p=>{
+    if(p.id===tmNewPointId) return; // draw new point last
     const{cx,cy}=tC(p.x,p.y);
-    const isNew = p.id===tmNewPointId;
     const z = typeof p.z==='number' ? p.z : 0;
     const t2=(z-zmn)/zr;
-    const col=`rgb(${~~(168*(1-t2)+99*t2)},${~~(224*(1-t2)+200*t2)},${~~(99*(1-t2)+99*t2)})`;
-    if(isNew){
-      c.beginPath();c.arc(cx,cy,18,0,Math.PI*2);
-      c.fillStyle='rgba(99,180,224,0.2)';c.fill();
-      c.beginPath();c.arc(cx,cy,12,0,Math.PI*2);
-      c.fillStyle='rgba(99,180,224,0.15)';c.fill();
-    }
-    c.beginPath();c.arc(cx,cy,isNew?7:4,0,Math.PI*2);
-    c.fillStyle=isNew?'#63b4e0':col;c.fill();
-    const lbl=p.name?`${p.id}(${p.name})`:`P${p.id}`;
-    c.fillStyle=isNew?'#63b4e0':themeColor('#c8d8ca','#2a3a2a');
-    c.font=`${isNew?'bold ':''}10px Syne,sans-serif`;c.textAlign='left';
-    c.fillText(lbl,cx+8,cy-3);
+    const col=`rgba(${~~(168*(1-t2)+99*t2)},${~~(224*(1-t2)+200*t2)},${~~(99*(1-t2)+99*t2)},0.15)`;
+    c.beginPath();c.arc(cx,cy,4,0,Math.PI*2);
+    c.fillStyle=col;c.fill();
+    c.fillStyle=themeColor('rgba(200,216,202,0.15)','rgba(42,58,42,0.15)');
+    c.font='9px Syne,sans-serif';c.textAlign='left';
+    c.fillText(`P${p.id}`,cx+5,cy-2);
   });
 
-  // Draw U points
+  // Draw other U points — faded
   activeU.forEach(u=>{
+    if(u.id===tmNewPointId) return;
     const{cx,cy}=tC(u.x,u.y);
-    const isNew = u.id===tmNewPointId;
-    if(isNew){
-      c.beginPath();c.arc(cx,cy,18,0,Math.PI*2);
-      c.fillStyle='rgba(144,112,255,0.2)';c.fill();
-    }
-    c.beginPath();c.arc(cx,cy,isNew?7:4,0,Math.PI*2);
-    c.fillStyle=isNew?'#9070ff':'#9070ff88';c.fill();
-    const lbl=u.name?`${u.id}(${u.name})`:u.id;
-    c.fillStyle=isNew?'#9070ff':themeColor('#c8d8ca','#2a3a2a');
-    c.font=`${isNew?'bold ':''}10px Syne,sans-serif`;c.textAlign='left';
-    c.fillText(lbl,cx+8,cy-3);
+    c.beginPath();c.arc(cx,cy,4,0,Math.PI*2);
+    c.fillStyle='rgba(144,112,255,0.15)';c.fill();
+    c.fillStyle='rgba(144,112,255,0.2)';
+    c.font='9px Syne,sans-serif';c.textAlign='left';
+    c.fillText(u.id,cx+5,cy-2);
   });
 
   // Draw refs
@@ -4094,8 +4157,32 @@ function tmDrawPlan(){
       c.strokeStyle='rgba(99,180,224,0.4)';c.lineWidth=1;c.setLineDash([3,3]);c.stroke();
       c.setLineDash([]);
     });
-    const badge = newPt.name ? `${newPt.id} (${newPt.name})` : (newPtU ? newPt.id : `P${newPt.id}`);
-    document.getElementById('tm-new-badge').textContent = badge;
+  }
+
+  // Draw NEW point — 100% opacity, highlighted
+  if(newPtP){
+    const{cx,cy}=tC(newPtP.x,newPtP.y);
+    c.beginPath();c.arc(cx,cy,22,0,Math.PI*2);
+    c.fillStyle='rgba(99,180,224,0.12)';c.fill();
+    c.beginPath();c.arc(cx,cy,8,0,Math.PI*2);
+    c.fillStyle='#63b4e0';c.fill();
+    c.strokeStyle='#fff';c.lineWidth=2;c.stroke();
+    const lbl=ptLabel(newPtP);
+    c.fillStyle='#63b4e0';c.font='bold 11px Syne,sans-serif';c.textAlign='left';
+    c.fillText(lbl,cx+12,cy+4);
+    document.getElementById('tm-new-badge').textContent = lbl;
+  }
+  if(newPtU){
+    const{cx,cy}=tC(newPtU.x,newPtU.y);
+    c.beginPath();c.arc(cx,cy,22,0,Math.PI*2);
+    c.fillStyle='rgba(144,112,255,0.15)';c.fill();
+    c.beginPath();c.arc(cx,cy,8,0,Math.PI*2);
+    c.fillStyle='#9070ff';c.fill();
+    c.strokeStyle='#fff';c.lineWidth=2;c.stroke();
+    const lbl=newPtU.name?`${newPtU.id}(${newPtU.name})`:newPtU.id;
+    c.fillStyle='#9070ff';c.font='bold 11px Syne,sans-serif';c.textAlign='left';
+    c.fillText(lbl,cx+12,cy+4);
+    document.getElementById('tm-new-badge').textContent = lbl;
   }
 }
 
